@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+plugins {
+    id("com.highcapable.sweetdependency") version "1.0.4"
+    id("com.highcapable.sweetproperty") version "1.0.8"
+}
+
+
+rootProject.name = "日子清单"
+include(":app")
