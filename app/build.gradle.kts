@@ -3,6 +3,7 @@ plugins {
     autowire(libs.plugins.kotlin.android)
     autowire(libs.plugins.kotlin.compose)
     autowire(libs.plugins.kotlin.ksp)
+    autowire(libs.plugins.hilt.android)
 }
 
 android {
@@ -51,6 +52,7 @@ dependencies {
     implementation(androidx.compose.material.material.icons.extended)
     implementation(androidx.compose.ui.ui)
     implementation(androidx.compose.ui.ui.graphics)
+
     implementation(androidx.compose.ui.ui.tooling.preview)
     implementation(androidx.compose.material3.material3)
     implementation(com.google.android.material.material)
@@ -59,6 +61,10 @@ dependencies {
     implementation(io.github.moriafly.salt.ui)
     implementation(com.google.code.gson.gson)
     implementation(androidx.core.core.splashscreen)
+    implementation(io.github.billywei01.fastkv)
+
+    implementation(com.google.dagger.hilt.android)
+    ksp(com.google.dagger.hilt.android.compiler)
 
     testImplementation(junit.junit)
     androidTestImplementation(androidx.test.ext.junit)

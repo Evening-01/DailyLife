@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -63,7 +64,9 @@ fun HomeEntry() {
         }
     ) { innerPadding ->
         NavHost(navController, startDestination = Screen.Details.route, Modifier.padding(innerPadding)) {
-            composable(Screen.Details.route) { /* 你的明细页面 */ Text("明细") }
+            composable(Screen.Details.route) { /* 你的明细页面 */ Button(onClick = { /* 这里可以放置按钮点击时的操作 */ }) {
+                Text("点击我")
+            } }
             composable(Screen.Chart.route) { /* 你的图表页面 */ Text("图表") }
             composable(Screen.Discover.route) { /* 你的发现页面 */ Text("发现") }
             composable(Screen.Me.route) { /* 你的我的页面 */ Text("我的") }
