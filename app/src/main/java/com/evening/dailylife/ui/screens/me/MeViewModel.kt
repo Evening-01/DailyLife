@@ -11,11 +11,11 @@ class MeViewModel @Inject constructor(
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
-    // 同样，直接暴露状态
+    // 直接暴露状态
     val themeMode = preferencesManager.themeMode
     val dynamicColor = preferencesManager.dynamicColor
 
-    // setter 方法现在直接调用 PreferencesManager 的方法
+    // setter 直接调用 PreferencesManager 的方法
     fun setThemeMode(themeMode: ThemeMode) {
         preferencesManager.setThemeMode(themeMode)
     }

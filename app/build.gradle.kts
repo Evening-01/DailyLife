@@ -44,6 +44,8 @@ dependencies {
 
 
     implementation(androidx.core.core.ktx)
+    implementation(androidx.startup.startup.runtime)
+    implementation(androidx.tracing.tracing.ktx)
     implementation(androidx.lifecycle.lifecycle.runtime.ktx)
     implementation(androidx.activity.activity.compose)
     implementation(platform(androidx.compose.compose.bom))

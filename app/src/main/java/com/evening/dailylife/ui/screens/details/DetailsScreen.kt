@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun DetailsScreen() {
-    // 这里是你的明细页面内容
+    // 这里是明细页面内容
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("明细页面")
     }

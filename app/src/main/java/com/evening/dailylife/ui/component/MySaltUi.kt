@@ -1,5 +1,6 @@
 package com.evening.dailylife.ui.component
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -31,27 +32,23 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
 import com.evening.dailylife.R
 import com.evening.dailylife.util.Tools
-import com.moriafly.salt.ui.ItemOutSpacer
 import com.moriafly.salt.ui.SaltTheme
 import com.moriafly.salt.ui.Text
-import com.moriafly.salt.ui.TextButton
 import com.moriafly.salt.ui.UnstableSaltApi
-import com.moriafly.salt.ui.dialog.BasicDialog
 import com.moriafly.salt.ui.popup.PopupMenu
 import com.moriafly.salt.ui.popup.PopupState
 
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @UnstableSaltApi
 @Composable
-fun ItemPopup(  //TODO 根据文字长度自动调整宽度
+fun ItemPopup(
     state: PopupState,
     enabled: Boolean = true,
     iconPainter: Painter? = null,

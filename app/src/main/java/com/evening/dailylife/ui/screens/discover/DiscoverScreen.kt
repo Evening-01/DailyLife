@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun DiscoverScreen() {
-    // 这里是你的发现页面内容
+    // 这里是发现页面内容
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("发现页面")
     }

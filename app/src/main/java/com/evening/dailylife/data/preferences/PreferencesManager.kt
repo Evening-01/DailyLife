@@ -19,9 +19,6 @@ class PreferencesManager @Inject constructor(@ApplicationContext context: Contex
         private const val KEY_DYNAMIC_COLOR = "dynamic_color"
     }
 
-    // --- 改动开始 ---
-
-    // 1. 将 themeMode 改造为 StateFlow
     private val _themeMode = MutableStateFlow(
         try {
             val themeName = fastKV.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
@@ -47,5 +44,4 @@ class PreferencesManager @Inject constructor(@ApplicationContext context: Contex
         _dynamicColor.value = enabled // 更新 Flow 的值，通知所有观察者
     }
 
-    // --- 改动结束 ---
 }

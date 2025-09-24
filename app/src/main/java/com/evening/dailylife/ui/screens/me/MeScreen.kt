@@ -1,13 +1,24 @@
 package com.evening.dailylife.ui.screens.me
 
 import android.os.Build
+import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BrightnessMedium
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -33,8 +44,12 @@ fun MeScreen(
     val isDynamicColorEnabled by viewModel.dynamicColor.collectAsState()
     val themeModePopupMenuState = rememberPopupState()
 
+    val context = LocalContext.current
+    val isDynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val dynamicColorUnsupportedMessage = stringResource(R.string.dynamic_color_unsupported)
+
     RYScaffold(
-        title = "我的",
+        title = stringResource(R.string.me),
         navController = null,
     ) {
         LazyColumn(
@@ -45,29 +60,41 @@ fun MeScreen(
                 RoundedColumn {
                     ItemTitle(text = stringResource(R.string.user_interface))
 
-                    // 动态颜色开关项
-                    // 注意：动态颜色仅在 Android 12 (API 31) 及以上版本可用
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    Box {
+                        // ItemSwitcher 正常显示，并根据系统版本决定其可用状态
                         ItemSwitcher(
                             state = isDynamicColorEnabled,
                             onChange = { checked ->
                                 viewModel.setDynamicColor(checked)
                             },
+                            enabled = isDynamicColorSupported, // 根据系统版本决定开关是否可用
                             text = stringResource(R.string.dynamic_color_switcher_text),
                             sub = stringResource(R.string.dynamic_color_switcher_sub),
-                            // IMPORTANT: Create a drawable named 'color.xml'
-                            iconPainter = painterResource(id = R.drawable.ic_launcher_foreground),
-                            iconPaddingValues = PaddingValues(all = 1.7.dp),
+                            iconPainter = rememberVectorPainter(image = Icons.Outlined.Palette),
+                            iconPaddingValues = PaddingValues(all = 1.8.dp),
                             iconColor = SaltTheme.colors.text,
                         )
+
+                        // 覆盖一个透明的、可点击的遮罩层
+                        if (!isDynamicColorSupported) {
+                            Spacer(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick = {
+                                            Toast.makeText(context, dynamicColorUnsupportedMessage, Toast.LENGTH_SHORT).show()
+                                        }
+                                    )
+                            )
+                        }
                     }
 
-
-                    // Theme Mode Popup
+                    // 主题模式切换弹窗
                     ItemPopup(
                         state = themeModePopupMenuState,
-                        // IMPORTANT: Create a drawable named 'app_theme.xml'
-                        iconPainter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        iconPainter = rememberVectorPainter(image = Icons.Outlined.BrightnessMedium),
                         iconPaddingValues = PaddingValues(all = 1.8.dp),
                         iconColor = SaltTheme.colors.text,
                         text = stringResource(R.string.theme_mode_switcher_text),

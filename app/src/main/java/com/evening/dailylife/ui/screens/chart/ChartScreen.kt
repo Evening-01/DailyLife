@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun ChartScreen() {
-    // 这里是你的图表页面内容
+    // 这里是图表页面内容
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("图表页面")
     }

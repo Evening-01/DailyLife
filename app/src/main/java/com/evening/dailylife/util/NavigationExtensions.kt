@@ -10,7 +10,6 @@ fun NavHostController.debouncedPopBackStack() {
     if (currentRoute != null && previousRoute != null) {
         this.popBackStack()
     } else {
-        // 使用更具体的日志标签
         Log.w("AppNavigation", "Attempted to pop from an empty back stack.")
     }
 }

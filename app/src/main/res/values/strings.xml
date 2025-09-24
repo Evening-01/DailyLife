@@ -1,12 +1,20 @@
 <resources>
     <string name="app_name">日子记账</string>
 
-    <string name="back">返回</string>
+    <string name="details">明细</string>
+    <string name="chart">图表</string>
+    <string name="discover">发现</string>
+    <string name="me">我的</string>
+
     <string name="user_interface">用户界面</string>
     <string name="dynamic_color_switcher_text">动态颜色</string>
     <string name="dynamic_color_switcher_sub">应用来自于手机壁纸的主题色</string>
-    <string name="theme_mode_switcher_text">主题颜色</string>
+    <string name="theme_mode_switcher_text">主题模式</string>
+    <string name="dynamic_color_unsupported">动态颜色仅适用于 Android 12 及以上版本</string>
     <string name="theme_mode_system">跟随系统</string>
     <string name="theme_mode_light">亮色模式</string>
     <string name="theme_mode_dark">暗色模式</string>
+
+    <string name="back">返回</string>
+
 </resources>
