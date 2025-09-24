@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">日子记账</string>
+
+    <string name="back">返回</string>
 </resources>
