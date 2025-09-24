@@ -22,21 +22,18 @@ import com.moriafly.salt.ui.UnstableSaltApi
 import com.moriafly.salt.ui.saltColorsByColorScheme
 import com.moriafly.salt.ui.saltConfigs
 
-// 为导航栏/表面定义的专属颜色
-private val SurfaceLight = Color(0xFFFAF6ED) // 柔和燕麦色，用于亮色主题的表面，增加区分度
-private val SurfaceDark = Color(0xFF3C3831)  // 较亮的炭灰色，用于暗色主题的表面，避免过于深沉
-
 // 更新后的亮色主题方案
 private val LightColorScheme = lightColorScheme(
     primary = SunnyGold,
     onPrimary = OnSunnyGold,
     primaryContainer = SunnyGoldContainer,
     onPrimaryContainer = OnSunnyGoldContainer,
+    inversePrimary = WarmGinger,
 
     secondary = SoftCitrine,
     onSecondary = OnSoftCitrine,
-    secondaryContainer = SunnyGoldContainer,      // 使用主色调容器作为选择色，保证色调统一
-    onSecondaryContainer = OnSunnyGoldContainer, // 确保选择色上的文字清晰
+    secondaryContainer = SunnyGoldContainer,      // 恢复为原来的配色
+    onSecondaryContainer = OnSunnyGoldContainer, // 恢复为原来的配色
 
     tertiary = MutedSage,
     onTertiary = OnMutedSage,
@@ -46,13 +43,22 @@ private val LightColorScheme = lightColorScheme(
     background = ParchmentWhite,
     onBackground = TextPrimaryLight,
 
-    surface = SurfaceLight, // 使用新的表面颜色
+    surface = ParchmentWhite, // 与 background 保持一致
     onSurface = TextPrimaryLight,
-    surfaceVariant = MutedSageContainer,
+    surfaceVariant = ParchmentWhite,
     onSurfaceVariant = TextSecondaryLight,
+    surfaceTint = SunnyGold,
+    inverseSurface = DeepSlate,
+    inverseOnSurface = TextPrimaryDark,
 
     error = Color(0xFFB00020),
-    onError = Color.White
+    onError = Color.White,
+    errorContainer = Color(0xFFFCD8DF),
+    onErrorContainer = Color(0xFF141213),
+
+    outline = Color(0xFFD3CFC4),
+    outlineVariant = Color(0xFFEAE6DA),
+    scrim = Color(0x99000000),
 )
 
 // 更新后的暗色主题方案
@@ -61,11 +67,12 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = OnWarmGinger,
     primaryContainer = WarmGingerContainer,
     onPrimaryContainer = OnWarmGingerContainer,
+    inversePrimary = SunnyGold,
 
     secondary = PaleMoon,
     onSecondary = OnPaleMoon,
-    secondaryContainer = WarmGingerContainer,       // 使用主色调容器作为选择色
-    onSecondaryContainer = OnWarmGingerContainer,  // 确保选择色上的文字清晰
+    secondaryContainer = WarmGingerContainer,       // 恢复为原来的配色
+    onSecondaryContainer = OnWarmGingerContainer,  // 恢复为原来的配色
 
     tertiary = SageNight,
     onTertiary = OnSageNight,
@@ -75,13 +82,22 @@ private val DarkColorScheme = darkColorScheme(
     background = DeepSlate,
     onBackground = TextPrimaryDark,
 
-    surface = SurfaceDark, // 使用新的表面颜色
+    surface = DeepSlate, // 与 background 保持一致
     onSurface = TextPrimaryDark,
-    surfaceVariant = SageNightContainer,
+    surfaceVariant = DeepSlate,
     onSurfaceVariant = TextSecondaryDark,
+    surfaceTint = WarmGinger,
+    inverseSurface = ParchmentWhite,
+    inverseOnSurface = TextPrimaryLight,
 
     error = Color(0xFFCF6679),
-    onError = Color(0xFF141414)
+    onError = Color(0xFF141414),
+    errorContainer = Color(0xFFB00020),
+    onErrorContainer = Color(0xFFFCD8DF),
+
+    outline = Color(0xFF9F9A8F),
+    outlineVariant = Color(0xFF4F4A42),
+    scrim = Color(0x99000000),
 )
 
 
@@ -90,7 +106,7 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun DailyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true, // 参数默认值为 true
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -99,15 +115,13 @@ fun DailyTheme(
         val useDynamicColor = dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
         when {
-            // 如果开启了动态颜色且系统支持 (Android 12+)
             useDynamicColor -> {
                 if (darkTheme) dynamicDarkColorScheme(context)
                 else dynamicLightColorScheme(context)
             }
-            // 如果关闭了动态颜色或系统不支持
             else -> {
-                if (darkTheme) DarkColorScheme // 使用自定义的暗色主题
-                else LightColorScheme // 使用自定义的亮色主题
+                if (darkTheme) DarkColorScheme
+                else LightColorScheme
             }
         }
     }
@@ -116,9 +130,7 @@ fun DailyTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // 1. 设置状态栏背景为透明
             window.statusBarColor = Color.Transparent.toArgb()
-            // 2. 根据主题设置状态栏图标颜色
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
@@ -129,9 +141,8 @@ fun DailyTheme(
     ) {
         MaterialTheme(
             colorScheme = materialColorScheme,
-            typography = Typography, // 确保 Typography 已定义
+            typography = Typography,
             content = content
         )
     }
 }
-

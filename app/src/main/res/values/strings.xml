@@ -6,4 +6,7 @@
     <string name="dynamic_color_switcher_text">动态颜色</string>
     <string name="dynamic_color_switcher_sub">应用来自于手机壁纸的主题色</string>
     <string name="theme_mode_switcher_text">主题颜色</string>
+    <string name="theme_mode_system">跟随系统</string>
+    <string name="theme_mode_light">亮色模式</string>
+    <string name="theme_mode_dark">暗色模式</string>
 </resources>

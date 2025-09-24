@@ -1,7 +1,10 @@
 package com.evening.dailylife.data.preferences
 
-enum class ThemeMode {
-    SYSTEM,
-    LIGHT,
-    DARK
+import androidx.annotation.StringRes
+import com.evening.dailylife.R
+
+enum class ThemeMode(@StringRes val resId: Int) {
+    SYSTEM(R.string.theme_mode_system),
+    LIGHT(R.string.theme_mode_light),
+    DARK(R.string.theme_mode_dark)
 }
