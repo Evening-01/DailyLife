@@ -23,7 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.evening.dailylife.R
-import com.evening.dailylife.ui.presentation.common.debouncedPopBackStack
+import com.evening.dailylife.util.debouncedPopBackStack
 
 import com.moriafly.salt.ui.SaltTheme
 

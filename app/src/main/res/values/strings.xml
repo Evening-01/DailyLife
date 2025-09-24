@@ -2,4 +2,8 @@
     <string name="app_name">日子记账</string>
 
     <string name="back">返回</string>
+    <string name="user_interface">用户界面</string>
+    <string name="dynamic_color_switcher_text">动态颜色</string>
+    <string name="dynamic_color_switcher_sub">应用来自于手机壁纸的主题色</string>
+    <string name="theme_mode_switcher_text">主题颜色</string>
 </resources>

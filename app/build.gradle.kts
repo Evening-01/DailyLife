@@ -64,6 +64,7 @@ dependencies {
     implementation(io.github.billywei01.fastkv)
 
     implementation(com.google.dagger.hilt.android)
+    implementation(androidx.hilt.hilt.navigation.compose)
     ksp(com.google.dagger.hilt.android.compiler)
 
     testImplementation(junit.junit)
