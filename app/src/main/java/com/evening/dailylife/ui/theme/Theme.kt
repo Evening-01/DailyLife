@@ -22,7 +22,7 @@ import com.moriafly.salt.ui.UnstableSaltApi
 import com.moriafly.salt.ui.saltColorsByColorScheme
 import com.moriafly.salt.ui.saltConfigs
 
-// 更新后的亮色主题方案
+// 亮色主题
 private val LightColorScheme = lightColorScheme(
     primary = SunnyGold,
     onPrimary = OnSunnyGold,
@@ -32,8 +32,8 @@ private val LightColorScheme = lightColorScheme(
 
     secondary = SoftCitrine,
     onSecondary = OnSoftCitrine,
-    secondaryContainer = SunnyGoldContainer,      // 恢复为原来的配色
-    onSecondaryContainer = OnSunnyGoldContainer, // 恢复为原来的配色
+    secondaryContainer = SunnyGoldContainer,
+    onSecondaryContainer = OnSunnyGoldContainer,
 
     tertiary = MutedSage,
     onTertiary = OnMutedSage,
@@ -43,7 +43,7 @@ private val LightColorScheme = lightColorScheme(
     background = ParchmentWhite,
     onBackground = TextPrimaryLight,
 
-    surface = ParchmentWhite, // 与 background 保持一致
+    surface = ParchmentWhite,
     onSurface = TextPrimaryLight,
     surfaceVariant = ParchmentWhite,
     onSurfaceVariant = TextSecondaryLight,
@@ -51,17 +51,17 @@ private val LightColorScheme = lightColorScheme(
     inverseSurface = DeepSlate,
     inverseOnSurface = TextPrimaryDark,
 
-    error = Color(0xFFB00020),
-    onError = Color.White,
-    errorContainer = Color(0xFFFCD8DF),
-    onErrorContainer = Color(0xFF141213),
+    error = ErrorLight,
+    onError = OnErrorLight,
+    errorContainer = ErrorContainerLight,
+    onErrorContainer = OnErrorContainerLight,
 
-    outline = Color(0xFFD3CFC4),
-    outlineVariant = Color(0xFFEAE6DA),
-    scrim = Color(0x99000000),
+    outline = OutlineLight,
+    outlineVariant = OutlineVariantLight,
+    scrim = Scrim,
 )
 
-// 更新后的暗色主题方案
+// 暗色主题
 private val DarkColorScheme = darkColorScheme(
     primary = WarmGinger,
     onPrimary = OnWarmGinger,
@@ -71,8 +71,8 @@ private val DarkColorScheme = darkColorScheme(
 
     secondary = PaleMoon,
     onSecondary = OnPaleMoon,
-    secondaryContainer = WarmGingerContainer,       // 恢复为原来的配色
-    onSecondaryContainer = OnWarmGingerContainer,  // 恢复为原来的配色
+    secondaryContainer = WarmGingerContainer,
+    onSecondaryContainer = OnWarmGingerContainer,
 
     tertiary = SageNight,
     onTertiary = OnSageNight,
@@ -82,7 +82,7 @@ private val DarkColorScheme = darkColorScheme(
     background = DeepSlate,
     onBackground = TextPrimaryDark,
 
-    surface = DeepSlate, // 与 background 保持一致
+    surface = DeepSlate,
     onSurface = TextPrimaryDark,
     surfaceVariant = DeepSlate,
     onSurfaceVariant = TextSecondaryDark,
@@ -90,14 +90,14 @@ private val DarkColorScheme = darkColorScheme(
     inverseSurface = ParchmentWhite,
     inverseOnSurface = TextPrimaryLight,
 
-    error = Color(0xFFCF6679),
-    onError = Color(0xFF141414),
-    errorContainer = Color(0xFFB00020),
-    onErrorContainer = Color(0xFFFCD8DF),
+    error = ErrorDark,
+    onError = OnErrorDark,
+    errorContainer = ErrorContainerDark,
+    onErrorContainer = OnErrorContainerDark,
 
-    outline = Color(0xFF9F9A8F),
-    outlineVariant = Color(0xFF4F4A42),
-    scrim = Color(0x99000000),
+    outline = OutlineDark,
+    outlineVariant = OutlineVariantDark,
+    scrim = Scrim,
 )
 
 
