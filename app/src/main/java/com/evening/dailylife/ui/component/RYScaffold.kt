@@ -1,12 +1,14 @@
 package com.evening.dailylife.ui.component
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.ArrowBackIosNew
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -32,7 +34,7 @@ fun RYScaffold(
     showNavigationIcon: Boolean = true,
     // 允许自定义 TopAppBar 的颜色
     topAppBarColors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-        containerColor = Color.Transparent,
+        containerColor = MaterialTheme.colorScheme.surface,
         titleContentColor = SaltTheme.colors.text,
         navigationIconContentColor = SaltTheme.colors.text
     ),
@@ -66,7 +68,8 @@ fun RYScaffold(
                     }
                 },
                 actions = { actions() },
-                colors = topAppBarColors
+                colors = topAppBarColors,
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         content = { innerPadding ->

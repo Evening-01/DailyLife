@@ -52,11 +52,6 @@ fun MeScreen(
     RYScaffold(
         title = { Text(text = stringResource(R.string.me)) },
         navController = null,
-        /*topAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            // 将容器颜色设置为你的主题中合适的颜色，例如 surface
-            // surface 通常比 background 颜色稍亮或有不同色调，用于卡片、顶部栏等
-            containerColor =
-        )*/
     ) { innerPadding ->
         LazyColumn(
             contentPadding = innerPadding,
