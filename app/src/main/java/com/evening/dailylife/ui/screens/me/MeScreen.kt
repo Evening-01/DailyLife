@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrightnessMedium
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -35,7 +36,7 @@ import com.moriafly.salt.ui.UnstableSaltApi
 import com.moriafly.salt.ui.popup.PopupMenuItem
 import com.moriafly.salt.ui.popup.rememberPopupState
 
-@OptIn(UnstableSaltApi::class)
+@OptIn(UnstableSaltApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MeScreen(
     viewModel: MeViewModel = hiltViewModel()
@@ -49,10 +50,16 @@ fun MeScreen(
     val dynamicColorUnsupportedMessage = stringResource(R.string.dynamic_color_unsupported)
 
     RYScaffold(
-        title = stringResource(R.string.me),
+        title = { Text(text = stringResource(R.string.me)) },
         navController = null,
-    ) {
+        /*topAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            // 将容器颜色设置为你的主题中合适的颜色，例如 surface
+            // surface 通常比 background 颜色稍亮或有不同色调，用于卡片、顶部栏等
+            containerColor =
+        )*/
+    ) { innerPadding ->
         LazyColumn(
+            contentPadding = innerPadding,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
 

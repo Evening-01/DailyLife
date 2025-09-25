@@ -1,7 +1,6 @@
 package com.evening.dailylife.ui.screens.main
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -15,8 +14,8 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.evening.dailylife.ui.component.AnimatedBottomBarIcon
 import com.evening.dailylife.ui.navigation.AppNavHost
-import com.evening.dailylife.ui.navigation.Screen
 import com.evening.dailylife.ui.navigation.items
 
 @Composable
@@ -33,10 +32,16 @@ fun HomeScreen(
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
                 items.forEach { screen ->
+                    val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
                     NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = null) },
+                        icon = {
+                            AnimatedBottomBarIcon(
+                                screen = screen,
+                                isSelected = isSelected
+                            )
+                        },
                         label = { Text(stringResource(id = screen.labelResId)) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        selected = isSelected,
                         onClick = {
                             navController.navigate(screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
