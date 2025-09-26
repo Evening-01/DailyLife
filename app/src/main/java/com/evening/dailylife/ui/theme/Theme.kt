@@ -16,11 +16,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.moriafly.salt.ui.SaltTheme
 import com.moriafly.salt.ui.UnstableSaltApi
 import com.moriafly.salt.ui.saltColorsByColorScheme
 import com.moriafly.salt.ui.saltConfigs
+import com.moriafly.salt.ui.saltTextStyles
 
 // 亮色主题
 private val LightColorScheme = lightColorScheme(
@@ -135,9 +139,29 @@ fun DailyTheme(
         }
     }
 
+    val customSaltTextStyles = saltTextStyles(
+        main = TextStyle(
+            fontFamily = appFontFamily,
+            fontSize = 14.sp, // 对应 MaterialTheme 的 bodyLarge
+            fontWeight = FontWeight.Normal
+        ),
+        sub = TextStyle(
+            fontFamily = appFontFamily,
+            fontSize = 12.sp, // 对应 MaterialTheme 的 bodyMedium
+            fontWeight = FontWeight.Normal
+        ),
+        paragraph = TextStyle(
+            fontFamily = appFontFamily,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 22.sp
+        )
+    )
+
     SaltTheme(
         colors = saltColorsByColorScheme(materialColorScheme),
-        configs = saltConfigs(isDarkTheme = darkTheme)
+        configs = saltConfigs(isDarkTheme = darkTheme),
+        textStyles = customSaltTextStyles
     ) {
         MaterialTheme(
             colorScheme = materialColorScheme,
