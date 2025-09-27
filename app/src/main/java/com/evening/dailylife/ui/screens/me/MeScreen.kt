@@ -25,6 +25,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.R
 import com.evening.dailylife.data.preferences.ThemeMode
 import com.evening.dailylife.ui.component.ItemPopup
+import com.evening.dailylife.ui.component.RYScaffold
 import com.moriafly.salt.ui.ItemSwitcher
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
@@ -46,69 +47,77 @@ fun MeScreen(
     val isDynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val dynamicColorUnsupportedMessage = stringResource(R.string.dynamic_color_unsupported)
 
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
 
-        item {
-            RoundedColumn {
-                ItemTitle(text = stringResource(R.string.user_interface))
+    RYScaffold(
+        title = stringResource(R.string.me),
 
-                // 动态颜色切换
-                Box {
-                    // ItemSwitcher 正常显示，并根据系统版本决定其可用状态
-                    ItemSwitcher(
-                        state = isDynamicColorEnabled,
-                        onChange = { checked ->
-                            viewModel.setDynamicColor(checked)
-                        },
-                        enabled = isDynamicColorSupported, // 根据系统版本决定开关是否可用
-                        text = stringResource(R.string.dynamic_color_switcher_text),
-                        sub = stringResource(R.string.dynamic_color_switcher_sub),
-                        iconPainter = rememberVectorPainter(image = Icons.Outlined.Palette),
-                        iconPaddingValues = PaddingValues(all = 1.8.dp),
-                        iconColor = SaltTheme.colors.text,
-                    )
+        content = {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
 
-                    // 覆盖一个透明的、可点击的遮罩层
-                    if (!isDynamicColorSupported) {
-                        Spacer(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = {
-                                        Toast
-                                            .makeText(context, dynamicColorUnsupportedMessage, Toast.LENGTH_SHORT)
-                                            .show()
-                                    }
+                item {
+                    RoundedColumn {
+                        ItemTitle(text = stringResource(R.string.user_interface))
+
+                        // 动态颜色切换
+                        Box {
+                            // ItemSwitcher 正常显示，并根据系统版本决定其可用状态
+                            ItemSwitcher(
+                                state = isDynamicColorEnabled,
+                                onChange = { checked ->
+                                    viewModel.setDynamicColor(checked)
+                                },
+                                enabled = isDynamicColorSupported, // 根据系统版本决定开关是否可用
+                                text = stringResource(R.string.dynamic_color_switcher_text),
+                                sub = stringResource(R.string.dynamic_color_switcher_sub),
+                                iconPainter = rememberVectorPainter(image = Icons.Outlined.Palette),
+                                iconPaddingValues = PaddingValues(all = 1.8.dp),
+                                iconColor = SaltTheme.colors.text,
+                            )
+
+                            // 覆盖一个透明的、可点击的遮罩层
+                            if (!isDynamicColorSupported) {
+                                Spacer(
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            onClick = {
+                                                Toast
+                                                    .makeText(context, dynamicColorUnsupportedMessage, Toast.LENGTH_SHORT)
+                                                    .show()
+                                            }
+                                        )
                                 )
-                        )
-                    }
-                }
+                            }
+                        }
 
-                // 主题模式切换
-                ItemPopup(
-                    state = themeModePopupMenuState,
-                    iconPainter = rememberVectorPainter(image = Icons.Outlined.BrightnessMedium),
-                    iconPaddingValues = PaddingValues(all = 1.8.dp),
-                    iconColor = SaltTheme.colors.text,
-                    text = stringResource(R.string.theme_mode_switcher_text),
-                    selectedItem = stringResource(id = themeMode.resId),
-                    popupWidth = 140
-                ) {
-                    ThemeMode.entries.forEach { mode ->
-                        PopupMenuItem(
-                            onClick = {
-                                viewModel.setThemeMode(mode)
-                                themeModePopupMenuState.dismiss()
-                            },
-                            text = stringResource(id = mode.resId),
-                        )
+                        // 主题模式切换
+                        ItemPopup(
+                            state = themeModePopupMenuState,
+                            iconPainter = rememberVectorPainter(image = Icons.Outlined.BrightnessMedium),
+                            iconPaddingValues = PaddingValues(all = 1.8.dp),
+                            iconColor = SaltTheme.colors.text,
+                            text = stringResource(R.string.theme_mode_switcher_text),
+                            selectedItem = stringResource(id = themeMode.resId),
+                            popupWidth = 140
+                        ) {
+                            ThemeMode.entries.forEach { mode ->
+                                PopupMenuItem(
+                                    onClick = {
+                                        viewModel.setThemeMode(mode)
+                                        themeModePopupMenuState.dismiss()
+                                    },
+                                    text = stringResource(id = mode.resId),
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
-    }
+    )
+
 }
