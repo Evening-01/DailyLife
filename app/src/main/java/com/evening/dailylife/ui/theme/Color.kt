@@ -76,3 +76,7 @@ val OutlineVariantDark = Color(0xFF4F4A42)
 
 // 中性色
 val Scrim = Color(0x99000000)
+
+
+// 其他颜色
+val SuccessGreen = Color(0xFF2E7D32)

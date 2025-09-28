@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Devices
-import androidx.compose.material.icons.filled.Restaurant // 新图标
-import androidx.compose.material.icons.filled.ShoppingCart // 新图标
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -45,16 +47,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.evening.dailylife.R
+import com.evening.dailylife.ui.theme.SuccessGreen
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.abs
 
 // 模拟数据类
 data class Transaction(
@@ -69,13 +73,16 @@ data class Transaction(
 data class DailyTransactions(
     val date: String,
     val transactions: List<Transaction>,
-    val dailyTotal: Double
+    val dailyIncome: Double,
+    val dailyExpense: Double
 )
 
+//private val sampleTransactions = emptyList<DailyTransactions>()
 private val sampleTransactions = listOf(
     DailyTransactions(
         date = "今天 09/28 星期日",
-        dailyTotal = -80.50,
+        dailyIncome = 0.0,
+        dailyExpense = -80.50,
         transactions = listOf(
             Transaction(1, "餐饮", "跟朋友吃饭", -12.00, Icons.Default.Restaurant, "2025/09/28"),
             Transaction(2, "购物", "出去买东西", -68.50, Icons.Default.ShoppingCart, "2025/09/28")
@@ -83,27 +90,23 @@ private val sampleTransactions = listOf(
     ),
     DailyTransactions(
         date = "09/27 星期六",
-        dailyTotal = -25.00,
+        dailyIncome = 1000.00,
+        dailyExpense = -25.00,
         transactions = listOf(
-            Transaction(3, "餐饮", "", -25.00, Icons.Default.Restaurant, "2025/09/27")
-        )
-    ),
-    DailyTransactions(
-        date = "09/27 星期六",
-        dailyTotal = 1000.00,
-        transactions = listOf(
-            Transaction(4, "工资", "发工资了", 1000.00, Icons.Default.Restaurant, "2025/09/27")
+            Transaction(3, "餐饮", "", -25.00, Icons.Default.Restaurant, "2025/09/27"),
+            Transaction(4, "工资", "发工资了", 1000.00, Icons.Default.AttachMoney, "2025/09/27")
         )
     ),
     DailyTransactions(
         date = "09/26 星期五",
-        dailyTotal = -100.00,
+        dailyIncome = 0.0,
+        dailyExpense = -100.00,
         transactions = listOf(
             Transaction(5, "数码", "买电子配件", -100.00, Icons.Default.Devices, "2025/09/26")
         )
     )
-
 )
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -177,38 +180,76 @@ fun DetailsScreen(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            item {
-                SummaryHeader(
-                    year = yearFormat.format(selectedDate.time),
-                    month = monthFormat.format(selectedDate.time),
-                    income = "1,000.00",
-                    expense = "520.50",
-                    onDateClick = { showDatePickerDialog = true }
-                )
-            }
-            sampleTransactions.forEach { dailyData ->
-                item {
-                    DailyHeader(date = dailyData.date, total = dailyData.dailyTotal)
-                }
-                items(dailyData.transactions) { transaction ->
-                    TransactionItem(
-                        transaction = transaction,
-                        onClick = { onTransactionClick(transaction.id) }
-                    )
-                    Divider(
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                        modifier = Modifier.padding(start = 72.dp)
-                    )
+        Column(modifier = Modifier.padding(innerPadding)) {
+            SummaryHeader(
+                year = yearFormat.format(selectedDate.time),
+                month = monthFormat.format(selectedDate.time),
+                income = "1,000.00",
+                expense = "520.50",
+                onDateClick = { showDatePickerDialog = true }
+            )
+
+            if (sampleTransactions.isEmpty()) {
+                EmptyState()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    sampleTransactions.forEach { dailyData ->
+                        item {
+                            DailyHeader(
+                                date = dailyData.date,
+                                income = dailyData.dailyIncome,
+                                expense = dailyData.dailyExpense
+                            )
+                        }
+                        items(dailyData.transactions) { transaction ->
+                            TransactionItem(
+                                transaction = transaction,
+                                onClick = { onTransactionClick(transaction.id) }
+                            )
+                            Divider(
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                modifier = Modifier.padding(start = 72.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
+
+
+@Composable
+fun EmptyState() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                contentDescription = "空数据",
+                modifier = Modifier.size(80.dp),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "暂无账单数据\n点击右下角的按钮记一笔吧！",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
 
 @Composable
 fun SummaryHeader(
@@ -320,7 +361,16 @@ fun SummaryItem(title: String, amount: String) {
 }
 
 @Composable
-fun DailyHeader(date: String, total: Double) {
+fun DailyHeader(date: String, income: Double, expense: Double) {
+    fun formatDate(date: String): String {
+        if (date.startsWith("今天")) {
+            return "今天"
+        }
+        val parts = date.split(" ")
+        val dateParts = parts[0].split("/")
+        return "${dateParts[0]}月${dateParts[1]}日 ${parts[1]}"
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -329,15 +379,28 @@ fun DailyHeader(date: String, total: Double) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = date,
+            text = formatDate(date),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Text(
-            text = "支出: ${"%.2f".format(total)}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Row {
+            if (income > 0) {
+                Text(
+                    text = "收入: ${"%.2f".format(income)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+            if (expense < 0) {
+                Text(
+                    text = "支出: ${"%.2f".format(abs(expense))}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
     }
 }
 
@@ -396,9 +459,7 @@ fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
             text = "%.2f".format(transaction.amount),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Bold,
-            color = if (transaction.amount < 0) MaterialTheme.colorScheme.error else Color(
-                0xFF2E7D32
-            )
+            color = if (transaction.amount > 0) SuccessGreen else MaterialTheme.colorScheme.error
         )
     }
 }
