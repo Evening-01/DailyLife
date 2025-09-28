@@ -33,21 +33,21 @@ val Typography = Typography(
     headlineLarge = TextStyle(
         fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 30.sp, // 原为 32.sp
+        fontSize = 32.sp, // 原为 32.sp
         lineHeight = 38.sp,
         letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 26.sp, // 原为 28.sp
+        fontSize = 28.sp, // 原为 28.sp
         lineHeight = 34.sp,
         letterSpacing = 0.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = appFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 22.sp, // 原为 24.sp
+        fontSize = 24.sp, // 原为 24.sp
         lineHeight = 30.sp,
         letterSpacing = 0.sp
     ),

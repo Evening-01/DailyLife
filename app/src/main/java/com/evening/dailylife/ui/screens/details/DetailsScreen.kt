@@ -1,18 +1,393 @@
-package com.evening.dailylife.ui.screens.details
+package com.evening.dailylife.ui.screens.discover
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Restaurant // 新图标
+import androidx.compose.material.icons.filled.ShoppingCart // 新图标
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.evening.dailylife.R
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+
+// 模拟数据类
+data class Transaction(
+    val id: Int,
+    val category: String,
+    val description: String,
+    val amount: Double,
+    val icon: ImageVector,
+    val date: String
+)
+
+data class DailyTransactions(
+    val date: String,
+    val transactions: List<Transaction>,
+    val dailyTotal: Double
+)
+
+private val sampleTransactions = listOf(
+    DailyTransactions(
+        date = "今天 09/28 星期日",
+        dailyTotal = -80.50,
+        transactions = listOf(
+            Transaction(1, "餐饮", "跟朋友吃饭", -12.00, Icons.Default.Restaurant, "2025/09/28"),
+            Transaction(2, "购物", "出去买东西", -68.50, Icons.Default.ShoppingCart, "2025/09/28")
+        )
+    ),
+    DailyTransactions(
+        date = "09/27 星期六",
+        dailyTotal = -25.00,
+        transactions = listOf(
+            Transaction(3, "餐饮", "午餐", -25.00, Icons.Default.Restaurant, "2025/09/27")
+        )
+    ),
+    DailyTransactions(
+        date = "09/26 星期五",
+        dailyTotal = -100.00,
+        transactions = listOf(
+            Transaction(4, "数码", "买电子配件", -100.00, Icons.Default.Devices, "2025/09/26")
+        )
+    )
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DetailsScreen(
+    onTransactionClick: (Int) -> Unit
+) {
+    var showDatePickerDialog by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedDate.timeInMillis
+    )
+
+    // 日期格式化工具
+    val yearFormat = SimpleDateFormat("yyyy年", Locale.getDefault())
+    val monthFormat = SimpleDateFormat("M月", Locale.getDefault())
+
+    // 日期选择对话框
+    if (showDatePickerDialog) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePickerDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDatePickerDialog = false
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val newCalendar = Calendar.getInstance().apply {
+                                timeInMillis = millis
+                            }
+                            selectedDate = newCalendar
+                        }
+                    }
+                ) {
+                    Text("确认")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDatePickerDialog = false }
+                ) {
+                    Text("取消")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        stringResource(id = R.string.app_name),
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { /* TODO: 添加新账单 */ }) {
+                Icon(Icons.Default.Add, contentDescription = "添加账单")
+            }
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            item {
+                SummaryHeader(
+                    year = yearFormat.format(selectedDate.time),
+                    month = monthFormat.format(selectedDate.time),
+                    income = "1,000.00",
+                    expense = "520.50",
+                    onDateClick = { showDatePickerDialog = true }
+                )
+            }
+            sampleTransactions.forEach { dailyData ->
+                item {
+                    DailyHeader(date = dailyData.date, total = dailyData.dailyTotal)
+                }
+                items(dailyData.transactions) { transaction ->
+                    TransactionItem(
+                        transaction = transaction,
+                        onClick = { onTransactionClick(transaction.id) }
+                    )
+                    Divider(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        modifier = Modifier.padding(start = 72.dp)
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
-fun DetailsScreen() {
-    // 这里是明细页面内容
+fun SummaryHeader(
+    year: String,
+    month: String,
+    income: String,
+    expense: String,
+    onDateClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(top = 4.dp, bottom = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            DatePickerModule(
+                year = year,
+                month = month,
+                onClick = onDateClick,
+                modifier = Modifier.weight(1f)
+            )
+            VerticalDivider()
+            IncomeExpenseGroup(
+                income = income,
+                expense = expense,
+                modifier = Modifier.weight(3f)
+            )
+        }
+    }
+}
 
+@Composable
+private fun DatePickerModule(
+    year: String,
+    month: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = modifier
+            .clip(MaterialTheme.shapes.medium)
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp, horizontal = 16.dp)
+    ) {
+        Text(
+            text = year,
+            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = month,
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "选择月份",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("明细页面")
+@Composable
+private fun IncomeExpenseGroup(income: String, expense: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SummaryItem(title = "收入", amount = income)
+        SummaryItem(title = "支出", amount = expense)
+    }
+}
+
+@Composable
+private fun VerticalDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxHeight(0.6f)
+            .width(1.dp)
+            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
+    )
+}
+
+@Composable
+fun SummaryItem(title: String, amount: String) {
+    Column(
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(text = title, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = amount,
+            color = MaterialTheme.colorScheme.onPrimary,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
+fun DailyHeader(date: String, total: Double) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = date,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = "支出: ${"%.2f".format(total)}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Icon
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = transaction.icon,
+                contentDescription = transaction.category,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // 优化后的分类和备注区域
+        Box(modifier = Modifier.weight(1f)) {
+            if (transaction.description.isNotBlank()) {
+                // 有备注时，显示两行
+                Column {
+                    Text(
+                        text = transaction.category,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = transaction.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                // 备注为空时，只显示分类，并垂直居中
+                Text(
+                    text = transaction.category,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
+        // 金额
+        Text(
+            text = "%.2f".format(transaction.amount),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = if (transaction.amount < 0) MaterialTheme.colorScheme.error else Color(
+                0xFF2E7D32
+            )
+        )
     }
 }
