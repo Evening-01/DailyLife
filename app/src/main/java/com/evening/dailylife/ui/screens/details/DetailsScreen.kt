@@ -28,6 +28,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -84,16 +85,24 @@ private val sampleTransactions = listOf(
         date = "09/27 星期六",
         dailyTotal = -25.00,
         transactions = listOf(
-            Transaction(3, "餐饮", "午餐", -25.00, Icons.Default.Restaurant, "2025/09/27")
+            Transaction(3, "餐饮", "", -25.00, Icons.Default.Restaurant, "2025/09/27")
+        )
+    ),
+    DailyTransactions(
+        date = "09/27 星期六",
+        dailyTotal = 1000.00,
+        transactions = listOf(
+            Transaction(4, "工资", "发工资了", 1000.00, Icons.Default.Restaurant, "2025/09/27")
         )
     ),
     DailyTransactions(
         date = "09/26 星期五",
         dailyTotal = -100.00,
         transactions = listOf(
-            Transaction(4, "数码", "买电子配件", -100.00, Icons.Default.Devices, "2025/09/26")
+            Transaction(5, "数码", "买电子配件", -100.00, Icons.Default.Devices, "2025/09/26")
         )
     )
+
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -160,7 +169,11 @@ fun DetailsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { /* TODO: 添加新账单 */ }) {
-                Icon(Icons.Default.Add, contentDescription = "添加账单")
+                ExtendedFloatingActionButton(
+                    onClick = { /* TODO: 添加新账单 */ },
+                    icon = { Icon(Icons.Default.Add, contentDescription = "添加账单") },
+                    text = { Text("记一笔") }
+                )
             }
         }
     ) { innerPadding ->
@@ -342,22 +355,20 @@ fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
             modifier = Modifier
                 .size(40.dp)
                 .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.secondaryContainer),
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = transaction.icon,
                 contentDescription = transaction.category,
-                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
 
-        // 优化后的分类和备注区域
         Box(modifier = Modifier.weight(1f)) {
             if (transaction.description.isNotBlank()) {
-                // 有备注时，显示两行
                 Column {
                     Text(
                         text = transaction.category,
