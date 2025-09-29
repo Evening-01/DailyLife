@@ -2,6 +2,7 @@ package com.evening.dailylife.ui.screens.details
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +55,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.evening.dailylife.R
+import com.evening.dailylife.data.preferences.ThemeMode
+import com.evening.dailylife.ui.screens.me.MeViewModel
 import com.evening.dailylife.ui.theme.SuccessGreen
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -111,8 +116,16 @@ private val sampleTransactions = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
-    onTransactionClick: (Int) -> Unit
+    onTransactionClick: (Int) -> Unit,
+    meViewModel: MeViewModel = hiltViewModel()
 ) {
+    val themeMode by meViewModel.themeMode.collectAsState()
+    val isDark = when (themeMode) {
+        ThemeMode.DARK -> true
+        ThemeMode.LIGHT -> false
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    }
+
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
     val datePickerState = rememberDatePickerState(
@@ -123,9 +136,8 @@ fun DetailsScreen(
     val yearFormat = SimpleDateFormat("yyyy年", Locale.getDefault())
     val monthFormat = SimpleDateFormat("M月", Locale.getDefault())
 
-    val headerContainerColor = MaterialTheme.colorScheme.primaryContainer
-    val headerContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-
+    val headerContainerColor = if (isDark) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary
+    val headerContentColor = if (isDark) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onPrimary
 
     // 日期选择对话框
     if (showDatePickerDialog) {
