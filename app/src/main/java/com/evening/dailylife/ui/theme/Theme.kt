@@ -67,8 +67,11 @@ private val LightColorScheme = lightColorScheme(
 
 // 暗色主题
 private val DarkColorScheme = darkColorScheme(
-    primary = WarmGinger,
-    onPrimary = OnWarmGinger,
+    // [关键修改] 将 primary 和 onPrimary 修改为你期望的颜色，
+    // 以便在暗色模式下，DetailsScreen的头部能呈现出你想要的效果。
+    primary = SunnyGoldContainer,
+    onPrimary = OnSunnyGoldContainer,
+
     primaryContainer = WarmGingerContainer,
     onPrimaryContainer = OnWarmGingerContainer,
     inversePrimary = SunnyGold,

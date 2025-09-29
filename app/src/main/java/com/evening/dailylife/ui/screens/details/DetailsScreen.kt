@@ -1,4 +1,4 @@
-package com.evening.dailylife.ui.screens.discover
+package com.evening.dailylife.ui.screens.details
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,7 +31,6 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -47,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -123,6 +123,10 @@ fun DetailsScreen(
     val yearFormat = SimpleDateFormat("yyyy年", Locale.getDefault())
     val monthFormat = SimpleDateFormat("M月", Locale.getDefault())
 
+    val headerContainerColor = MaterialTheme.colorScheme.primaryContainer
+    val headerContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+
+
     // 日期选择对话框
     if (showDatePickerDialog) {
         DatePickerDialog(
@@ -154,7 +158,6 @@ fun DetailsScreen(
         }
     }
 
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -165,19 +168,17 @@ fun DetailsScreen(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = headerContainerColor,
+                    titleContentColor = headerContentColor
                 )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* TODO: 添加新账单 */ }) {
-                ExtendedFloatingActionButton(
-                    onClick = { /* TODO: 添加新账单 */ },
-                    icon = { Icon(Icons.Default.Add, contentDescription = "添加账单") },
-                    text = { Text("记一笔") }
-                )
-            }
+            ExtendedFloatingActionButton(
+                onClick = { /* TODO: 添加新账单 */ },
+                icon = { Icon(Icons.Default.Add, contentDescription = "添加账单") },
+                text = { Text("记一笔") }
+            )
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
@@ -186,7 +187,9 @@ fun DetailsScreen(
                 month = monthFormat.format(selectedDate.time),
                 income = "1,000.00",
                 expense = "520.50",
-                onDateClick = { showDatePickerDialog = true }
+                onDateClick = { showDatePickerDialog = true },
+                containerColor = headerContainerColor,
+                contentColor = headerContentColor
             )
 
             if (sampleTransactions.isEmpty()) {
@@ -257,12 +260,14 @@ fun SummaryHeader(
     month: String,
     income: String,
     expense: String,
-    onDateClick: () -> Unit
+    onDateClick: () -> Unit,
+    containerColor: Color,
+    contentColor: Color
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary)
+            .background(containerColor)
             .padding(top = 4.dp, bottom = 16.dp)
     ) {
         Row(
@@ -275,12 +280,14 @@ fun SummaryHeader(
                 year = year,
                 month = month,
                 onClick = onDateClick,
+                contentColor = contentColor,
                 modifier = Modifier.weight(1f)
             )
-            VerticalDivider()
+            VerticalDivider(contentColor)
             IncomeExpenseGroup(
                 income = income,
                 expense = expense,
+                contentColor = contentColor,
                 modifier = Modifier.weight(3f)
             )
         }
@@ -292,6 +299,7 @@ private fun DatePickerModule(
     year: String,
     month: String,
     onClick: () -> Unit,
+    contentColor: Color,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -303,57 +311,60 @@ private fun DatePickerModule(
     ) {
         Text(
             text = year,
-            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+            color = contentColor.copy(alpha = 0.8f)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = month,
-                color = MaterialTheme.colorScheme.onPrimary,
+                color = contentColor,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
                 contentDescription = "选择月份",
-                tint = MaterialTheme.colorScheme.onPrimary
+                tint = contentColor
             )
         }
     }
 }
 
 @Composable
-private fun IncomeExpenseGroup(income: String, expense: String, modifier: Modifier = Modifier) {
+private fun IncomeExpenseGroup(income: String, expense: String, contentColor: Color, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SummaryItem(title = "收入", amount = income)
-        SummaryItem(title = "支出", amount = expense)
+        SummaryItem(title = "收入", amount = income, contentColor = contentColor)
+        SummaryItem(title = "支出", amount = expense, contentColor = contentColor)
     }
 }
 
 @Composable
-private fun VerticalDivider() {
+private fun VerticalDivider(color: Color) {
     Box(
         modifier = Modifier
             .fillMaxHeight(0.6f)
             .width(1.dp)
-            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f))
+            .background(color.copy(alpha = 0.3f))
     )
 }
 
 @Composable
-fun SummaryItem(title: String, amount: String) {
+fun SummaryItem(title: String, amount: String, contentColor: Color) {
     Column(
         horizontalAlignment = Alignment.Start
     ) {
-        Text(text = title, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
+        Text(
+            text = title,
+            color = contentColor.copy(alpha = 0.8f)
+        )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = amount,
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = contentColor,
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold
         )

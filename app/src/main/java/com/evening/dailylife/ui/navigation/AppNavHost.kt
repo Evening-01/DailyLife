@@ -7,8 +7,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.evening.dailylife.ui.screens.chart.ChartScreen
+import com.evening.dailylife.ui.screens.details.DetailsScreen
 import com.evening.dailylife.ui.screens.details.DiscoverScreen
-import com.evening.dailylife.ui.screens.discover.DetailsScreen
 import com.evening.dailylife.ui.screens.me.MeScreen
 
 @Composable
