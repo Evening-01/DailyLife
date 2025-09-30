@@ -11,10 +11,8 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -29,25 +27,19 @@ import com.moriafly.salt.ui.saltColorsByColorScheme
 import com.moriafly.salt.ui.saltConfigs
 import com.moriafly.salt.ui.saltTextStyles
 
-@Immutable
-data class ExtendedColorScheme(
-    val headerContainer: Color,
-    val onHeaderContainer: Color
-)
-
+// 亮色主题的扩展颜色
 private val lightExtendedColorScheme = ExtendedColorScheme(
     headerContainer = SunnyGold,
-    onHeaderContainer = OnSunnyGold
+    onHeaderContainer = OnSunnyGold,
+    success = SuccessGreen
 )
 
+// 暗色主题的扩展颜色
 private val darkExtendedColorScheme = ExtendedColorScheme(
     headerContainer = WarmGingerContainer,
-    onHeaderContainer = OnWarmGingerContainer
+    onHeaderContainer = OnWarmGingerContainer,
+    success = SuccessGreen // 在暗色主题下可以考虑使用一个更柔和的绿色
 )
-
-val LocalExtendedColorScheme = staticCompositionLocalOf {
-    lightExtendedColorScheme
-}
 
 
 // 亮色主题
@@ -159,12 +151,14 @@ fun DailyTheme(
             if (darkTheme) {
                 ExtendedColorScheme(
                     headerContainer = materialColorScheme.primaryContainer,
-                    onHeaderContainer = materialColorScheme.onPrimaryContainer
+                    onHeaderContainer = materialColorScheme.onPrimaryContainer,
+                    success = SuccessGreen // 动态颜色时也保持一致
                 )
             } else {
                 ExtendedColorScheme(
                     headerContainer = materialColorScheme.primary,
-                    onHeaderContainer = materialColorScheme.onPrimary
+                    onHeaderContainer = materialColorScheme.onPrimary,
+                    success = SuccessGreen
                 )
             }
         } else {
