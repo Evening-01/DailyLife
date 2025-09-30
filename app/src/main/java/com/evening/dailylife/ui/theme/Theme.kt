@@ -10,8 +10,11 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -25,6 +28,27 @@ import com.moriafly.salt.ui.UnstableSaltApi
 import com.moriafly.salt.ui.saltColorsByColorScheme
 import com.moriafly.salt.ui.saltConfigs
 import com.moriafly.salt.ui.saltTextStyles
+
+@Immutable
+data class ExtendedColorScheme(
+    val headerContainer: Color,
+    val onHeaderContainer: Color
+)
+
+private val lightExtendedColorScheme = ExtendedColorScheme(
+    headerContainer = SunnyGold,
+    onHeaderContainer = OnSunnyGold
+)
+
+private val darkExtendedColorScheme = ExtendedColorScheme(
+    headerContainer = WarmGingerContainer,
+    onHeaderContainer = OnWarmGingerContainer
+)
+
+val LocalExtendedColorScheme = staticCompositionLocalOf {
+    lightExtendedColorScheme
+}
+
 
 // 亮色主题
 private val LightColorScheme = lightColorScheme(
@@ -67,8 +91,6 @@ private val LightColorScheme = lightColorScheme(
 
 // 暗色主题
 private val DarkColorScheme = darkColorScheme(
-    // [关键修改] 将 primary 和 onPrimary 修改为你期望的颜色，
-    // 以便在暗色模式下，DetailsScreen的头部能呈现出你想要的效果。
     primary = SunnyGoldContainer,
     onPrimary = OnSunnyGoldContainer,
 
@@ -117,10 +139,9 @@ fun DailyTheme(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
+    val useDynamicColor = dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
-    val materialColorScheme = remember(darkTheme, dynamicColor) {
-        val useDynamicColor = dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-
+    val materialColorScheme = remember(darkTheme, useDynamicColor) {
         when {
             useDynamicColor -> {
                 if (darkTheme) dynamicDarkColorScheme(context)
@@ -132,6 +153,25 @@ fun DailyTheme(
             }
         }
     }
+
+    val extendedColorScheme = remember(materialColorScheme, darkTheme, useDynamicColor) {
+        if (useDynamicColor) {
+            if (darkTheme) {
+                ExtendedColorScheme(
+                    headerContainer = materialColorScheme.primaryContainer,
+                    onHeaderContainer = materialColorScheme.onPrimaryContainer
+                )
+            } else {
+                ExtendedColorScheme(
+                    headerContainer = materialColorScheme.primary,
+                    onHeaderContainer = materialColorScheme.onPrimary
+                )
+            }
+        } else {
+            if (darkTheme) darkExtendedColorScheme else lightExtendedColorScheme
+        }
+    }
+
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -145,12 +185,12 @@ fun DailyTheme(
     val customSaltTextStyles = saltTextStyles(
         main = TextStyle(
             fontFamily = appFontFamily,
-            fontSize = 14.sp, // 对应 MaterialTheme 的 bodyLarge
+            fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         ),
         sub = TextStyle(
             fontFamily = appFontFamily,
-            fontSize = 12.sp, // 对应 MaterialTheme 的 bodyMedium
+            fontSize = 12.sp,
             fontWeight = FontWeight.Normal
         ),
         paragraph = TextStyle(
@@ -161,15 +201,17 @@ fun DailyTheme(
         )
     )
 
-    SaltTheme(
-        colors = saltColorsByColorScheme(materialColorScheme),
-        configs = saltConfigs(isDarkTheme = darkTheme),
-        textStyles = customSaltTextStyles
-    ) {
-        MaterialTheme(
-            colorScheme = materialColorScheme,
-            typography = Typography,
-            content = content
-        )
+    CompositionLocalProvider(LocalExtendedColorScheme provides extendedColorScheme) {
+        SaltTheme(
+            colors = saltColorsByColorScheme(materialColorScheme),
+            configs = saltConfigs(isDarkTheme = darkTheme),
+            textStyles = customSaltTextStyles
+        ) {
+            MaterialTheme(
+                colorScheme = materialColorScheme,
+                typography = Typography,
+                content = content
+            )
+        }
     }
 }
