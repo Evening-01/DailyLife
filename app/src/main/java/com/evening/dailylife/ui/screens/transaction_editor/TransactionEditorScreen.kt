@@ -108,16 +108,41 @@ val incomeCategories = listOf(
     TransactionCategory("其他", Icons.Default.MoreHoriz),
 )
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionEditorScreen(
     navController: NavController,
     viewModel: TransactionEditorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showCalculator by remember { mutableStateOf(false) }
 
+    TransactionEditorContent(
+        uiState = uiState,
+        onTransactionTypeChange = viewModel::onTransactionTypeChange,
+        onCategoryChange = viewModel::onCategoryChange,
+        onAmountChange = viewModel::onAmountChange,
+        onDescriptionChange = viewModel::onDescriptionChange,
+        onDateChange = viewModel::onDateChange,
+        onSaveTransaction = {
+            viewModel.saveTransaction()
+            navController.popBackStack()
+        },
+        onNavigateBack = { navController.popBackStack() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TransactionEditorContent(
+    uiState: TransactionEditorUiState,
+    onTransactionTypeChange: (Boolean) -> Unit,
+    onCategoryChange: (String) -> Unit,
+    onAmountChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onDateChange: (Long) -> Unit,
+    onSaveTransaction: () -> Unit,
+    onNavigateBack: () -> Unit
+) {
+    var showCalculator by remember { mutableStateOf(false) }
     var displayExpression by remember { mutableStateOf(uiState.amount.ifEmpty { "0.00" }) }
 
     val categories = if (uiState.isExpense) expenseCategories else incomeCategories
@@ -136,12 +161,11 @@ fun TransactionEditorScreen(
             CenterAlignedTopAppBar(
                 title = { Text(if (uiState.isExpense) "记一笔支出" else "记一笔收入") },
                 navigationIcon = {
-                    // *** 修改点: 更新关闭按钮的逻辑 ***
                     IconButton(onClick = {
                         if (showCalculator) {
                             showCalculator = false
                         } else {
-                            navController.popBackStack()
+                            onNavigateBack()
                         }
                     }) {
                         Icon(Icons.Default.Close, contentDescription = "关闭")
@@ -150,11 +174,13 @@ fun TransactionEditorScreen(
             )
         }
     ) { paddingValues ->
-        Box(
+        // *** 修复点: 整个内容区是一个 Column, 不再使用 Box 叠加 ***
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // 这部分是屏幕上方的固定内容
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -165,99 +191,96 @@ fun TransactionEditorScreen(
                 ) {
                     Tab(
                         selected = uiState.isExpense,
-                        onClick = { viewModel.onTransactionTypeChange(true) },
+                        onClick = { onTransactionTypeChange(true) },
                         text = { Text("支出") },
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Tab(
                         selected = !uiState.isExpense,
-                        onClick = { viewModel.onTransactionTypeChange(false) },
+                        onClick = { onTransactionTypeChange(false) },
                         text = { Text("收入") },
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(4),
-                    contentPadding = PaddingValues(vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(top = 16.dp)
-                ) {
-                    items(categories) { category ->
-                        CategoryItem(
-                            category = category,
-                            isSelected = category.name == uiState.category,
-                            onClick = {
-                                viewModel.onCategoryChange(category.name)
-                                showCalculator = true
-                            }
-                        )
-                    }
+            // *** 修复点: LazyVerticalGrid 使用 weight(1f) 来占据所有剩余的可滚动空间 ***
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(4),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(categories) { category ->
+                    CategoryItem(
+                        category = category,
+                        isSelected = category.name == uiState.category,
+                        onClick = {
+                            onCategoryChange(category.name)
+                            showCalculator = true
+                        }
+                    )
                 }
             }
 
-            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-                AnimatedVisibility(
-                    visible = showCalculator,
-                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+            // *** 修复点: 计算器作为 Column 的最后一个元素，根据可见性占据空间 ***
+            AnimatedVisibility(
+                visible = showCalculator,
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 8.dp
                 ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        shadowElevation = 8.dp
-                    ) {
-                        Column {
-                            Row(
+                    Column {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "¥",
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "¥",
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier
-                                        .align(Alignment.Bottom)
-                                        .padding(bottom = 2.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = displayExpression,
-                                    fontSize = 32.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.End
-                                )
-                            }
-
-                            OutlinedTextField(
-                                value = uiState.description,
-                                onValueChange = viewModel::onDescriptionChange,
-                                label = { Text("备注(可选)") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                                    .align(Alignment.Bottom)
+                                    .padding(bottom = 2.dp)
                             )
-
-                            CalculatorPad(
-                                initialValue = uiState.amount,
-                                onExpressionChange = { newExpression, numericValue ->
-                                    displayExpression = newExpression
-                                    viewModel.onAmountChange(numericValue)
-                                },
-                                selectedDate = selectedDate,
-                                onDateSelected = { calendar -> viewModel.onDateChange(calendar.timeInMillis) },
-                                onSaveClick = {
-                                    viewModel.saveTransaction()
-                                    navController.popBackStack()
-                                }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = displayExpression,
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.End
                             )
                         }
+
+                        OutlinedTextField(
+                            value = uiState.description,
+                            onValueChange = onDescriptionChange,
+                            label = { Text("备注(可选)") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                        )
+
+                        CalculatorPad(
+                            initialValue = uiState.amount,
+                            onExpressionChange = { newExpression, numericValue ->
+                                displayExpression = newExpression
+                                onAmountChange(numericValue)
+                            },
+                            selectedDate = selectedDate,
+                            onDateSelected = { calendar -> onDateChange(calendar.timeInMillis) },
+                            onSaveClick = onSaveTransaction
+                        )
                     }
                 }
             }
