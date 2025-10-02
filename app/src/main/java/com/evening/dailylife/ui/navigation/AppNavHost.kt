@@ -1,14 +1,15 @@
 package com.evening.dailylife.ui.navigation
 
+// 导入我们新创建的屏幕
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.evening.dailylife.ui.screens.add_edit_transaction.AddEditTransactionScreen
 import com.evening.dailylife.ui.screens.chart.ChartScreen
 import com.evening.dailylife.ui.screens.details.DetailsScreen
-import com.evening.dailylife.ui.screens.details.DiscoverScreen
+import com.evening.dailylife.ui.screens.discover.DiscoverScreen
 import com.evening.dailylife.ui.screens.me.MeScreen
 
 @Composable
@@ -18,23 +19,30 @@ fun AppNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Route.Details,
+        startDestination = Route.DETAILS,
         modifier = modifier
     ) {
-        composable(Route.Details) {
+        composable(Route.DETAILS) {
             DetailsScreen(
-                onTransactionClick = { transactionId ->
-                }
+                onTransactionClick = { /*TODO*/ },
+                // 在这里处理导航
+                onAddTransactionClick = { navController.navigate(Route.ADD_EDIT_TRANSACTION) }
             )
         }
-        composable(Route.Chart) {
+        composable(Route.CHART) {
             ChartScreen()
         }
-        composable(Route.Discover) {
+        composable(Route.DISCOVER) {
             DiscoverScreen()
         }
-        composable(Route.Me) {
-            MeScreen(viewModel = hiltViewModel())
+        composable(Route.ME) {
+            MeScreen()
+        }
+        // 添加新屏幕的 composable
+        composable(Route.ADD_EDIT_TRANSACTION) {
+            AddEditTransactionScreen(
+                onNavigateUp = { navController.navigateUp() }
+            )
         }
     }
 }

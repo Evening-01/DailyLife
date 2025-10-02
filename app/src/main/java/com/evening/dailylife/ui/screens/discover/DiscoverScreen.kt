@@ -1,4 +1,4 @@
-package com.evening.dailylife.ui.screens.details
+package com.evening.dailylife.ui.screens.discover
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -125,3 +125,11 @@ libraries:
   androidx.hilt:
     hilt-navigation-compose:
       version: 1.3.0
+
+  androidx.room:
+    room-runtime:
+      version: 2.8.1
+    room-compiler:
+      version: 2.8.1
+    room-ktx:
+      version: 2.8.1

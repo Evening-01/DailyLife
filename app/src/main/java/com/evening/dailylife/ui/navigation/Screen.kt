@@ -17,10 +17,10 @@ sealed class Screen(
     val showTopBar: Boolean = false // <-- 新增属性
 ) {
     // 为需要显示顶栏的页面，将 showTopBar 设为 true
-    object Details : Screen(Route.Details, R.string.details, Icons.Default.List, showTopBar = true)
-    object Chart : Screen(Route.Chart, R.string.chart, Icons.Default.BarChart, showTopBar = true)
-    object Discover : Screen(Route.Discover, R.string.discover, Icons.Default.Explore, showTopBar = true)
-    object Me : Screen(Route.Me, R.string.me, Icons.Default.Person, showTopBar = true)
+    object Details : Screen(Route.DETAILS, R.string.details, Icons.Default.List, showTopBar = true)
+    object Chart : Screen(Route.CHART, R.string.chart, Icons.Default.BarChart, showTopBar = true)
+    object Discover : Screen(Route.DISCOVER, R.string.discover, Icons.Default.Explore, showTopBar = true)
+    object Me : Screen(Route.ME, R.string.me, Icons.Default.Person, showTopBar = true)
 }
 
 val items = listOf(

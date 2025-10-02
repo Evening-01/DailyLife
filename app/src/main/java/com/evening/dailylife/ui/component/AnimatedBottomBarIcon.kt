@@ -31,7 +31,7 @@ fun AnimatedBottomBarIcon(
     )
 
     when (screen.route) {
-        Route.Details -> {
+        Route.DETAILS -> {
             // "明细": "心跳" 或 "呼吸感" 动画
             val scale by transition.animateFloat(
                 transitionSpec = {
@@ -64,7 +64,7 @@ fun AnimatedBottomBarIcon(
                 }
             )
         }
-        Route.Chart -> {
+        Route.CHART -> {
             // "图表": 模拟柱子增长的动画
             val scaleY by transition.animateFloat(
                 transitionSpec = { tween(durationMillis = 300) },
@@ -87,7 +87,7 @@ fun AnimatedBottomBarIcon(
                 )
             )
         }
-        Route.Discover -> {
+        Route.DISCOVER -> {
             // "发现": 旋转动画
             val rotation by transition.animateFloat(
                 transitionSpec = { tween(durationMillis = 400) },
@@ -101,7 +101,7 @@ fun AnimatedBottomBarIcon(
                 modifier = Modifier.rotate(rotation)
             )
         }
-        Route.Me -> {
+        Route.ME -> {
             // "我的": 突出 "点头" 动画
             val scale by transition.animateFloat(
                 transitionSpec = { tween(durationMillis = 200) }, // 使用简单的 tween，不再 spring

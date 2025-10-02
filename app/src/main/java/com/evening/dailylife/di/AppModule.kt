@@ -1,7 +1,9 @@
 package com.evening.dailylife.di
 
 import android.content.Context
-import com.evening.dailylife.data.preferences.PreferencesManager
+import com.evening.dailylife.data.local.dao.TransactionDao
+import com.evening.dailylife.data.local.database.AppDatabase
+import com.evening.dailylife.data.repository.TransactionRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,9 +15,21 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    @Provides
     @Singleton
-    fun providePreferencesManager(@ApplicationContext context: Context): PreferencesManager {
-        return PreferencesManager(context)
+    @Provides
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return AppDatabase.getDatabase(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideTransactionDao(appDatabase: AppDatabase): TransactionDao {
+        return appDatabase.transactionDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideTransactionRepository(transactionDao: TransactionDao): TransactionRepository {
+        return TransactionRepository(transactionDao)
     }
 }

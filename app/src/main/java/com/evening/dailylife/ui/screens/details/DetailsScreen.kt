@@ -39,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +54,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.evening.dailylife.R
+import com.evening.dailylife.data.local.entity.Transaction
 import com.evening.dailylife.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.ui.theme.SuccessGreen
 import java.text.SimpleDateFormat
@@ -61,59 +64,25 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
 
-// 模拟数据类
-data class Transaction(
-    val id: Int,
-    val category: String,
-    val description: String,
-    val amount: Double,
-    val icon: ImageVector,
-    val date: String
-)
-
-data class DailyTransactions(
-    val date: String,
-    val transactions: List<Transaction>,
-    val dailyIncome: Double,
-    val dailyExpense: Double
-)
-
-//private val sampleTransactions = emptyList<DailyTransactions>()
-private val sampleTransactions = listOf(
-    DailyTransactions(
-        date = "今天 09/28 星期日",
-        dailyIncome = 0.0,
-        dailyExpense = -80.50,
-        transactions = listOf(
-            Transaction(1, "餐饮", "跟朋友吃饭", -12.00, Icons.Default.Restaurant, "2025/09/28"),
-            Transaction(2, "购物", "出去买东西", -68.50, Icons.Default.ShoppingCart, "2025/09/28")
-        )
-    ),
-    DailyTransactions(
-        date = "09/27 星期六",
-        dailyIncome = 1000.00,
-        dailyExpense = -25.00,
-        transactions = listOf(
-            Transaction(3, "餐饮", "", -25.00, Icons.Default.Restaurant, "2025/09/27"),
-            Transaction(4, "工资", "发工资了", 1000.00, Icons.Default.AttachMoney, "2025/09/27")
-        )
-    ),
-    DailyTransactions(
-        date = "09/26 星期五",
-        dailyIncome = 0.0,
-        dailyExpense = -100.00,
-        transactions = listOf(
-            Transaction(5, "数码", "买电子配件", -100.00, Icons.Default.Devices, "2025/09/26")
-        )
-    )
-)
-
+// 将数据库实体映射到UI数据类的辅助函数
+fun mapIcon(iconName: String): ImageVector {
+    return when (iconName) {
+        "Restaurant" -> Icons.Default.Restaurant
+        "ShoppingCart" -> Icons.Default.ShoppingCart
+        "AttachMoney" -> Icons.Default.AttachMoney
+        "Devices" -> Icons.Default.Devices
+        else -> Icons.Default.Restaurant // 默认图标
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
-    onTransactionClick: (Int) -> Unit
+    onTransactionClick: (Int) -> Unit,
+    onAddTransactionClick: () -> Unit, // 新增回调
+    viewModel: DetailsViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
     val datePickerState = rememberDatePickerState(
@@ -140,6 +109,7 @@ fun DetailsScreen(
                                 timeInMillis = millis
                             }
                             selectedDate = newCalendar
+                            // TODO: 根据选择的日期筛选账单
                         }
                     }
                 ) {
@@ -175,7 +145,7 @@ fun DetailsScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { /* TODO: 添加新账单 */ },
+                onClick = { onAddTransactionClick() }, // 调用回调
                 icon = { Icon(Icons.Default.Add, contentDescription = "添加账单") },
                 text = { Text("记一笔") }
             )
@@ -185,20 +155,22 @@ fun DetailsScreen(
             SummaryHeader(
                 year = yearFormat.format(selectedDate.time),
                 month = monthFormat.format(selectedDate.time),
-                income = "1,000.00",
-                expense = "520.50",
+                income = "%.2f".format(uiState.totalIncome),
+                expense = "%.2f".format(abs(uiState.totalExpense)),
                 onDateClick = { showDatePickerDialog = true },
                 containerColor = headerContainerColor,
                 contentColor = headerContentColor
             )
 
-            if (sampleTransactions.isEmpty()) {
+            if (uiState.isLoading) {
+                // TODO: 在此处显示加载指示器 (e.g., CircularProgressIndicator)
+            } else if (uiState.transactions.isEmpty()) {
                 EmptyState()
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    sampleTransactions.forEach { dailyData ->
+                    uiState.transactions.forEach { dailyData ->
                         item {
                             DailyHeader(
                                 date = dailyData.date,
@@ -208,7 +180,7 @@ fun DetailsScreen(
                         }
                         items(dailyData.transactions) { transaction ->
                             TransactionItem(
-                                transaction = transaction,
+                                transaction = transaction, // 使用从ViewModel获取的数据
                                 onClick = { onTransactionClick(transaction.id) }
                             )
                             Divider(
@@ -433,7 +405,7 @@ fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = transaction.icon,
+                imageVector = mapIcon(transaction.icon), // 映射图标
                 contentDescription = transaction.category,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
