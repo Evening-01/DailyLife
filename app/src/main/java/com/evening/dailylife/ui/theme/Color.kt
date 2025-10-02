@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 // --- 亮色主题配色 ---
 
 // 主色调：阳光金
-val SunnyGold = Color(0xFFFFC947)
+val SunnyGold = Color(0xFFFFC740)
 val OnSunnyGold = Color(0xFF482F00)
 val SunnyGoldContainer = Color(0xFFFFE08B)
 val OnSunnyGoldContainer = Color(0xFF2B1A00)

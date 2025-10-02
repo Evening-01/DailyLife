@@ -1,12 +1,16 @@
 package com.evening.dailylife.ui.screens.transaction_editor
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,8 +70,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -82,26 +87,25 @@ import java.util.Locale
 // 数据类和分类列表 (这部分保持不变)
 data class TransactionCategory(
     val name: String,
-    val icon: ImageVector,
-    val color: Color = Color.Black
+    val icon: ImageVector
 )
 
 val expenseCategories = listOf(
-    TransactionCategory("餐饮", Icons.Default.Fastfood, Color(0xFFF44336)),
-    TransactionCategory("交通", Icons.Default.Commute, Color(0xFF9C27B0)),
-    TransactionCategory("购物", Icons.Default.ShoppingCart, Color(0xFF3F51B5)),
-    TransactionCategory("娱乐", Icons.Default.SportsEsports, Color(0xFF009688)),
-    TransactionCategory("服饰", Icons.Default.Checkroom, Color(0xFFFF9800)),
-    TransactionCategory("住房", Icons.Default.Home, Color(0xFF795548)),
-    TransactionCategory("通讯", Icons.Default.Phone, Color(0xFF607D8B)),
-    TransactionCategory("医疗", Icons.Default.LocalHospital, Color(0xFFE91E63)),
+    TransactionCategory("餐饮", Icons.Default.Fastfood),
+    TransactionCategory("交通", Icons.Default.Commute),
+    TransactionCategory("购物", Icons.Default.ShoppingCart),
+    TransactionCategory("娱乐", Icons.Default.SportsEsports),
+    TransactionCategory("服饰", Icons.Default.Checkroom),
+    TransactionCategory("住房", Icons.Default.Home),
+    TransactionCategory("通讯", Icons.Default.Phone),
+    TransactionCategory("医疗", Icons.Default.LocalHospital),
 )
 
 val incomeCategories = listOf(
-    TransactionCategory("工资", Icons.Default.MonetizationOn, Color(0xFF4CAF50)),
-    TransactionCategory("理财", Icons.Default.TrendingUp, Color(0xFF2196F3)),
-    TransactionCategory("红包", Icons.Default.Redeem, Color(0xFFF44336)),
-    TransactionCategory("其他", Icons.Default.MoreHoriz, Color(0xFF9E9E9E)),
+    TransactionCategory("工资", Icons.Default.MonetizationOn),
+    TransactionCategory("理财", Icons.Default.TrendingUp),
+    TransactionCategory("红包", Icons.Default.Redeem),
+    TransactionCategory("其他", Icons.Default.MoreHoriz),
 )
 
 
@@ -114,7 +118,6 @@ fun TransactionEditorScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showCalculator by remember { mutableStateOf(false) }
 
-    // 用于在UI上显示完整的计算表达式，如 "10 + 5"
     var displayExpression by remember { mutableStateOf(uiState.amount.ifEmpty { "0.00" }) }
 
     val categories = if (uiState.isExpense) expenseCategories else incomeCategories
@@ -122,46 +125,60 @@ fun TransactionEditorScreen(
         Calendar.getInstance().apply { timeInMillis = uiState.date }
     }
 
+    // 处理返回事件
+    BackHandler(enabled = showCalculator) {
+        // 当计算器显示时，返回键的功能是收起计算器
+        showCalculator = false
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(if (uiState.isExpense) "记一笔支出" else "记一笔收入") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    // *** 修改点: 更新关闭按钮的逻辑 ***
+                    IconButton(onClick = {
+                        if (showCalculator) {
+                            showCalculator = false
+                        } else {
+                            navController.popBackStack()
+                        }
+                    }) {
                         Icon(Icons.Default.Close, contentDescription = "关闭")
                     }
                 }
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // 上半部分：分类选择
             Column(
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
-
-                // 支出/收入 切换
                 TabRow(
-                    selectedTabIndex = if (uiState.isExpense) 0 else 1,
-                    modifier = Modifier.padding(top = 16.dp)
+                    selectedTabIndex = if (uiState.isExpense) 0 else 1
                 ) {
                     Tab(
                         selected = uiState.isExpense,
                         onClick = { viewModel.onTransactionTypeChange(true) },
-                        text = { Text("支出") })
+                        text = { Text("支出") },
+                        selectedContentColor = MaterialTheme.colorScheme.primary,
+                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Tab(
                         selected = !uiState.isExpense,
                         onClick = { viewModel.onTransactionTypeChange(false) },
-                        text = { Text("收入") })
+                        text = { Text("收入") },
+                        selectedContentColor = MaterialTheme.colorScheme.primary,
+                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
-                // 分类选择
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(4),
                     contentPadding = PaddingValues(vertical = 16.dp),
@@ -182,93 +199,99 @@ fun TransactionEditorScreen(
                 }
             }
 
-            // 下半部分：带动画的金额显示 + 备注 + 计算器
-            AnimatedVisibility(
-                visible = showCalculator,
-                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
-            ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 8.dp
+            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+                AnimatedVisibility(
+                    visible = showCalculator,
+                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                 ) {
-                    Column {
-                        // 金额显示区域
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.End, // 靠右对齐
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "¥",
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.align(Alignment.Bottom).padding(bottom = 2.dp)
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 8.dp
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "¥",
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .align(Alignment.Bottom)
+                                        .padding(bottom = 2.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = displayExpression,
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.End
+                                )
+                            }
+
+                            OutlinedTextField(
+                                value = uiState.description,
+                                onValueChange = viewModel::onDescriptionChange,
+                                label = { Text("备注(可选)") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = displayExpression,
-                                fontSize = 32.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.End
+
+                            CalculatorPad(
+                                initialValue = uiState.amount,
+                                onExpressionChange = { newExpression, numericValue ->
+                                    displayExpression = newExpression
+                                    viewModel.onAmountChange(numericValue)
+                                },
+                                selectedDate = selectedDate,
+                                onDateSelected = { calendar -> viewModel.onDateChange(calendar.timeInMillis) },
+                                onSaveClick = {
+                                    viewModel.saveTransaction()
+                                    navController.popBackStack()
+                                }
                             )
                         }
-
-
-                        // 备注输入框
-                        OutlinedTextField(
-                            value = uiState.description,
-                            onValueChange = viewModel::onDescriptionChange,
-                            label = { Text("备注(可选)") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-                        )
-
-                        // 计算器
-                        CalculatorPad(
-                            initialValue = uiState.amount,
-                            // 传入回调，同时更新UI表达式和ViewModel中的数值
-                            onExpressionChange = { newExpression, numericValue ->
-                                displayExpression = newExpression
-                                viewModel.onAmountChange(numericValue)
-                            },
-                            selectedDate = selectedDate,
-                            onDateSelected = { calendar -> viewModel.onDateChange(calendar.timeInMillis) },
-                            onSaveClick = {
-                                viewModel.saveTransaction()
-                                navController.popBackStack()
-                            }
-                        )
                     }
                 }
             }
         }
     }
-
 }
 
+// CategoryItem Composable (保持不变)
 @Composable
 fun CategoryItem(category: TransactionCategory, isSelected: Boolean, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.clickable(onClick = onClick)
+        modifier = Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = onClick
+        )
     ) {
         Box(
             modifier = Modifier
                 .size(60.dp)
                 .clip(CircleShape)
-                .background(if (isSelected) category.color else MaterialTheme.colorScheme.surfaceVariant),
+                .background(
+                    if (isSelected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = category.icon,
                 contentDescription = category.name,
-                tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.primary
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -277,6 +300,8 @@ fun CategoryItem(category: TransactionCategory, isSelected: Boolean, onClick: ()
 }
 
 
+// CalculatorPad Composable (保持不变)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CalculatorPad(
     initialValue: String,
@@ -285,13 +310,13 @@ fun CalculatorPad(
     onDateSelected: (Calendar) -> Unit,
     onSaveClick: () -> Unit,
 ) {
-    // --- 状态变量 ---
     var currentInput by remember { mutableStateOf(initialValue.ifEmpty { "0" }) }
     var firstOperand by remember { mutableStateOf<Double?>(null) }
     var operator by remember { mutableStateOf<String?>(null) }
     var clearInputOnNextDigit by remember { mutableStateOf(true) }
     var showDatePicker by remember { mutableStateOf(false) }
 
+    val hapticFeedback = LocalHapticFeedback.current
     val dateFormat = SimpleDateFormat("M.d", Locale.getDefault())
 
     fun formatDecimal(number: Double): String {
@@ -331,7 +356,18 @@ fun CalculatorPad(
         clearInputOnNextDigit = true
     }
 
+    fun clearAll() {
+        currentInput = "0"
+        firstOperand = null
+        operator = null
+        clearInputOnNextDigit = true
+    }
+
     fun handleInput(input: Any) {
+        if (input !is Unit) {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.VirtualKey)
+        }
+
         when (input) {
             is String -> {
                 when {
@@ -343,6 +379,7 @@ fun CalculatorPad(
                             currentInput = if (currentInput == "0") input else currentInput + input
                         }
                     }
+
                     input == "." -> {
                         if (clearInputOnNextDigit) {
                             currentInput = "0."
@@ -351,6 +388,7 @@ fun CalculatorPad(
                             currentInput += "."
                         }
                     }
+
                     input in listOf("+", "-") -> {
                         if (!clearInputOnNextDigit && firstOperand != null && operator != null) {
                             performCalculation()
@@ -359,23 +397,33 @@ fun CalculatorPad(
                         operator = input
                         clearInputOnNextDigit = true
                     }
+
                     input == "=" -> {
                         if (operator != null) {
                             performCalculation()
                         }
                     }
+
                     input == "完成" -> {
                         onExpressionChange(currentInput, currentInput)
                         onSaveClick()
                     }
+
                     input == "date" -> showDatePicker = true
                 }
             }
             is ImageVector -> {
-                if (!clearInputOnNextDigit && currentInput.isNotEmpty()) {
+                if (clearInputOnNextDigit && operator != null) {
+                    currentInput = firstOperand?.let { formatDecimal(it) } ?: "0"
+                    operator = null
+                    firstOperand = null
+                    clearInputOnNextDigit = false
+                }
+                else if (currentInput.isNotEmpty() && currentInput != "0") {
                     currentInput = currentInput.dropLast(1)
-                    if (currentInput.isEmpty()) {
+                    if (currentInput.isEmpty() || currentInput == "-") {
                         currentInput = "0"
+                        clearInputOnNextDigit = true
                     }
                 }
             }
@@ -403,42 +451,52 @@ fun CalculatorPad(
                     .padding(4.dp)
                     .height(60.dp)
 
-                val isFinalButton = item == "=" || item == "完成"
-                val isOperator = item is String && item in listOf("+", "-")
-                val isDate = item == "date"
-
-                if (isFinalButton) {
-                    Button(
-                        onClick = { handleInput(item) },
-                        modifier = modifier,
-                        shape = MaterialTheme.shapes.medium,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text(item as String, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                when (item) {
+                    "=", "完成" -> {
+                        Button(
+                            onClick = { handleInput(item) },
+                            modifier = modifier,
+                            shape = MaterialTheme.shapes.medium,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text(item as String, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
-                } else {
-                    TextButton(
-                        onClick = { handleInput(item) },
-                        modifier = modifier,
-                        shape = MaterialTheme.shapes.medium,
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (isOperator) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                        )
-                    ) {
-                        when (item) {
-                            is String -> {
-                                val text = if (isDate) dateFormat.format(selectedDate.time) else item
-                                Text(
-                                    text = text,
-                                    fontSize = if (isDate) 16.sp else 22.sp,
-                                    fontWeight = if (isOperator || isDate) FontWeight.Medium else FontWeight.Normal
-                                )
-                            }
-                            is ImageVector -> {
-                                Icon(item, contentDescription = "Backspace", modifier = Modifier.size(26.dp))
-                            }
+                    is ImageVector -> {
+                        Box(
+                            modifier = modifier
+                                .clip(MaterialTheme.shapes.medium)
+                                .combinedClickable(
+                                    onClick = { handleInput(item) },
+                                    onLongClick = {
+                                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        clearAll()
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(item, contentDescription = "Backspace", modifier = Modifier.size(26.dp))
+                        }
+                    }
+
+                    else -> {
+                        val isDate = item == "date"
+                        TextButton(
+                            onClick = { handleInput(item) },
+                            modifier = modifier,
+                            shape = MaterialTheme.shapes.medium,
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        ) {
+                            val text = if (isDate) dateFormat.format(selectedDate.time) else item as String
+                            Text(
+                                text = text,
+                                fontSize = if (isDate) 16.sp else 22.sp,
+                                fontWeight = if (isDate) FontWeight.Medium else FontWeight.Normal
+                            )
                         }
                     }
                 }
