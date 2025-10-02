@@ -75,7 +75,7 @@ libraries:
       version: <no-spec>
   androidx.compose.material3:
     material3:
-      version: <no-spec>
+      version: 1.4.0
   com.google.android.material:
     material:
       version: 1.12.0

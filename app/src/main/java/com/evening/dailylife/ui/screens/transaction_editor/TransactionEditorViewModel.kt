@@ -21,6 +21,7 @@ class TransactionEditorViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TransactionEditorUiState())
     val uiState: StateFlow<TransactionEditorUiState> = _uiState.asStateFlow()
 
+    // --- 原有方法 ---
     fun onAmountChange(amount: String) {
         _uiState.update { it.copy(amount = amount) }
     }
@@ -41,6 +42,37 @@ class TransactionEditorViewModel @Inject constructor(
         _uiState.update { it.copy(isExpense = isExpense) }
     }
 
+    // --- 新增的计算器处理方法 ---
+    fun onCalculatorDigit(digit: String) {
+        val currentAmount = _uiState.value.amount
+        if (currentAmount == "0") {
+            _uiState.update { it.copy(amount = digit) }
+        } else {
+            // 限制长度，避免过长
+            if (currentAmount.length < 10) {
+                _uiState.update { it.copy(amount = currentAmount + digit) }
+            }
+        }
+    }
+
+    fun onCalculatorDecimal() {
+        if (!_uiState.value.amount.contains(".")) {
+            _uiState.update { it.copy(amount = _uiState.value.amount + ".") }
+        }
+    }
+
+    fun onCalculatorBackspace() {
+        val currentAmount = _uiState.value.amount
+        if (currentAmount.isNotEmpty()) {
+            _uiState.update { it.copy(amount = currentAmount.dropLast(1)) }
+        }
+        // 如果删除后为空，则重置为 "0"
+        if (_uiState.value.amount.isEmpty()) {
+            _uiState.update { it.copy(amount = "0") }
+        }
+    }
+
+    // --- 原有的保存逻辑 ---
     fun saveTransaction() {
         viewModelScope.launch {
             val currentState = _uiState.value
@@ -60,7 +92,6 @@ class TransactionEditorViewModel @Inject constructor(
 
             val transactionAmount = if (currentState.isExpense) -abs(amountValue) else abs(amountValue)
 
-            // TODO: In a real app, map category name to a specific icon string
             val iconName = when(currentState.category) {
                 "餐饮" -> "Restaurant"
                 "购物" -> "ShoppingCart"
@@ -79,7 +110,6 @@ class TransactionEditorViewModel @Inject constructor(
 
             repository.insertTransaction(newTransaction)
 
-            // Saving is done (we can navigate back from the UI)
             _uiState.update { it.copy(isSaving = false) }
         }
     }

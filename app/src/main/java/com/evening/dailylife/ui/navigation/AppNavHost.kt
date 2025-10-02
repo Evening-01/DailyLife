@@ -6,11 +6,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.evening.dailylife.ui.screens.transaction_editor.AddEditTransactionScreen
 import com.evening.dailylife.ui.screens.chart.ChartScreen
 import com.evening.dailylife.ui.screens.details.DetailsScreen
 import com.evening.dailylife.ui.screens.discover.DiscoverScreen
 import com.evening.dailylife.ui.screens.me.MeScreen
+import com.evening.dailylife.ui.screens.transaction_editor.TransactionEditorScreen
 
 @Composable
 fun AppNavHost(
@@ -40,9 +40,7 @@ fun AppNavHost(
         }
         // 添加新屏幕的 composable
         composable(Route.ADD_EDIT_TRANSACTION) {
-            AddEditTransactionScreen(
-                onNavigateUp = { navController.navigateUp() }
-            )
+            TransactionEditorScreen(navController = navController)
         }
     }
 }
