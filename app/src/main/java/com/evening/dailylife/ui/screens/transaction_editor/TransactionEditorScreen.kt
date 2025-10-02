@@ -31,7 +31,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Checkroom
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Commute
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.Home
@@ -43,6 +42,7 @@ import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.sharp.ArrowBackIosNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -79,6 +79,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.moriafly.salt.ui.UnstableSaltApi
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -130,7 +131,7 @@ fun TransactionEditorScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, UnstableSaltApi::class)
 @Composable
 fun TransactionEditorContent(
     uiState: TransactionEditorUiState,
@@ -168,13 +169,12 @@ fun TransactionEditorContent(
                             onNavigateBack()
                         }
                     }) {
-                        Icon(Icons.Default.Close, contentDescription = "关闭")
+                        Icon(Icons.Sharp.ArrowBackIosNew, contentDescription = "关闭")
                     }
                 }
             )
         }
     ) { paddingValues ->
-        // *** 修复点: 整个内容区是一个 Column, 不再使用 Box 叠加 ***
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -206,7 +206,6 @@ fun TransactionEditorContent(
                 }
             }
 
-            // *** 修复点: LazyVerticalGrid 使用 weight(1f) 来占据所有剩余的可滚动空间 ***
             LazyVerticalGrid(
                 columns = GridCells.Fixed(4),
                 contentPadding = PaddingValues(16.dp),
@@ -226,7 +225,6 @@ fun TransactionEditorContent(
                 }
             }
 
-            // *** 修复点: 计算器作为 Column 的最后一个元素，根据可见性占据空间 ***
             AnimatedVisibility(
                 visible = showCalculator,
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -288,7 +286,6 @@ fun TransactionEditorContent(
     }
 }
 
-// CategoryItem Composable (保持不变)
 @Composable
 fun CategoryItem(category: TransactionCategory, isSelected: Boolean, onClick: () -> Unit) {
     Column(
@@ -323,7 +320,6 @@ fun CategoryItem(category: TransactionCategory, isSelected: Boolean, onClick: ()
 }
 
 
-// CalculatorPad Composable (保持不变)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CalculatorPad(
