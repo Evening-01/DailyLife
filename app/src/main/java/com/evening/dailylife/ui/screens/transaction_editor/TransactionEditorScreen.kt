@@ -1,4 +1,4 @@
-package com.evening.dailylife.ui.screens.add_edit_transaction
+package com.evening.dailylife.ui.screens.transaction_editor
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,7 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun AddEditTransactionScreen(
     onNavigateUp: () -> Unit,
-    viewModel: AddEditTransactionViewModel = hiltViewModel()
+    viewModel: TransactionEditorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.evening.dailylife.ui.screens.add_edit_transaction.AddEditTransactionScreen
+import com.evening.dailylife.ui.screens.transaction_editor.AddEditTransactionScreen
 import com.evening.dailylife.ui.screens.chart.ChartScreen
 import com.evening.dailylife.ui.screens.details.DetailsScreen
 import com.evening.dailylife.ui.screens.discover.DiscoverScreen

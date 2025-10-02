@@ -1,6 +1,6 @@
-package com.evening.dailylife.ui.screens.add_edit_transaction
+package com.evening.dailylife.ui.screens.transaction_editor
 
-data class AddEditTransactionUiState(
+data class TransactionEditorUiState(
     val amount: String = "",
     val category: String = "",
     val description: String = "",

@@ -1,4 +1,4 @@
-package com.evening.dailylife.ui.screens.add_edit_transaction
+package com.evening.dailylife.ui.screens.transaction_editor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,12 +14,12 @@ import javax.inject.Inject
 import kotlin.math.abs
 
 @HiltViewModel
-class AddEditTransactionViewModel @Inject constructor(
+class TransactionEditorViewModel @Inject constructor(
     private val repository: TransactionRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AddEditTransactionUiState())
-    val uiState: StateFlow<AddEditTransactionUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(TransactionEditorUiState())
+    val uiState: StateFlow<TransactionEditorUiState> = _uiState.asStateFlow()
 
     fun onAmountChange(amount: String) {
         _uiState.update { it.copy(amount = amount) }
