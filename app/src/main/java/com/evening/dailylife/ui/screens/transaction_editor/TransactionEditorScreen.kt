@@ -1,5 +1,6 @@
 package com.evening.dailylife.ui.screens.transaction_editor
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -60,8 +61,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -74,7 +73,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,6 +82,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -92,7 +91,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.moriafly.salt.ui.UnstableSaltApi
-import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -100,6 +98,7 @@ import java.util.Locale
 
 private const val MAX_AMOUNT = 100_000_000.0
 private const val MAX_INTEGER_LENGTH = 8
+private const val MAX_DESCRIPTION_LENGTH = 18
 
 
 // 数据类和分类列表
@@ -169,8 +168,7 @@ fun TransactionEditorContent(
     }
 
     val remarkFocusRequester = remember { FocusRequester() }
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     BackHandler(enabled = showCalculator) {
         showCalculator = false
@@ -192,8 +190,7 @@ fun TransactionEditorContent(
                     }
                 }
             )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -282,13 +279,14 @@ fun TransactionEditorContent(
                                 ) {
                                     BasicTextField(
                                         value = uiState.description,
-                                        onValueChange = {
-                                            if (it.length <= 18) {
-                                                onDescriptionChange(it)
+                                        onValueChange = { newText ->
+                                            if (newText.length <= MAX_DESCRIPTION_LENGTH) {
+                                                onDescriptionChange(newText)
                                             } else {
-                                                scope.launch {
-                                                    snackbarHostState.showSnackbar("备注不能超过18个字")
-                                                }
+                                                // 截取到最大长度并更新
+                                                onDescriptionChange(newText.take(MAX_DESCRIPTION_LENGTH))
+                                                // 提示用户
+                                                Toast.makeText(context, "备注最多只能输入${MAX_DESCRIPTION_LENGTH}个字", Toast.LENGTH_SHORT).show()
                                             }
                                         },
                                         singleLine = true,
@@ -475,13 +473,13 @@ fun CalculatorPad(
                         }
 
                         val parts = currentInput.split('.')
-                        if (parts.size == 1) {
+                        if (parts.size == 1) { // 正在输入整数部分
                             if (parts[0] == "0") {
-                                currentInput = input
+                                currentInput = input // 直接替换 "0"
                             } else if (parts[0].length < MAX_INTEGER_LENGTH) {
                                 currentInput += input
                             }
-                        } else {
+                        } else { // 正在输入小数部分
                             if (parts[1].length < 2) {
                                 currentInput += input
                             }
