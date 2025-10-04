@@ -24,10 +24,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Checkroom
@@ -42,18 +44,24 @@ import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.outlined.EditCalendar
 import androidx.compose.material.icons.sharp.ArrowBackIosNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -66,10 +74,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -80,12 +92,17 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.moriafly.salt.ui.UnstableSaltApi
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-// 数据类和分类列表 (这部分保持不变)
+private const val MAX_AMOUNT = 100_000_000.0
+private const val MAX_INTEGER_LENGTH = 8
+
+
+// 数据类和分类列表
 data class TransactionCategory(
     val name: String,
     val icon: ImageVector
@@ -151,9 +168,11 @@ fun TransactionEditorContent(
         Calendar.getInstance().apply { timeInMillis = uiState.date }
     }
 
-    // 处理返回事件
+    val remarkFocusRequester = remember { FocusRequester() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     BackHandler(enabled = showCalculator) {
-        // 当计算器显示时，返回键的功能是收起计算器
         showCalculator = false
     }
 
@@ -173,14 +192,14 @@ fun TransactionEditorContent(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // 这部分是屏幕上方的固定内容
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -235,39 +254,91 @@ fun TransactionEditorContent(
                     shadowElevation = 8.dp
                 ) {
                     Column {
-                        Row(
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            shape = MaterialTheme.shapes.large,
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                            )
                         ) {
-                            Text(
-                                "¥",
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .align(Alignment.Bottom)
-                                    .padding(bottom = 2.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = displayExpression,
-                                fontSize = 32.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.End
-                            )
-                        }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .widthIn(min = 120.dp)
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null
+                                        ) {
+                                            remarkFocusRequester.requestFocus()
+                                        }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    BasicTextField(
+                                        value = uiState.description,
+                                        onValueChange = {
+                                            if (it.length <= 18) {
+                                                onDescriptionChange(it)
+                                            } else {
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar("备注不能超过18个字")
+                                                }
+                                            }
+                                        },
+                                        singleLine = true,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(remarkFocusRequester),
+                                        textStyle = LocalTextStyle.current.copy(
+                                            fontSize = 16.sp,
+                                            color = LocalContentColor.current
+                                        ),
+                                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                        decorationBox = { innerTextField ->
+                                            Box(contentAlignment = Alignment.CenterStart) {
+                                                if (uiState.description.isEmpty()) {
+                                                    Text(
+                                                        text = "备注(可选)",
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        fontSize = 16.sp,
+                                                        maxLines = 1
+                                                    )
+                                                }
+                                                innerTextField()
+                                            }
+                                        }
+                                    )
+                                }
 
-                        OutlinedTextField(
-                            value = uiState.description,
-                            onValueChange = onDescriptionChange,
-                            label = { Text("备注(可选)") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-                        )
+                                Row(
+                                    modifier = Modifier.padding(end = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "¥",
+                                        fontSize = 28.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = displayExpression,
+                                        fontSize = 26.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.End,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        softWrap = false,
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+                        }
 
                         CalculatorPad(
                             initialValue = uiState.amount,
@@ -336,12 +407,18 @@ fun CalculatorPad(
     var showDatePicker by remember { mutableStateOf(false) }
 
     val hapticFeedback = LocalHapticFeedback.current
-    val dateFormat = SimpleDateFormat("M.d", Locale.getDefault())
+
+    fun isToday(calendar: Calendar): Boolean {
+        val today = Calendar.getInstance()
+        return today.get(Calendar.YEAR) == calendar.get(Calendar.YEAR) &&
+                today.get(Calendar.DAY_OF_YEAR) == calendar.get(Calendar.DAY_OF_YEAR)
+    }
 
     fun formatDecimal(number: Double): String {
+        val clampedNumber = number.coerceAtMost(MAX_AMOUNT - 1)
         val df = DecimalFormat("#.##")
         df.isGroupingUsed = false
-        return df.format(number)
+        return df.format(clampedNumber)
     }
 
     val visualExpression = remember(firstOperand, operator, currentInput, clearInputOnNextDigit) {
@@ -389,26 +466,34 @@ fun CalculatorPad(
 
         when (input) {
             is String -> {
-                when {
-                    input in "0".."9" -> {
+                when (input) {
+                    in "0".."9" -> {
                         if (clearInputOnNextDigit) {
                             currentInput = input
                             clearInputOnNextDigit = false
+                            return
+                        }
+
+                        val parts = currentInput.split('.')
+                        if (parts.size == 1) {
+                            if (parts[0] == "0") {
+                                currentInput = input
+                            } else if (parts[0].length < MAX_INTEGER_LENGTH) {
+                                currentInput += input
+                            }
                         } else {
-                            currentInput = if (currentInput == "0") input else currentInput + input
+                            if (parts[1].length < 2) {
+                                currentInput += input
+                            }
                         }
                     }
-
-                    input == "." -> {
-                        if (clearInputOnNextDigit) {
-                            currentInput = "0."
-                            clearInputOnNextDigit = false
-                        } else if (!currentInput.contains(".")) {
+                    "." -> {
+                        if (!currentInput.contains(".")) {
                             currentInput += "."
+                            clearInputOnNextDigit = false
                         }
                     }
-
-                    input in listOf("+", "-") -> {
+                    in listOf("+", "-") -> {
                         if (!clearInputOnNextDigit && firstOperand != null && operator != null) {
                             performCalculation()
                         }
@@ -416,19 +501,16 @@ fun CalculatorPad(
                         operator = input
                         clearInputOnNextDigit = true
                     }
-
-                    input == "=" -> {
+                    "=" -> {
                         if (operator != null) {
                             performCalculation()
                         }
                     }
-
-                    input == "完成" -> {
+                    "完成" -> {
                         onExpressionChange(currentInput, currentInput)
                         onSaveClick()
                     }
-
-                    input == "date" -> showDatePicker = true
+                    "date" -> showDatePicker = true
                 }
             }
             is ImageVector -> {
@@ -437,8 +519,7 @@ fun CalculatorPad(
                     operator = null
                     firstOperand = null
                     clearInputOnNextDigit = false
-                }
-                else if (currentInput.isNotEmpty() && currentInput != "0") {
+                } else if (currentInput.isNotEmpty() && currentInput != "0") {
                     currentInput = currentInput.dropLast(1)
                     if (currentInput.isEmpty() || currentInput == "-") {
                         currentInput = "0"
@@ -480,7 +561,7 @@ fun CalculatorPad(
                                 containerColor = MaterialTheme.colorScheme.primary
                             )
                         ) {
-                            Text(item as String, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(item as String, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                     is ImageVector -> {
@@ -496,12 +577,16 @@ fun CalculatorPad(
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(item, contentDescription = "Backspace", modifier = Modifier.size(26.dp))
+                            Icon(
+                                imageVector = item,
+                                contentDescription = "Backspace",
+                                modifier = Modifier.size(26.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
 
                     else -> {
-                        val isDate = item == "date"
                         TextButton(
                             onClick = { handleInput(item) },
                             modifier = modifier,
@@ -510,12 +595,32 @@ fun CalculatorPad(
                                 contentColor = MaterialTheme.colorScheme.onSurface
                             )
                         ) {
-                            val text = if (isDate) dateFormat.format(selectedDate.time) else item as String
-                            Text(
-                                text = text,
-                                fontSize = if (isDate) 16.sp else 22.sp,
-                                fontWeight = if (isDate) FontWeight.Medium else FontWeight.Normal
-                            )
+                            if (item == "date") {
+                                if (isToday(selectedDate)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            Icons.Outlined.EditCalendar,
+                                            contentDescription = "今天",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("今天", fontSize = 16.sp)
+                                    }
+                                } else {
+                                    val dateFormat = SimpleDateFormat("yy/M/d", Locale.getDefault())
+                                    Text(
+                                        text = dateFormat.format(selectedDate.time),
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = item as String,
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            }
                         }
                     }
                 }
