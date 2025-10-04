@@ -21,10 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Devices
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -48,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -57,23 +52,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.evening.dailylife.R
 import com.evening.dailylife.data.local.entity.Transaction
+import com.evening.dailylife.ui.model.CategoryRepo
 import com.evening.dailylife.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.ui.theme.SuccessGreen
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
-
-// 将数据库实体映射到UI数据类的辅助函数
-fun mapIcon(iconName: String): ImageVector {
-    return when (iconName) {
-        "Restaurant" -> Icons.Default.Restaurant
-        "ShoppingCart" -> Icons.Default.ShoppingCart
-        "AttachMoney" -> Icons.Default.AttachMoney
-        "Devices" -> Icons.Default.Devices
-        else -> Icons.Default.Restaurant // 默认图标
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -405,7 +390,7 @@ fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = mapIcon(transaction.icon), // 映射图标
+                imageVector = CategoryRepo.getIcon(transaction.category), // 映射图标
                 contentDescription = transaction.category,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)

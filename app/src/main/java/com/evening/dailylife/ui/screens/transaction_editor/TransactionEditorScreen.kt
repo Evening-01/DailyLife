@@ -33,18 +33,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
-import androidx.compose.material.icons.filled.Checkroom
-import androidx.compose.material.icons.filled.Commute
-import androidx.compose.material.icons.filled.Fastfood
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocalHospital
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Redeem
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.SportsEsports
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.EditCalendar
 import androidx.compose.material.icons.sharp.ArrowBackIosNew
 import androidx.compose.material3.Button
@@ -90,6 +79,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.evening.dailylife.ui.model.CategoryRepo
+import com.evening.dailylife.ui.model.TransactionCategory
 import com.moriafly.salt.ui.UnstableSaltApi
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
@@ -99,31 +90,6 @@ import java.util.Locale
 private const val MAX_AMOUNT = 100_000_000.0
 private const val MAX_INTEGER_LENGTH = 8
 private const val MAX_DESCRIPTION_LENGTH = 18
-
-
-// 数据类和分类列表
-data class TransactionCategory(
-    val name: String,
-    val icon: ImageVector
-)
-
-val expenseCategories = listOf(
-    TransactionCategory("餐饮", Icons.Default.Fastfood),
-    TransactionCategory("交通", Icons.Default.Commute),
-    TransactionCategory("购物", Icons.Default.ShoppingCart),
-    TransactionCategory("娱乐", Icons.Default.SportsEsports),
-    TransactionCategory("服饰", Icons.Default.Checkroom),
-    TransactionCategory("住房", Icons.Default.Home),
-    TransactionCategory("通讯", Icons.Default.Phone),
-    TransactionCategory("医疗", Icons.Default.LocalHospital),
-)
-
-val incomeCategories = listOf(
-    TransactionCategory("工资", Icons.Default.MonetizationOn),
-    TransactionCategory("理财", Icons.Default.TrendingUp),
-    TransactionCategory("红包", Icons.Default.Redeem),
-    TransactionCategory("其他", Icons.Default.MoreHoriz),
-)
 
 @Composable
 fun TransactionEditorScreen(
@@ -162,7 +128,7 @@ fun TransactionEditorContent(
     var showCalculator by remember { mutableStateOf(false) }
     var displayExpression by remember { mutableStateOf(uiState.amount.ifEmpty { "0.00" }) }
 
-    val categories = if (uiState.isExpense) expenseCategories else incomeCategories
+    val categories = if (uiState.isExpense) CategoryRepo.expenseCategories else CategoryRepo.incomeCategories
     val selectedDate = remember(uiState.date) {
         Calendar.getInstance().apply { timeInMillis = uiState.date }
     }
@@ -239,6 +205,15 @@ fun TransactionEditorContent(
                         }
                     )
                 }
+                item {
+                    CategoryItem(
+                        category = TransactionCategory("设置", Icons.Default.Settings),
+                        isSelected = false,
+                        onClick = {
+                            Toast.makeText(context, "跳转到分类设置界面", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
             }
 
             AnimatedVisibility(
@@ -280,14 +255,10 @@ fun TransactionEditorContent(
                                     BasicTextField(
                                         value = uiState.description,
                                         onValueChange = { newText ->
-                                            if (newText.length <= MAX_DESCRIPTION_LENGTH) {
-                                                onDescriptionChange(newText)
-                                            } else {
-                                                // 截取到最大长度并更新
-                                                onDescriptionChange(newText.take(MAX_DESCRIPTION_LENGTH))
-                                                // 提示用户
+                                            if (newText.length > MAX_DESCRIPTION_LENGTH && uiState.description.length < MAX_DESCRIPTION_LENGTH) {
                                                 Toast.makeText(context, "备注最多只能输入${MAX_DESCRIPTION_LENGTH}个字", Toast.LENGTH_SHORT).show()
                                             }
+                                            onDescriptionChange(newText.take(MAX_DESCRIPTION_LENGTH))
                                         },
                                         singleLine = true,
                                         modifier = Modifier
