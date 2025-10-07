@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,17 +23,43 @@ class DetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DetailsUiState())
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
-        loadTransactions()
+        loadTransactionsForMonth(Calendar.getInstance())
     }
 
-    private fun loadTransactions() {
-        viewModelScope.launch {
-            repository.getAllTransactions()
+    fun filterByMonth(calendar: Calendar) {
+        loadTransactionsForMonth(calendar)
+    }
+
+    private fun loadTransactionsForMonth(calendar: Calendar) {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+
+            val startCalendar = (calendar.clone() as Calendar).apply {
+                set(Calendar.DAY_OF_MONTH, 1)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+
+            val endCalendar = (calendar.clone() as Calendar).apply {
+                set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+                set(Calendar.HOUR_OF_DAY, 23)
+                set(Calendar.MINUTE, 59)
+                set(Calendar.SECOND, 59)
+                set(Calendar.MILLISECOND, 999)
+            }
+
+            repository.getTransactionsByDateRange(
+                startCalendar.timeInMillis,
+                endCalendar.timeInMillis
+            )
                 .map { transactions ->
-                    // Group transactions by day and calculate totals
                     val grouped = transactions.groupBy {
-                        // Normalize date to the start of the day
                         val cal = Calendar.getInstance().apply { timeInMillis = it.date }
                         cal.set(Calendar.HOUR_OF_DAY, 0)
                         cal.set(Calendar.MINUTE, 0)
@@ -41,16 +68,18 @@ class DetailsViewModel @Inject constructor(
                         cal.timeInMillis
                     }
 
-                    val dailyTransactions = grouped.map { (dateMillis, trans) ->
-                        val dailyIncome = trans.filter { it.amount > 0 }.sumOf { it.amount }
-                        val dailyExpense = trans.filter { it.amount < 0 }.sumOf { it.amount }
-                        DailyTransactions(
-                            date = formatDate(dateMillis),
-                            transactions = trans,
-                            dailyIncome = dailyIncome,
-                            dailyExpense = dailyExpense
-                        )
-                    }.sortedByDescending { it.date }
+                    val dailyTransactions = grouped.entries
+                        .sortedByDescending { it.key }
+                        .map { (dateMillis, trans) ->
+                            val dailyIncome = trans.filter { it.amount > 0 }.sumOf { it.amount }
+                            val dailyExpense = trans.filter { it.amount < 0 }.sumOf { it.amount }
+                            DailyTransactions(
+                                date = formatDate(dateMillis),
+                                transactions = trans,
+                                dailyIncome = dailyIncome,
+                                dailyExpense = dailyExpense
+                            )
+                        }
 
                     val totalIncome = transactions.filter { it.amount > 0 }.sumOf { it.amount }
                     val totalExpense = transactions.filter { it.amount < 0 }.sumOf { it.amount }

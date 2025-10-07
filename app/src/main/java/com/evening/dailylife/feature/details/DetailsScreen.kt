@@ -33,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,7 +80,11 @@ fun DetailsScreen(
     val headerContainerColor = LocalExtendedColorScheme.current.headerContainer
     val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
 
-    // 日期选择对话框 (使用我们自定义的滚轮选择器)
+    LaunchedEffect(Unit) {
+        viewModel.filterByMonth(selectedDate)
+    }
+
+    // 日期选择对话框
     if (showDatePickerDialog) {
         CalendarPickerBottomSheet(
             showBottomSheet = true,
@@ -95,7 +100,8 @@ fun DetailsScreen(
                     set(Calendar.MONTH, month - 1) // Calendar 的月份是从0开始的，所以要减1
                 }
                 selectedDate = newCalendar
-                // TODO: 根据选择的日期筛选账单 (e.g., viewModel.filterByDate(newCalendar))
+                viewModel.filterByMonth(newCalendar)
+                showDatePickerDialog = false
             }
         )
     }

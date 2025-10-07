@@ -609,7 +609,6 @@ fun CalculatorPad(
         }
     }
 
-    // vvvvvvvvvvvv 这是被替换的部分 vvvvvvvvvvvv
     CalendarPickerBottomSheet(
         showBottomSheet = showDatePicker,
         onDismiss = { showDatePicker = false },
@@ -627,5 +626,4 @@ fun CalculatorPad(
         },
         onMonthSelected = { _, _ -> /* 在日期模式下不使用 */ }
     )
-    // ^^^^^^^^^^^^ 这是被替换的部分 ^^^^^^^^^^^^
 }
