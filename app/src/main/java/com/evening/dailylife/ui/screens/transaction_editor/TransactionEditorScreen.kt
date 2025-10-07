@@ -113,7 +113,7 @@ fun TransactionEditorScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, UnstableSaltApi::class)
+@OptIn(ExperimentalMaterial3Api::class, UnstableSaltApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun TransactionEditorContent(
     uiState: TransactionEditorUiState,
@@ -195,7 +195,10 @@ fun TransactionEditorContent(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(categories) { category ->
+                items(
+                    items = categories,
+                    key = { category -> category.name }
+                ) { category ->
                     CategoryItem(
                         category = category,
                         isSelected = category.name == uiState.category,
