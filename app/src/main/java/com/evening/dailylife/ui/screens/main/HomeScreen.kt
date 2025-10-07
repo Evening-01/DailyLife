@@ -1,8 +1,10 @@
 package com.evening.dailylife.ui.screens.main
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,8 +47,9 @@ fun HomeScreen(
         bottomBar = {
             AnimatedVisibility(
                 visible = isTopLevelDestination,
-                enter = fadeIn(),
-                exit = fadeOut()
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+                label = "BottomBarVisibility"
             ) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,
