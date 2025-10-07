@@ -1,5 +1,6 @@
 package com.evening.dailylife.ui.screens.main
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -70,7 +71,7 @@ fun HomeScreen(
         HomeNavHost(
             navController = navController,
             onAddTransactionClick = onAddTransactionClick,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(PaddingValues(bottom = innerPadding.calculateBottomPadding()))
         )
     }
 }
