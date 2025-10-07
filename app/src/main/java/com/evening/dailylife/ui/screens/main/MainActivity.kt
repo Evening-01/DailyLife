@@ -6,10 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.compose.rememberNavController
 import com.evening.dailylife.data.preferences.ThemeMode
+import com.evening.dailylife.ui.navigation.AppNavHost
 import com.evening.dailylife.ui.theme.DailyTheme
 import com.moriafly.salt.ui.UnstableSaltApi
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,8 +41,14 @@ class MainActivity : ComponentActivity() {
                 dynamicColor = dynamicColor,
                 darkTheme = darkTheme
             ) {
-                HomeScreen(viewModel = viewModel)
+                DailyLifeApp()
             }
         }
     }
+}
+
+@Composable
+private fun DailyLifeApp() {
+    val navController = rememberNavController()
+    AppNavHost(navController = navController)
 }

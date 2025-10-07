@@ -1,11 +1,5 @@
 package com.evening.dailylife.ui.screens.main
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -15,42 +9,35 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.evening.dailylife.ui.component.AnimatedBottomBarIcon
-import com.evening.dailylife.ui.navigation.AppNavHost
+import com.evening.dailylife.ui.navigation.Route
 import com.evening.dailylife.ui.navigation.items
+import com.evening.dailylife.ui.screens.chart.ChartScreen
+import com.evening.dailylife.ui.screens.details.DetailsScreen
+import com.evening.dailylife.ui.screens.discover.DiscoverScreen
+import com.evening.dailylife.ui.screens.me.MeScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: MainViewModel
+    onAddTransactionClick: () -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    val topLevelRoutes = remember { items.map { it.route } }
-
-    val isTopLevelDestination = remember(currentDestination) {
-        currentDestination?.hierarchy?.any { dest ->
-            topLevelRoutes.contains(dest.route)
-        } == true
-    }
-
     Scaffold(
         bottomBar = {
-            AnimatedVisibility(
-                visible = isTopLevelDestination,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
-                label = "BottomBarVisibility"
-            ) {
+            NavigationBar {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,
                 ) {
@@ -80,9 +67,39 @@ fun HomeScreen(
             }
         }
     ) { innerPadding ->
-        AppNavHost(
+        HomeNavHost(
             navController = navController,
-            modifier = Modifier.padding(PaddingValues(bottom = innerPadding.calculateBottomPadding()))
+            onAddTransactionClick = onAddTransactionClick,
+            modifier = Modifier.padding(innerPadding)
         )
+    }
+}
+
+@Composable
+private fun HomeNavHost(
+    navController: NavHostController,
+    onAddTransactionClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    NavHost(
+        navController = navController,
+        startDestination = Route.DETAILS,
+        modifier = modifier
+    ) {
+        composable(Route.DETAILS) {
+            DetailsScreen(
+                onTransactionClick = { /* TODO: navigate to transaction detail */ },
+                onAddTransactionClick = onAddTransactionClick
+            )
+        }
+        composable(Route.CHART) {
+            ChartScreen()
+        }
+        composable(Route.DISCOVER) {
+            DiscoverScreen()
+        }
+        composable(Route.ME) {
+            MeScreen()
+        }
     }
 }
