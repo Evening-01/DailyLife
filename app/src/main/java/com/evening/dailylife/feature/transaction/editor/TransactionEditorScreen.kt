@@ -99,6 +99,21 @@ fun TransactionEditorScreen(
     viewModel: TransactionEditorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is TransactionEditorEvent.ShowMessage -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                }
+
+                TransactionEditorEvent.SaveSuccess -> {
+                    navController.popBackStack()
+                }
+            }
+        }
+    }
 
     TransactionEditorContent(
         uiState = uiState,
@@ -107,10 +122,7 @@ fun TransactionEditorScreen(
         onAmountChange = viewModel::onAmountChange,
         onDescriptionChange = viewModel::onDescriptionChange,
         onDateChange = viewModel::onDateChange,
-        onSaveTransaction = {
-            viewModel.saveTransaction()
-            navController.popBackStack()
-        },
+        onSaveTransaction = viewModel::saveTransaction,
         onNavigateBack = { navController.popBackStack() }
     )
 }
@@ -130,6 +142,12 @@ fun TransactionEditorContent(
 ) {
     var showCalculator by remember { mutableStateOf(false) }
     var displayExpression by remember { mutableStateOf(uiState.amount.ifEmpty { "0.00" }) }
+
+    LaunchedEffect(uiState.amount) {
+        if (uiState.amount.isBlank()) {
+            displayExpression = "0.00"
+        }
+    }
 
     val categories = if (uiState.isExpense) {
         TransactionCategoryRepository.expenseCategories

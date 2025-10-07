@@ -5,8 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -21,24 +24,33 @@ class TransactionEditorViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TransactionEditorUiState())
     val uiState: StateFlow<TransactionEditorUiState> = _uiState.asStateFlow()
 
+    private val _events = MutableSharedFlow<TransactionEditorEvent>()
+    val events: SharedFlow<TransactionEditorEvent> = _events.asSharedFlow()
+
     fun onAmountChange(amount: String) {
         _uiState.update { it.copy(amount = amount) }
     }
 
     fun onCategoryChange(category: String) {
-        _uiState.update { it.copy(category = category) }
+        _uiState.update { it.copy(category = category, error = null) }
     }
 
     fun onDescriptionChange(description: String) {
-        _uiState.update { it.copy(description = description) }
+        _uiState.update { it.copy(description = description, error = null) }
     }
 
     fun onDateChange(date: Long) {
-        _uiState.update { it.copy(date = date) }
+        _uiState.update { it.copy(date = date, error = null) }
     }
 
     fun onTransactionTypeChange(isExpense: Boolean) {
-        _uiState.update { it.copy(isExpense = isExpense, category = "") } // 切换类型时清空已选分类
+        _uiState.update {
+            it.copy(
+                isExpense = isExpense,
+                category = "",
+                error = null
+            )
+        } // 切换类型时清空已选分类
     }
 
     fun saveTransaction() {
@@ -48,11 +60,13 @@ class TransactionEditorViewModel @Inject constructor(
 
             if (amountValue == null || amountValue == 0.0) {
                 _uiState.update { it.copy(error = "请输入有效的金额") }
+                _events.emit(TransactionEditorEvent.ShowMessage("请输入有效的金额"))
                 return@launch
             }
 
             if (currentState.category.isBlank()) {
                 _uiState.update { it.copy(error = "请选择一个分类") }
+                _events.emit(TransactionEditorEvent.ShowMessage("请选择一个分类"))
                 return@launch
             }
 
@@ -60,26 +74,38 @@ class TransactionEditorViewModel @Inject constructor(
 
             val transactionAmount = if (currentState.isExpense) -abs(amountValue) else abs(amountValue)
 
-            // 图标名称的映射逻辑可以根据你的实际需求来调整
-            val iconName = when(currentState.category) {
-                "餐饮" -> "Restaurant"
-                "购物" -> "ShoppingCart"
-                "数码" -> "Devices"
-                "工资" -> "AttachMoney"
-                else -> "Restaurant" // 提供一个默认图标
-            }
+
 
             val newTransaction = TransactionEntity(
                 amount = transactionAmount,
                 category = currentState.category,
                 description = currentState.description,
+                mood = "",
                 date = currentState.date,
-                icon = iconName
             )
 
-            repository.insertTransaction(newTransaction)
-
-            _uiState.update { it.copy(isSaving = false) }
+            runCatching {
+                repository.insertTransaction(newTransaction)
+            }.onSuccess {
+                _uiState.update {
+                    it.copy(
+                        amount = "",
+                        category = "",
+                        description = "",
+                        isSaving = false,
+                        error = null
+                    )
+                }
+                _events.emit(TransactionEditorEvent.SaveSuccess)
+            }.onFailure { throwable ->
+                _uiState.update { it.copy(isSaving = false, error = throwable.message) }
+                _events.emit(TransactionEditorEvent.ShowMessage("保存失败，请稍后重试"))
+            }
         }
     }
+}
+
+sealed interface TransactionEditorEvent {
+    data class ShowMessage(val message: String) : TransactionEditorEvent
+    data object SaveSuccess : TransactionEditorEvent
 }

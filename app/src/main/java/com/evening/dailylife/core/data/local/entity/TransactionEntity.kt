@@ -13,6 +13,6 @@ data class TransactionEntity(
     val category: String,
     val description: String,
     val amount: Double,
-    val icon: String, // Storing icon name as String
-    val date: Long // Storing date as timestamp for easier querying
+    val mood: String,
+    val date: Long
 )
