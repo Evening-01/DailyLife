@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Luggage
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Pets
@@ -42,39 +43,55 @@ import androidx.compose.material.icons.filled.VolunteerActivism
 
 object TransactionCategoryRepository {
     val expenseCategories = listOf(
+        // --- 高频日常 ---
         TransactionCategory("餐饮", Icons.Default.Restaurant),
+        TransactionCategory("交通", Icons.Default.Commute),
         TransactionCategory("购物", Icons.Default.ShoppingCart),
         TransactionCategory("日用", Icons.Default.LocalConvenienceStore),
-        TransactionCategory("交通", Icons.Default.Commute),
         TransactionCategory("蔬菜", Icons.Default.LocalFlorist),
         TransactionCategory("水果", Icons.Default.EnergySavingsLeaf),
         TransactionCategory("零食", Icons.Default.Icecream),
-        TransactionCategory("运动", Icons.Default.FitnessCenter),
-        TransactionCategory("娱乐", Icons.Default.SportsEsports),
         TransactionCategory("通讯", Icons.Default.Phone),
-        TransactionCategory("服饰", Icons.Default.Checkroom),
-        TransactionCategory("美容", Icons.Default.ContentCut),
+        TransactionCategory("快递", Icons.Default.LocalShipping),
+
+        // --- 住房居家 ---
         TransactionCategory("住房", Icons.Default.Home),
         TransactionCategory("居家", Icons.Default.Deck),
-        TransactionCategory("孩子", Icons.Default.ChildCare),
-        TransactionCategory("长辈", Icons.Default.Elderly),
-        TransactionCategory("社交", Icons.Default.People),
+
+        // --- 休闲娱乐 ---
+        TransactionCategory("娱乐", Icons.Default.SportsEsports),
+        TransactionCategory("电影", Icons.Default.Movie),
+        TransactionCategory("运动", Icons.Default.FitnessCenter),
         TransactionCategory("旅行", Icons.Default.Luggage),
         TransactionCategory("烟酒", Icons.Default.LocalBar),
+
+        // --- 个人提升与形象 ---
+        TransactionCategory("服饰", Icons.Default.Checkroom),
+        TransactionCategory("美容", Icons.Default.ContentCut),
+        TransactionCategory("学习", Icons.Default.School),
+        TransactionCategory("书籍", Icons.Default.MenuBook),
+
+        // --- 家庭与社交 ---
+        TransactionCategory("孩子", Icons.Default.ChildCare),
+        TransactionCategory("长辈", Icons.Default.Elderly),
+        TransactionCategory("宠物", Icons.Default.Pets),
+        TransactionCategory("社交", Icons.Default.People),
+        TransactionCategory("亲友", Icons.Default.FamilyRestroom),
+        TransactionCategory("礼物", Icons.Default.CardGiftcard),
+        TransactionCategory("礼金", Icons.Default.Payments),
+
+        // --- 医疗与办公 ---
+        TransactionCategory("医疗", Icons.Default.LocalHospital),
+        TransactionCategory("办公", Icons.Default.BusinessCenter),
+
+        // --- 资产与维修 ---
         TransactionCategory("数码", Icons.Default.Computer),
         TransactionCategory("汽车", Icons.Default.DirectionsCar),
-        TransactionCategory("医疗", Icons.Default.LocalHospital),
-        TransactionCategory("书籍", Icons.Default.MenuBook),
-        TransactionCategory("学习", Icons.Default.School),
-        TransactionCategory("宠物", Icons.Default.Pets),
-        TransactionCategory("礼金", Icons.Default.Payments),
-        TransactionCategory("礼物", Icons.Default.CardGiftcard),
-        TransactionCategory("办公", Icons.Default.BusinessCenter),
         TransactionCategory("维修", Icons.Default.Build),
+
+        // --- 其他 ---
         TransactionCategory("捐赠", Icons.Default.VolunteerActivism),
         TransactionCategory("彩票", Icons.Default.ConfirmationNumber),
-        TransactionCategory("亲友", Icons.Default.FamilyRestroom),
-        TransactionCategory("快递", Icons.Default.LocalShipping),
         TransactionCategory("其他", Icons.Default.MoreHoriz)
     )
 

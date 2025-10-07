@@ -1,5 +1,7 @@
 package com.evening.dailylife.feature.details
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,8 +24,6 @@ import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -31,9 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,6 +50,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.evening.dailylife.R
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
+import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomSheet
+import com.evening.dailylife.core.designsystem.component.CalendarPickerType
 import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.designsystem.theme.SuccessGreen
 import com.evening.dailylife.core.model.TransactionCategoryRepository
@@ -60,19 +60,17 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
     onTransactionClick: (Int) -> Unit,
-    onAddTransactionClick: () -> Unit, // 新增回调
+    onAddTransactionClick: () -> Unit,
     viewModel: DetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDate.timeInMillis
-    )
 
     // 日期格式化工具
     val yearFormat = SimpleDateFormat("yyyy年", Locale.getDefault())
@@ -81,36 +79,25 @@ fun DetailsScreen(
     val headerContainerColor = LocalExtendedColorScheme.current.headerContainer
     val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
 
-    // 日期选择对话框
+    // 日期选择对话框 (使用我们自定义的滚轮选择器)
     if (showDatePickerDialog) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePickerDialog = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDatePickerDialog = false
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            val newCalendar = Calendar.getInstance().apply {
-                                timeInMillis = millis
-                            }
-                            selectedDate = newCalendar
-                            // TODO: 根据选择的日期筛选账单
-                        }
-                    }
-                ) {
-                    Text("确认")
+        CalendarPickerBottomSheet(
+            showBottomSheet = true,
+            onDismiss = { showDatePickerDialog = false },
+            type = CalendarPickerType.MONTH, // 设置为月份选择模式
+            initialDate = selectedDate,     // 传入当前选中的日期
+            onDateSelected = { _, _, _ -> /* 在月份模式下不使用 */ },
+            onMonthSelected = { year, month ->
+                // 当用户确认选择后，更新日期状态
+                val newCalendar = Calendar.getInstance().apply {
+                    clear() // 先清除所有字段，避免残留数据影响
+                    set(Calendar.YEAR, year)
+                    set(Calendar.MONTH, month - 1) // Calendar 的月份是从0开始的，所以要减1
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDatePickerDialog = false }
-                ) {
-                    Text("取消")
-                }
+                selectedDate = newCalendar
+                // TODO: 根据选择的日期筛选账单 (e.g., viewModel.filterByDate(newCalendar))
             }
-        ) {
-            DatePicker(state = datePickerState)
-        }
+        )
     }
 
     Scaffold(
@@ -130,7 +117,7 @@ fun DetailsScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { onAddTransactionClick() }, // 调用回调
+                onClick = { onAddTransactionClick() },
                 icon = { Icon(Icons.Default.Add, contentDescription = "添加账单") },
                 text = { Text("记一笔") }
             )
@@ -165,7 +152,7 @@ fun DetailsScreen(
                         }
                         items(dailyData.transactions) { transaction ->
                             TransactionItem(
-                                transaction = transaction, // 使用从ViewModel获取的数据
+                                transaction = transaction,
                                 onClick = { onTransactionClick(transaction.id) }
                             )
                             Divider(

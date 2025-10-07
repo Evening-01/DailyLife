@@ -1,7 +1,9 @@
 package com.evening.dailylife.feature.transaction.editor
 
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -41,8 +43,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,7 +55,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -79,6 +78,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomSheet
+import com.evening.dailylife.core.designsystem.component.CalendarPickerType
 import com.evening.dailylife.core.model.TransactionCategory
 import com.evening.dailylife.core.model.TransactionCategoryRepository
 import com.moriafly.salt.ui.UnstableSaltApi
@@ -91,6 +92,7 @@ private const val MAX_AMOUNT = 100_000_000.0
 private const val MAX_INTEGER_LENGTH = 8
 private const val MAX_DESCRIPTION_LENGTH = 18
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TransactionEditorScreen(
     navController: NavController,
@@ -113,6 +115,7 @@ fun TransactionEditorScreen(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class, UnstableSaltApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun TransactionEditorContent(
@@ -368,6 +371,7 @@ fun CategoryItem(category: TransactionCategory, isSelected: Boolean, onClick: ()
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CalculatorPad(
@@ -605,22 +609,23 @@ fun CalculatorPad(
         }
     }
 
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate.timeInMillis)
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDatePicker = false
-                    datePickerState.selectedDateMillis?.let {
-                        val calendar = Calendar.getInstance().apply { timeInMillis = it }
-                        onDateSelected(calendar)
-                    }
-                }) { Text("确定") }
-            },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("取消") } }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
+    // vvvvvvvvvvvv 这是被替换的部分 vvvvvvvvvvvv
+    CalendarPickerBottomSheet(
+        showBottomSheet = showDatePicker,
+        onDismiss = { showDatePicker = false },
+        type = CalendarPickerType.DATE, // 选择年月日
+        initialDate = selectedDate,     // 传入当前日期
+        onDateSelected = { year, month, day ->
+            // 从滚轮选择器接收年月日，并更新状态
+            val newCalendar = Calendar.getInstance().apply {
+                clear()
+                set(Calendar.YEAR, year)
+                set(Calendar.MONTH, month - 1) // Calendar 的月份是从0开始的
+                set(Calendar.DAY_OF_MONTH, day)
+            }
+            onDateSelected(newCalendar)
+        },
+        onMonthSelected = { _, _ -> /* 在日期模式下不使用 */ }
+    )
+    // ^^^^^^^^^^^^ 这是被替换的部分 ^^^^^^^^^^^^
 }
