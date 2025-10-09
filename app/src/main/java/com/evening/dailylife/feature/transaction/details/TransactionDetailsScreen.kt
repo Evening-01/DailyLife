@@ -80,7 +80,17 @@ fun TransactionDetailsScreen(
                     Text(text = uiState.error ?: "加载失败")
                 }
                 uiState.transaction != null -> {
-                    TransactionDetailsContent(uiState.transaction!!)
+                    TransactionDetailsContent(
+                        transaction = uiState.transaction!!,
+                        onDelete = {
+                            viewModel.deleteTransaction(uiState.transaction!!) {
+                                navController.navigateUp()
+                            }
+                        },
+                        onEdit = {
+                            TODO("Not yet implemented")
+                        }
+                    )
                 }
             }
         }
@@ -88,7 +98,11 @@ fun TransactionDetailsScreen(
 }
 
 @Composable
-fun TransactionDetailsContent(transaction: TransactionEntity) {
+fun TransactionDetailsContent(
+    transaction: TransactionEntity,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -120,8 +134,8 @@ fun TransactionDetailsContent(transaction: TransactionEntity) {
 
         // 底部操作按钮
         ActionButtons(
-            onDelete = { /* TODO: 处理删除逻辑 */ },
-            onEdit = { /* TODO: 处理编辑逻辑 */ }
+            onDelete = onDelete,
+            onEdit = onEdit
         )
 
         Spacer(modifier = Modifier.height(24.dp))
