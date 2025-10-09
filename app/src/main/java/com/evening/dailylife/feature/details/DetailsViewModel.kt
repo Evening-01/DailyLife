@@ -86,11 +86,14 @@ class DetailsViewModel @Inject constructor(
                             val dailyIncome = trans.filter { it.amount > 0 }.sumOf { it.amount }
                             val dailyExpense = trans.filter { it.amount < 0 }.sumOf { it.amount }
 
-                            // 计算当天心情总分，过滤掉 null 值
-                            val dailyMoodScore = trans.mapNotNull { it.mood }.sum()
-                            // 根据总分获取对应的心情名称
-                            val dailyMood = MoodRepository.getMoodByScore(dailyMoodScore)?.name ?: ""
-
+                            // 心情计算逻辑
+                            val transactionsWithMood = trans.filter { it.mood != null }
+                            val dailyMood = if (transactionsWithMood.isNotEmpty()) {
+                                val dailyMoodScore = transactionsWithMood.sumOf { it.mood!! }
+                                MoodRepository.getMoodByScore(dailyMoodScore)?.name ?: ""
+                            } else {
+                                ""
+                            }
 
                             DailyTransactions(
                                 date = formatDate(dateMillis),
