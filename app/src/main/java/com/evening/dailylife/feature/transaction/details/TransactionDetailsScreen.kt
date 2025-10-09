@@ -1,7 +1,6 @@
-package com.evening.dailylife.feature.transaction.details
+package com.evening.dailylife.feature.discover
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,43 +9,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Source
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.evening.dailylife.core.data.local.entity.TransactionEntity
-import com.evening.dailylife.core.designsystem.theme.SuccessGreen
-import com.evening.dailylife.core.model.TransactionCategoryRepository
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.evening.dailylife.feature.transaction.details.TransactionDetailsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,151 +40,159 @@ fun TransactionDetailsScreen(
     navController: androidx.navigation.NavController,
     viewModel: TransactionDetailsViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("账单详情") },
+            CenterAlignedTopAppBar(
+                title = { Text("明细") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { /* TODO: 处理返回事件 */ }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回"
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                actions = {
+                    IconButton(onClick = { /* TODO: 处理更多选项点击事件 */ }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "更多选项"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (uiState.transaction != null) {
-                TransactionDetailsContent(uiState.transaction!!)
-            } else {
-                Text("未找到该账单", modifier = Modifier.align(Alignment.Center))
-            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 顶部信息卡片
+            TransactionSummaryCard(
+                category = "支出",
+                amount = "-12.00",
+                icon = {
+                    Icon(
+                        // 此处应替换为实际的图标
+                        imageVector = Icons.Default.Restaurant,
+                        contentDescription = "餐饮",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 详细信息列表
+            DetailsList()
+
+            // 占位，将按钮推到底部
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 底部操作按钮
+            ActionButtons(
+                onDelete = { /* TODO: 处理删除逻辑 */ },
+                onEdit = { /* TODO: 处理编辑逻辑 */ }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-fun TransactionDetailsContent(transaction: TransactionEntity) {
-    val amountColor = if (transaction.amount > 0) SuccessGreen else MaterialTheme.colorScheme.error
-    val dateFormat = SimpleDateFormat("yyyy年MM月dd日 HH:mm", Locale.getDefault())
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+fun TransactionSummaryCard(
+    category: String,
+    amount: String,
+    icon: @Composable () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        // Header with Category Icon and Name
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = TransactionCategoryRepository.getIcon(transaction.category),
-                    contentDescription = transaction.category,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(48.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+            icon()
+            Text(text = category, style = MaterialTheme.typography.titleMedium)
             Text(
-                text = transaction.category,
-                style = MaterialTheme.typography.headlineMedium,
+                text = amount,
+                style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold
             )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Amount
-        Text(
-            text = "%.2f".format(transaction.amount),
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold,
-            color = amountColor,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Details Section
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                DetailRow(
-                    icon = Icons.Default.Description,
-                    label = "描述",
-                    value = transaction.description.ifBlank { "暂无" }
-                )
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-                DetailRow(
-                    icon = Icons.Default.CalendarToday,
-                    label = "日期",
-                    value = dateFormat.format(Date(transaction.date))
-                )
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-                DetailRow(
-                    icon = Icons.Default.Category,
-                    label = "类型",
-                    value = if (transaction.amount > 0) "收入" else "支出"
-                )
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-                DetailRow(
-                    icon = Icons.Default.Source,
-                    label = "来源",
-                    value = transaction.source
-                )
-            }
-        }
     }
 }
 
 @Composable
-fun DetailRow(icon: ImageVector, label: String, value: String) {
+fun DetailsList() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        DetailItem(label = "分类", value = "餐饮")
+        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+        DetailItem(label = "账户", value = "微信")
+        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+        DetailItem(label = "时间", value = "2024/03/12 18:32")
+        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+        DetailItem(label = "备注", value = "跟朋友吃饭")
+    }
+}
+
+@Composable
+fun DetailItem(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(start = 16.dp)
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(80.dp) // 固定标签宽度以便对齐
         )
-        Spacer(modifier = Modifier.weight(1f))
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
         )
+    }
+}
+
+@Composable
+fun ActionButtons(
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        OutlinedButton(
+            onClick = onDelete,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text("删除")
+        }
+        OutlinedButton(
+            onClick = onEdit,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text("编辑")
+        }
     }
 }
