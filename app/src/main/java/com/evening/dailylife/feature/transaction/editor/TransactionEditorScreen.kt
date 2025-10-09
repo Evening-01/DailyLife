@@ -5,10 +5,6 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.rememberTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -74,17 +70,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomSheet
@@ -93,6 +87,8 @@ import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.model.TransactionCategory
 import com.evening.dailylife.core.model.TransactionCategoryRepository
 import com.moriafly.salt.ui.UnstableSaltApi
+import com.moriafly.salt.ui.popup.PopupMenu
+import com.moriafly.salt.ui.popup.rememberPopupState
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -383,23 +379,23 @@ fun TransactionEditorContent(
     }
 }
 
+@OptIn(UnstableSaltApi::class)
 @Composable
 fun MoodSelector(
     selectedMood: String,
     onMoodSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showMoods by remember { mutableStateOf(false) }
+    val popupState = rememberPopupState()
     val hapticFeedback = LocalHapticFeedback.current
 
     Box(
         modifier = modifier.clickable(
             interactionSource = remember { MutableInteractionSource() },
-            indication = null, // 设置为 null 来移除点击时的涟漪效果
+            indication = null,
             onClick = {
                 hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                // 只负责打开，关闭交给 onDismissRequest 来避免冲突
-                showMoods = true
+                popupState.expend()
             }
         )
     ) {
@@ -431,60 +427,35 @@ fun MoodSelector(
             }
         }
 
-        val transitionState = remember { MutableTransitionState(false) }
-        transitionState.targetState = showMoods
-
-        if (transitionState.currentState || transitionState.targetState) {
-            Popup(
-                alignment = Alignment.TopCenter,
-                offset = IntOffset(0, -220),
-                onDismissRequest = { showMoods = false }
+        PopupMenu(
+            expanded = popupState.expend,
+            onDismissRequest = { popupState.dismiss() },
+            offset = DpOffset((-10).dp, (-100).dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                val transition = rememberTransition(transitionState, "PopupTransition")
-                val alpha by transition.animateFloat(
-                    transitionSpec = { tween(durationMillis = 200) },
-                    label = "alpha"
-                ) { if (it) 1f else 0f }
-                val scale by transition.animateFloat(
-                    transitionSpec = { tween(durationMillis = 200) },
-                    label = "scale"
-                ) { if (it) 1f else 0.95f }
-
-                Card(
-                    modifier = Modifier.graphicsLayer {
-                        this.alpha = alpha
-                        this.scaleX = scale
-                        this.scaleY = scale
-                    },
-                    elevation = CardDefaults.cardElevation(8.dp),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        MoodRepository.moods.forEach { mood ->
-                            Icon(
-                                imageVector = mood.icon,
-                                contentDescription = mood.name,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        onMoodSelected(mood.name)
-                                        showMoods = false // 选择后自动关闭
-                                    }
-                                    .background(
-                                        if (selectedMood == mood.name) MoodRepository
-                                            .getColor(mood.name)
-                                            .copy(alpha = 0.2f)
-                                        else Color.Transparent
-                                    )
-                                    .padding(6.dp),
-                                tint = MoodRepository.getColor(mood.name)
+                MoodRepository.moods.forEach { mood ->
+                    Icon(
+                        imageVector = mood.icon,
+                        contentDescription = mood.name,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                onMoodSelected(mood.name)
+                                popupState.dismiss()
+                            }
+                            .background(
+                                if (selectedMood == mood.name) MoodRepository
+                                    .getColor(mood.name)
+                                    .copy(alpha = 0.2f)
+                                else Color.Transparent
                             )
-                        }
-                    }
+                            .padding(6.dp),
+                        tint = MoodRepository.getColor(mood.name)
+                    )
                 }
             }
         }

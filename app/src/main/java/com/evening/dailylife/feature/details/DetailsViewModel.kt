@@ -2,6 +2,7 @@ package com.evening.dailylife.feature.details
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.core.model.MoodRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,13 @@ class DetailsViewModel @Inject constructor(
 
     fun filterByMonth(calendar: Calendar) {
         loadTransactionsForMonth(calendar)
+    }
+
+    // 添加删除事务的方法
+    fun deleteTransaction(transaction: TransactionEntity) {
+        viewModelScope.launch {
+            repository.deleteTransaction(transaction)
+        }
     }
 
     private fun loadTransactionsForMonth(calendar: Calendar) {

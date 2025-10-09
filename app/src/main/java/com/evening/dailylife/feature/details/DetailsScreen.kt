@@ -2,8 +2,11 @@ package com.evening.dailylife.feature.details
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,11 +27,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,14 +44,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,10 +67,12 @@ import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.designsystem.theme.SuccessGreen
 import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.model.TransactionCategoryRepository
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -152,14 +164,85 @@ fun DetailsScreen(
                                 date = dailyData.date,
                                 income = dailyData.dailyIncome,
                                 expense = dailyData.dailyExpense,
-                                mood = dailyData.dailyMood // 传递心情数据
+                                mood = dailyData.dailyMood
                             )
                         }
-                        items(dailyData.transactions) { transaction ->
-                            TransactionItem(
-                                transaction = transaction,
-                                onClick = { onTransactionClick(transaction.id) }
-                            )
+                        items(dailyData.transactions, key = { it.id }) { transaction ->
+                            // 我们将在这里实现自定义的滑动逻辑
+                            val coroutineScope = rememberCoroutineScope()
+
+                            // 删除按钮的宽度，可以根据需要调整
+                            val deleteButtonWidth = 80.dp
+                            val deleteButtonWidthPx = with(LocalDensity.current) { deleteButtonWidth.toPx() }
+
+                            // 使用 Animatable 来平滑地控制 item 的横向偏移
+                            val offsetX = remember { Animatable(0f) }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                // 1. 背景内容：删除按钮
+                                IconButton(
+                                    onClick = {
+                                        // 点击时删除，并把 item 移回去
+                                        coroutineScope.launch {
+                                            offsetX.snapTo(0f)
+                                        }
+                                        viewModel.deleteTransaction(transaction)
+                                    },
+                                    modifier = Modifier.align(Alignment.CenterEnd)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "删除",
+                                        tint = MaterialTheme.colorScheme.onError
+                                    )
+                                }
+
+                                // 2. 前景内容：你的 TransactionItem
+                                Box(
+                                    modifier = Modifier
+                                        .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                                        .pointerInput(Unit) {
+                                            detectHorizontalDragGestures(
+                                                onDragEnd = {
+                                                    coroutineScope.launch {
+                                                        // 拖动结束后，判断应该停在哪里
+                                                        val threshold = -deleteButtonWidthPx / 2
+                                                        if (offsetX.value < threshold) {
+                                                            // 超过阈值，完全展开
+                                                            offsetX.animateTo(
+                                                                targetValue = -deleteButtonWidthPx,
+                                                                animationSpec = tween(durationMillis = 200)
+                                                            )
+                                                        } else {
+                                                            // 未超过阈值，收回
+                                                            offsetX.animateTo(
+                                                                targetValue = 0f,
+                                                                animationSpec = tween(durationMillis = 200)
+                                                            )
+                                                        }
+                                                    }
+                                                },
+                                                onHorizontalDrag = { change, dragAmount ->
+                                                    change.consume()
+                                                    coroutineScope.launch {
+                                                        // 拖动时，更新偏移量
+                                                        val newOffset = offsetX.value + dragAmount
+                                                        // 限制拖动范围，不能向右滑，向左不能超过按钮宽度
+                                                        offsetX.snapTo(newOffset.coerceIn(-deleteButtonWidthPx, 0f))
+                                                    }
+                                                }
+                                            )
+                                        }
+                                ) {
+                                    TransactionItem(
+                                        transaction = transaction,
+                                        onClick = { onTransactionClick(transaction.id) }
+                                    )
+                                }
+                            }
                             Divider(
                                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                 modifier = Modifier.padding(start = 72.dp)
@@ -171,6 +254,7 @@ fun DetailsScreen(
         }
     }
 }
+
 
 @Composable
 fun DailyHeader(date: String, income: Double, expense: Double, mood: String) {
@@ -231,7 +315,8 @@ fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .background(MaterialTheme.colorScheme.surface),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
