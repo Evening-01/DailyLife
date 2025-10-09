@@ -5,6 +5,10 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -37,6 +41,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.EditCalendar
+import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.sharp.ArrowBackIosNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -69,14 +74,17 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomSheet
@@ -259,97 +267,104 @@ fun TransactionEditorContent(
                     shadowElevation = 8.dp
                 ) {
                     Column {
-                        Card(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
-                            shape = MaterialTheme.shapes.large,
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                            )
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .widthIn(min = 120.dp)
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null
-                                        ) {
-                                            remarkFocusRequester.requestFocus()
-                                        }
-                                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                                    contentAlignment = Alignment.CenterStart
-                                ) {
-                                    BasicTextField(
-                                        value = uiState.description,
-                                        onValueChange = { newText ->
-                                            if (newText.length > MAX_DESCRIPTION_LENGTH && uiState.description.length < MAX_DESCRIPTION_LENGTH) {
-                                                Toast
-                                                    .makeText(context, "备注最多只能输入${MAX_DESCRIPTION_LENGTH}个字", Toast.LENGTH_SHORT)
-                                                    .show()
-                                            }
-                                            onDescriptionChange(newText.take(MAX_DESCRIPTION_LENGTH))
-                                        },
-                                        singleLine = true,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .focusRequester(remarkFocusRequester),
-                                        textStyle = LocalTextStyle.current.copy(
-                                            fontSize = 16.sp,
-                                            color = LocalContentColor.current
-                                        ),
-                                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                                        decorationBox = { innerTextField ->
-                                            Box(contentAlignment = Alignment.CenterStart) {
-                                                if (uiState.description.isEmpty()) {
-                                                    Text(
-                                                        text = "备注(可选)",
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                        fontSize = 16.sp,
-                                                        maxLines = 1
-                                                    )
-                                                }
-                                                innerTextField()
-                                            }
-                                        }
-                                    )
-                                }
-
-                                // 心情选择器
-                                MoodSelector(
-                                    selectedMood = uiState.mood,
-                                    onMoodSelected = onMoodChange,
-                                    modifier = Modifier.padding(start = 8.dp)
+                            // 心情选择器
+                            MoodSelector(
+                                selectedMood = uiState.mood,
+                                onMoodSelected = onMoodChange,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            Card(
+                                modifier = Modifier
+                                    .weight(1f),
+                                shape = MaterialTheme.shapes.large,
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                                 )
-
+                            ) {
                                 Row(
-                                    modifier = Modifier.padding(end = 16.dp),
+                                    modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = "¥",
-                                        fontSize = 28.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary,
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = displayExpression,
-                                        fontSize = 26.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        textAlign = TextAlign.End,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        softWrap = false,
-                                        maxLines = 1,
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .widthIn(min = 120.dp)
+                                            .clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null
+                                            ) {
+                                                remarkFocusRequester.requestFocus()
+                                            }
+                                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                                        contentAlignment = Alignment.CenterStart
+                                    ) {
+                                        BasicTextField(
+                                            value = uiState.description,
+                                            onValueChange = { newText ->
+                                                if (newText.length > MAX_DESCRIPTION_LENGTH && uiState.description.length < MAX_DESCRIPTION_LENGTH) {
+                                                    Toast
+                                                        .makeText(context, "备注最多只能输入${MAX_DESCRIPTION_LENGTH}个字", Toast.LENGTH_SHORT)
+                                                        .show()
+                                                }
+                                                onDescriptionChange(newText.take(MAX_DESCRIPTION_LENGTH))
+                                            },
+                                            singleLine = true,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .focusRequester(remarkFocusRequester),
+                                            textStyle = LocalTextStyle.current.copy(
+                                                fontSize = 16.sp,
+                                                color = LocalContentColor.current
+                                            ),
+                                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                            decorationBox = { innerTextField ->
+                                                Box(contentAlignment = Alignment.CenterStart) {
+                                                    if (uiState.description.isEmpty()) {
+                                                        Text(
+                                                            text = "备注(可选)",
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                            fontSize = 16.sp,
+                                                            maxLines = 1
+                                                        )
+                                                    }
+                                                    innerTextField()
+                                                }
+                                            }
+                                        )
+                                    }
+
+                                    Row(
+                                        modifier = Modifier.padding(end = 16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "¥",
+                                            fontSize = 28.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = displayExpression,
+                                            fontSize = 26.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.End,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            softWrap = false,
+                                            maxLines = 1,
+                                        )
+                                    }
                                 }
                             }
                         }
+
 
                         CalculatorPad(
                             initialValue = uiState.amount,
@@ -375,48 +390,100 @@ fun MoodSelector(
     modifier: Modifier = Modifier
 ) {
     var showMoods by remember { mutableStateOf(false) }
+    val hapticFeedback = LocalHapticFeedback.current
 
-    Box(modifier = modifier) {
-        Icon(
-            imageVector = MoodRepository.getIcon(selectedMood),
-            contentDescription = "选择心情",
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .clickable { showMoods = !showMoods }
-                .padding(4.dp),
-            tint = MaterialTheme.colorScheme.primary
+    Box(
+        modifier = modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null, // 设置为 null 来移除点击时的涟漪效果
+            onClick = {
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                // 只负责打开，关闭交给 onDismissRequest 来避免冲突
+                showMoods = true
+            }
         )
-
-        if (showMoods) {
-            Card(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 40.dp), // 避免遮挡
-                elevation = CardDefaults.cardElevation(8.dp)
+    ) {
+        Card(
+            shape = CircleShape,
+            modifier = Modifier.size(40.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Row(
-                    modifier = Modifier.padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                Icon(
+                    imageVector = if (selectedMood.isNotEmpty()) {
+                        MoodRepository.getIcon(selectedMood)
+                    } else {
+                        Icons.Outlined.EmojiEmotions
+                    },
+                    contentDescription = "选择心情",
+                    modifier = Modifier.size(24.dp),
+                    tint = if (selectedMood.isNotEmpty()) {
+                        MoodRepository.getColor(selectedMood)
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+            }
+        }
+
+        val transitionState = remember { MutableTransitionState(false) }
+        transitionState.targetState = showMoods
+
+        if (transitionState.currentState || transitionState.targetState) {
+            Popup(
+                alignment = Alignment.TopCenter,
+                offset = IntOffset(0, -220),
+                onDismissRequest = { showMoods = false }
+            ) {
+                val transition = rememberTransition(transitionState, "PopupTransition")
+                val alpha by transition.animateFloat(
+                    transitionSpec = { tween(durationMillis = 200) },
+                    label = "alpha"
+                ) { if (it) 1f else 0f }
+                val scale by transition.animateFloat(
+                    transitionSpec = { tween(durationMillis = 200) },
+                    label = "scale"
+                ) { if (it) 1f else 0.95f }
+
+                Card(
+                    modifier = Modifier.graphicsLayer {
+                        this.alpha = alpha
+                        this.scaleX = scale
+                        this.scaleY = scale
+                    },
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    shape = MaterialTheme.shapes.medium
                 ) {
-                    MoodRepository.moods.forEach { mood ->
-                        Icon(
-                            imageVector = mood.icon,
-                            contentDescription = mood.name,
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .clickable {
-                                    onMoodSelected(mood.name)
-                                    showMoods = false // 选择后关闭
-                                }
-                                .background(
-                                    if (selectedMood == mood.name) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                                    else Color.Transparent
-                                )
-                                .padding(4.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        MoodRepository.moods.forEach { mood ->
+                            Icon(
+                                imageVector = mood.icon,
+                                contentDescription = mood.name,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        onMoodSelected(mood.name)
+                                        showMoods = false // 选择后自动关闭
+                                    }
+                                    .background(
+                                        if (selectedMood == mood.name) MoodRepository
+                                            .getColor(mood.name)
+                                            .copy(alpha = 0.2f)
+                                        else Color.Transparent
+                                    )
+                                    .padding(6.dp),
+                                tint = MoodRepository.getColor(mood.name)
+                            )
+                        }
                     }
                 }
             }

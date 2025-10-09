@@ -194,15 +194,14 @@ fun DailyHeader(date: String, income: Double, expense: Double, mood: String) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.weight(1f)) // 将右侧内容推向边缘
+        Spacer(modifier = Modifier.weight(1f))
 
-        // 如果当天有心情，则显示心情图标
         if (mood.isNotBlank()) {
             Icon(
                 imageVector = MoodRepository.getIcon(mood),
                 contentDescription = "Daily Mood",
                 modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MoodRepository.getColor(mood)
             )
         }
         Row {
