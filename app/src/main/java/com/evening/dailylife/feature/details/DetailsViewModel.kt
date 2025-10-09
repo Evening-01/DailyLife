@@ -3,6 +3,7 @@ package com.evening.dailylife.feature.details
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.repository.TransactionRepository
+import com.evening.dailylife.core.model.MoodRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -74,12 +75,11 @@ class DetailsViewModel @Inject constructor(
                             val dailyIncome = trans.filter { it.amount > 0 }.sumOf { it.amount }
                             val dailyExpense = trans.filter { it.amount < 0 }.sumOf { it.amount }
 
-                            // 计算当天出现次数最多的心情
-                            val dailyMood = trans
-                                .filter { it.mood.isNotBlank() } // 过滤掉没有心情的记录
-                                .groupingBy { it.mood }
-                                .eachCount()
-                                .maxByOrNull { it.value }?.key ?: "" // 找到次数最多的心情，如果没有则为空字符串
+                            // 计算当天心情总分
+                            val dailyMoodScore = trans.sumOf { it.mood }
+                            // 根据总分获取对应的心情名称
+                            val dailyMood = MoodRepository.getMoodByScore(dailyMoodScore)?.name ?: ""
+
 
                             DailyTransactions(
                                 date = formatDate(dateMillis),

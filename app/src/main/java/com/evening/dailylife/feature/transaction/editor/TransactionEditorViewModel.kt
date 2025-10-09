@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
+import com.evening.dailylife.core.model.MoodRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,13 +83,15 @@ class TransactionEditorViewModel @Inject constructor(
 
             val transactionAmount = if (currentState.isExpense) -abs(amountValue) else abs(amountValue)
 
+            // 将心情名称转换为分数
+            val moodScore = MoodRepository.moods.find { it.name == currentState.mood }?.score ?: 0
 
 
             val newTransaction = TransactionEntity(
                 amount = transactionAmount,
                 category = currentState.category,
                 description = currentState.description,
-                mood = currentState.mood,
+                mood = moodScore,
                 date = currentState.date,
             )
 

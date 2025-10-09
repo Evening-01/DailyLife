@@ -13,6 +13,6 @@ data class TransactionEntity(
     val category: String,
     val description: String,
     val amount: Double,
-    val mood: String,
+    val mood: Int,
     val date: Long
 )
