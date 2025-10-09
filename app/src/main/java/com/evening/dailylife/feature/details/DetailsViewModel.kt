@@ -26,12 +26,14 @@ class DetailsViewModel @Inject constructor(
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
+    private var currentCalendar: Calendar = Calendar.getInstance()
 
     init {
-        loadTransactionsForMonth(Calendar.getInstance())
+        loadTransactionsForMonth(currentCalendar)
     }
 
     fun filterByMonth(calendar: Calendar) {
+        currentCalendar = calendar
         loadTransactionsForMonth(calendar)
     }
 
@@ -39,6 +41,7 @@ class DetailsViewModel @Inject constructor(
     fun deleteTransaction(transaction: TransactionEntity) {
         viewModelScope.launch {
             repository.deleteTransaction(transaction)
+            // 删除后无需手动刷新，Room 的 Flow 会自动通知更新
         }
     }
 
@@ -83,8 +86,8 @@ class DetailsViewModel @Inject constructor(
                             val dailyIncome = trans.filter { it.amount > 0 }.sumOf { it.amount }
                             val dailyExpense = trans.filter { it.amount < 0 }.sumOf { it.amount }
 
-                            // 计算当天心情总分
-                            val dailyMoodScore = trans.sumOf { it.mood }
+                            // 计算当天心情总分，过滤掉 null 值
+                            val dailyMoodScore = trans.mapNotNull { it.mood }.sum()
                             // 根据总分获取对应的心情名称
                             val dailyMood = MoodRepository.getMoodByScore(dailyMoodScore)?.name ?: ""
 

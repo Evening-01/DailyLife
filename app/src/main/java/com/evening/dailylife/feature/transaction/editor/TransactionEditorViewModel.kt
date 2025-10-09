@@ -83,8 +83,12 @@ class TransactionEditorViewModel @Inject constructor(
 
             val transactionAmount = if (currentState.isExpense) -abs(amountValue) else abs(amountValue)
 
-            // 将心情名称转换为分数
-            val moodScore = MoodRepository.moods.find { it.name == currentState.mood }?.score ?: 0
+            // 将心情名称转换为分数，如果未选择心情，则为 null
+            val moodScore = if (currentState.mood.isNotEmpty()) {
+                MoodRepository.moods.find { it.name == currentState.mood }?.score
+            } else {
+                null
+            }
 
 
             val newTransaction = TransactionEntity(

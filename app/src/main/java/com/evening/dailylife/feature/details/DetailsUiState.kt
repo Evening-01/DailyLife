@@ -14,5 +14,6 @@ data class DetailsUiState(
     val transactions: List<DailyTransactions> = emptyList(),
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,
+    val averageMood: Int? = null,
     val isLoading: Boolean = true
 )
