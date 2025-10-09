@@ -17,6 +17,10 @@ class TransactionRepository @Inject constructor(
         return transactionDao.getTransactionsByDateRange(startDate, endDate)
     }
 
+    fun getTransactionById(id: Int): Flow<TransactionEntity?> {
+        return transactionDao.getTransactionById(id)
+    }
+
     suspend fun insertTransaction(transaction: TransactionEntity) {
         transactionDao.insertTransaction(transaction)
     }

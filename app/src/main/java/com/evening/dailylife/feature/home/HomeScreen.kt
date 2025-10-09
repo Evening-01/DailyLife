@@ -1,5 +1,7 @@
 package com.evening.dailylife.feature.home
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,69 +29,75 @@ import com.evening.dailylife.feature.details.DetailsScreen
 import com.evening.dailylife.feature.discover.DiscoverScreen
 import com.evening.dailylife.feature.me.MeScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onAddTransactionClick: () -> Unit
+    onAddTransactionClick: () -> Unit,
+    appNavController: NavHostController
 ) {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val homeNavController = rememberNavController()
+    val navBackStackEntry by homeNavController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ) {
-                    items.forEach { screen ->
-                        val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                        NavigationBarItem(
-                            icon = {
-                                AnimatedBottomBarIcon(
-                                    screen = screen,
-                                    isSelected = isSelected
-                                )
-                            },
-                            label = { Text(stringResource(id = screen.labelResId)) },
-                            selected = isSelected,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+            ) {
+                items.forEach { screen ->
+                    val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                    NavigationBarItem(
+                        icon = {
+                            AnimatedBottomBarIcon(
+                                screen = screen,
+                                isSelected = isSelected
+                            )
+                        },
+                        label = { Text(stringResource(id = screen.labelResId)) },
+                        selected = isSelected,
+                        onClick = {
+                            homeNavController.navigate(screen.route) {
+                                popUpTo(homeNavController.graph.findStartDestination().id) {
+                                    saveState = true
                                 }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                        )
-                    }
+                        }
+                    )
                 }
             }
         }
     ) { innerPadding ->
         HomeNavHost(
-            navController = navController,
+            homeNavController = homeNavController,
+            appNavController = appNavController,
             onAddTransactionClick = onAddTransactionClick,
             modifier = Modifier.padding(PaddingValues(bottom = innerPadding.calculateBottomPadding()))
         )
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun HomeNavHost(
-    navController: NavHostController,
+    homeNavController: NavHostController,
+    appNavController: NavHostController,
     onAddTransactionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
-        navController = navController,
+        navController = homeNavController,
         startDestination = Route.DETAILS,
         modifier = modifier
     ) {
         composable(Route.DETAILS) {
             DetailsScreen(
-                onTransactionClick = { /* TODO: navigate to transaction detail */ },
+                onTransactionClick = { transactionId ->
+                    // 使用主 appNavController 来执行跨页面的跳转
+                    appNavController.navigate(Route.transactionDetails(transactionId))
+                },
                 onAddTransactionClick = onAddTransactionClick
             )
         }
