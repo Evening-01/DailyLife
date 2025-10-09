@@ -43,6 +43,14 @@ class TransactionEditorViewModel @Inject constructor(
         _uiState.update { it.copy(date = date, error = null) }
     }
 
+    // 处理心情变化
+    fun onMoodChange(mood: String) {
+        // 如果再次点击已选中的心情，则取消选择
+        val newMood = if (_uiState.value.mood == mood) "" else mood
+        _uiState.update { it.copy(mood = newMood) }
+    }
+
+
     fun onTransactionTypeChange(isExpense: Boolean) {
         _uiState.update {
             it.copy(
@@ -50,7 +58,7 @@ class TransactionEditorViewModel @Inject constructor(
                 category = "",
                 error = null
             )
-        } // 切换类型时清空已选分类
+        }
     }
 
     fun saveTransaction() {
@@ -80,7 +88,7 @@ class TransactionEditorViewModel @Inject constructor(
                 amount = transactionAmount,
                 category = currentState.category,
                 description = currentState.description,
-                mood = "",
+                mood = currentState.mood,
                 date = currentState.date,
             )
 
@@ -92,6 +100,7 @@ class TransactionEditorViewModel @Inject constructor(
                         amount = "",
                         category = "",
                         description = "",
+                        mood = "",
                         isSaving = false,
                         error = null
                     )

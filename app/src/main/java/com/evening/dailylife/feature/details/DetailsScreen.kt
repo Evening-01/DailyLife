@@ -55,6 +55,7 @@ import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomShe
 import com.evening.dailylife.core.designsystem.component.CalendarPickerType
 import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.designsystem.theme.SuccessGreen
+import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.model.TransactionCategoryRepository
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -73,7 +74,6 @@ fun DetailsScreen(
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
 
-    // 日期格式化工具
     val yearFormat = SimpleDateFormat("yyyy年", Locale.getDefault())
     val monthFormat = SimpleDateFormat("M月", Locale.getDefault())
 
@@ -84,20 +84,18 @@ fun DetailsScreen(
         viewModel.filterByMonth(selectedDate)
     }
 
-    // 日期选择对话框
     if (showDatePickerDialog) {
         CalendarPickerBottomSheet(
             showBottomSheet = true,
             onDismiss = { showDatePickerDialog = false },
-            type = CalendarPickerType.MONTH, // 设置为月份选择模式
-            initialDate = selectedDate,     // 传入当前选中的日期
-            onDateSelected = { _, _, _ -> /* 在月份模式下不使用 */ },
+            type = CalendarPickerType.MONTH,
+            initialDate = selectedDate,
+            onDateSelected = { _, _, _ -> },
             onMonthSelected = { year, month ->
-                // 当用户确认选择后，更新日期状态
                 val newCalendar = Calendar.getInstance().apply {
-                    clear() // 先清除所有字段，避免残留数据影响
+                    clear()
                     set(Calendar.YEAR, year)
-                    set(Calendar.MONTH, month - 1) // Calendar 的月份是从0开始的，所以要减1
+                    set(Calendar.MONTH, month - 1)
                 }
                 selectedDate = newCalendar
                 viewModel.filterByMonth(newCalendar)
@@ -141,7 +139,7 @@ fun DetailsScreen(
             )
 
             if (uiState.isLoading) {
-                // TODO: 在此处显示加载指示器 (e.g., CircularProgressIndicator)
+                // 你可以在这里添加一个加载指示器
             } else if (uiState.transactions.isEmpty()) {
                 EmptyState()
             } else {
@@ -153,7 +151,8 @@ fun DetailsScreen(
                             DailyHeader(
                                 date = dailyData.date,
                                 income = dailyData.dailyIncome,
-                                expense = dailyData.dailyExpense
+                                expense = dailyData.dailyExpense,
+                                mood = dailyData.dailyMood // 传递心情数据
                             )
                         }
                         items(dailyData.transactions) { transaction ->
@@ -173,7 +172,118 @@ fun DetailsScreen(
     }
 }
 
+@Composable
+fun DailyHeader(date: String, income: Double, expense: Double, mood: String) {
+    fun formatDate(date: String): String {
+        if (date.startsWith("今天")) {
+            return "今天"
+        }
+        val parts = date.split(" ")
+        val dateParts = parts[0].split("/")
+        return "${dateParts[0]}月${dateParts[1]}日 ${parts[1]}"
+    }
 
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = formatDate(date),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.weight(1f)) // 将右侧内容推向边缘
+
+        // 如果当天有心情，则显示心情图标
+        if (mood.isNotBlank()) {
+            Icon(
+                imageVector = MoodRepository.getIcon(mood),
+                contentDescription = "Daily Mood",
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Row {
+            if (income > 0) {
+                Text(
+                    text = "收入: ${"%.2f".format(income)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+            if (expense < 0) {
+                Text(
+                    text = "支出: ${"%.2f".format(abs(expense))}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = TransactionCategoryRepository.getIcon(transaction.category),
+                contentDescription = transaction.category,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Box(modifier = Modifier.weight(1f)) {
+            if (transaction.description.isNotBlank()) {
+                Column {
+                    Text(
+                        text = transaction.category,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = transaction.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                Text(
+                    text = transaction.category,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
+        Text(
+            text = "%.2f".format(transaction.amount),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = if (transaction.amount > 0) SuccessGreen else MaterialTheme.colorScheme.error
+        )
+    }
+}
+
+// 其他函数 (EmptyState, SummaryHeader, 等) 保持不变
 @Composable
 fun EmptyState() {
     Box(
@@ -317,110 +427,6 @@ fun SummaryItem(title: String, amount: String, contentColor: Color) {
             color = contentColor,
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold
-        )
-    }
-}
-
-@Composable
-fun DailyHeader(date: String, income: Double, expense: Double) {
-    fun formatDate(date: String): String {
-        if (date.startsWith("今天")) {
-            return "今天"
-        }
-        val parts = date.split(" ")
-        val dateParts = parts[0].split("/")
-        return "${dateParts[0]}月${dateParts[1]}日 ${parts[1]}"
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = formatDate(date),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Row {
-            if (income > 0) {
-                Text(
-                    text = "收入: ${"%.2f".format(income)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-            if (expense < 0) {
-                Text(
-                    text = "支出: ${"%.2f".format(abs(expense))}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Icon
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = TransactionCategoryRepository.getIcon(transaction.category), // 映射图标
-                contentDescription = transaction.category,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Box(modifier = Modifier.weight(1f)) {
-            if (transaction.description.isNotBlank()) {
-                Column {
-                    Text(
-                        text = transaction.category,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = transaction.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                // 备注为空时，只显示分类，并垂直居中
-                Text(
-                    text = transaction.category,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
-
-        // 金额
-        Text(
-            text = "%.2f".format(transaction.amount),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = if (transaction.amount > 0) SuccessGreen else MaterialTheme.colorScheme.error
         )
     }
 }

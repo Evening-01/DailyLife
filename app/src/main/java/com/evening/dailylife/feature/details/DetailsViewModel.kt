@@ -73,11 +73,20 @@ class DetailsViewModel @Inject constructor(
                         .map { (dateMillis, trans) ->
                             val dailyIncome = trans.filter { it.amount > 0 }.sumOf { it.amount }
                             val dailyExpense = trans.filter { it.amount < 0 }.sumOf { it.amount }
+
+                            // 计算当天出现次数最多的心情
+                            val dailyMood = trans
+                                .filter { it.mood.isNotBlank() } // 过滤掉没有心情的记录
+                                .groupingBy { it.mood }
+                                .eachCount()
+                                .maxByOrNull { it.value }?.key ?: "" // 找到次数最多的心情，如果没有则为空字符串
+
                             DailyTransactions(
                                 date = formatDate(dateMillis),
                                 transactions = trans,
                                 dailyIncome = dailyIncome,
-                                dailyExpense = dailyExpense
+                                dailyExpense = dailyExpense,
+                                dailyMood = dailyMood // 将计算出的心情传递给UI状态
                             )
                         }
 

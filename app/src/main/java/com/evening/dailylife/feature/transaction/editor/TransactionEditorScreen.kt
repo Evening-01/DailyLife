@@ -67,6 +67,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -80,6 +81,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomSheet
 import com.evening.dailylife.core.designsystem.component.CalendarPickerType
+import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.model.TransactionCategory
 import com.evening.dailylife.core.model.TransactionCategoryRepository
 import com.moriafly.salt.ui.UnstableSaltApi
@@ -122,6 +124,7 @@ fun TransactionEditorScreen(
         onAmountChange = viewModel::onAmountChange,
         onDescriptionChange = viewModel::onDescriptionChange,
         onDateChange = viewModel::onDateChange,
+        onMoodChange = viewModel::onMoodChange, // 传递 ViewModel 的方法
         onSaveTransaction = viewModel::saveTransaction,
         onNavigateBack = { navController.popBackStack() }
     )
@@ -137,6 +140,7 @@ fun TransactionEditorContent(
     onAmountChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onDateChange: (Long) -> Unit,
+    onMoodChange: (String) -> Unit, // 添加 onMoodChange 回调
     onSaveTransaction: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
@@ -285,7 +289,9 @@ fun TransactionEditorContent(
                                         value = uiState.description,
                                         onValueChange = { newText ->
                                             if (newText.length > MAX_DESCRIPTION_LENGTH && uiState.description.length < MAX_DESCRIPTION_LENGTH) {
-                                                Toast.makeText(context, "备注最多只能输入${MAX_DESCRIPTION_LENGTH}个字", Toast.LENGTH_SHORT).show()
+                                                Toast
+                                                    .makeText(context, "备注最多只能输入${MAX_DESCRIPTION_LENGTH}个字", Toast.LENGTH_SHORT)
+                                                    .show()
                                             }
                                             onDescriptionChange(newText.take(MAX_DESCRIPTION_LENGTH))
                                         },
@@ -313,6 +319,13 @@ fun TransactionEditorContent(
                                         }
                                     )
                                 }
+
+                                // 心情选择器
+                                MoodSelector(
+                                    selectedMood = uiState.mood,
+                                    onMoodSelected = onMoodChange,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
 
                                 Row(
                                     modifier = Modifier.padding(end = 16.dp),
@@ -354,6 +367,63 @@ fun TransactionEditorContent(
         }
     }
 }
+
+@Composable
+fun MoodSelector(
+    selectedMood: String,
+    onMoodSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showMoods by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
+        Icon(
+            imageVector = MoodRepository.getIcon(selectedMood),
+            contentDescription = "选择心情",
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .clickable { showMoods = !showMoods }
+                .padding(4.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+
+        if (showMoods) {
+            Card(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 40.dp), // 避免遮挡
+                elevation = CardDefaults.cardElevation(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    MoodRepository.moods.forEach { mood ->
+                        Icon(
+                            imageVector = mood.icon,
+                            contentDescription = mood.name,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .clickable {
+                                    onMoodSelected(mood.name)
+                                    showMoods = false // 选择后关闭
+                                }
+                                .background(
+                                    if (selectedMood == mood.name) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                    else Color.Transparent
+                                )
+                                .padding(4.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun CategoryItem(category: TransactionCategory, isSelected: Boolean, onClick: () -> Unit) {
