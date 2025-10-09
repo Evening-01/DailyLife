@@ -233,7 +233,7 @@ fun DetailsScreen(
                                                 detectHorizontalDragGestures(
                                                     onDragEnd = {
                                                         coroutineScope.launch {
-                                                            val threshold = -deleteButtonWidthPx / 2
+                                                            val threshold = -deleteButtonWidthPx * 0.6f
                                                             if (offsetX.value < threshold) {
                                                                 offsetX.animateTo(
                                                                     targetValue = -deleteButtonWidthPx,
@@ -400,7 +400,6 @@ fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
         )
     }
 }
-
 @Composable
 fun EmptyState() {
     Box(
