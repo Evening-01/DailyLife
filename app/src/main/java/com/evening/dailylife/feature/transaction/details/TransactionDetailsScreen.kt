@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
+import com.evening.dailylife.core.model.MoodRepository
+import com.evening.dailylife.core.model.TransactionCategoryRepository
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -101,8 +102,7 @@ fun TransactionDetailsContent(transaction: TransactionEntity) {
             transaction = transaction,
             icon = {
                 Icon(
-                    // 此处应替换为实际的图标
-                    imageVector = Icons.Default.Restaurant,
+                    imageVector = TransactionCategoryRepository.getIcon(transaction.category),
                     contentDescription = transaction.category,
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.primary
@@ -138,19 +138,18 @@ fun TransactionSummaryCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(CardDefaults.shape)
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             icon()
-            Text(text = transaction.category, style = MaterialTheme.typography.titleMedium)
             Text(
-                text = String.format(Locale.CHINA, "%.2f", transaction.amount),
+                text = String.format(Locale.CHINA, "%+.2f", transaction.amount),
                 style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         }
     }
@@ -168,7 +167,54 @@ fun DetailsList(transaction: TransactionEntity) {
         Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
         DetailItem(label = "来源", value = transaction.source)
         Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+
+        // 仅在心情不为空时显示
+        if (transaction.mood != null) {
+            // 根据分数获取心情对象
+            val mood = MoodRepository.getMoodByScore(transaction.mood)
+            if (mood != null) {
+                MoodDetailItem(
+                    label = "心情",
+                    mood = mood.name,
+                    icon = {
+                        Icon(
+                            imageVector = mood.icon,
+                            contentDescription = mood.name,
+                            modifier = Modifier.size(24.dp),
+                            tint = mood.color
+                        )
+                    }
+                )
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            }
+        }
+
         DetailItem(label = "备注", value = transaction.description.ifBlank { "暂无" })
+    }
+}
+
+@Composable
+fun MoodDetailItem(label: String, mood: String, icon: @Composable () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(80.dp)
+        )
+        Text(
+            text = mood,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        icon()
     }
 }
 
