@@ -9,8 +9,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.evening.dailylife.feature.discover.TransactionDetailsScreen
 import com.evening.dailylife.feature.home.HomeScreen
+import com.evening.dailylife.feature.transaction.details.TransactionDetailsScreen
 import com.evening.dailylife.feature.transaction.editor.TransactionEditorScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
