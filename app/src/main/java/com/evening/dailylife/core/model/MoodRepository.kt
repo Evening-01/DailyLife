@@ -1,7 +1,7 @@
 package com.evening.dailylife.core.model
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.SentimentDissatisfied
 import androidx.compose.material.icons.outlined.SentimentNeutral
 import androidx.compose.material.icons.outlined.SentimentSatisfied
@@ -27,7 +27,7 @@ object MoodRepository {
     )
 
     fun getIcon(moodName: String): ImageVector {
-        return moods.find { it.name == moodName }?.icon ?: Icons.Outlined.HelpOutline
+        return moods.find { it.name == moodName }?.icon ?: Icons.AutoMirrored.Outlined.HelpOutline
     }
 
     fun getColor(moodName: String): Color {

@@ -7,7 +7,7 @@ data class DailyTransactions(
     val transactions: List<TransactionEntity>,
     val dailyIncome: Double,
     val dailyExpense: Double,
-    val dailyMood: String // 新增字段，用于存放当天的主要心情
+    val dailyMood: String
 )
 
 data class DetailsUiState(

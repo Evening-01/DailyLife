@@ -2,8 +2,11 @@ package com.evening.dailylife.feature.details
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -67,6 +70,7 @@ import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.designsystem.theme.SuccessGreen
 import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.model.TransactionCategoryRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -168,85 +172,115 @@ fun DetailsScreen(
                             )
                         }
                         items(dailyData.transactions, key = { it.id }) { transaction ->
-                            // 我们将在这里实现自定义的滑动逻辑
-                            val coroutineScope = rememberCoroutineScope()
+                            val animationDuration = 300
+                            var visible by remember { mutableStateOf(true) }
 
-                            // 删除按钮的宽度，可以根据需要调整
-                            val deleteButtonWidth = 80.dp
-                            val deleteButtonWidthPx = with(LocalDensity.current) { deleteButtonWidth.toPx() }
-
-                            // 使用 Animatable 来平滑地控制 item 的横向偏移
-                            val offsetX = remember { Animatable(0f) }
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            ) {
-                                // 1. 背景内容：删除按钮
-                                IconButton(
-                                    onClick = {
-                                        // 点击时删除，并把 item 移回去
-                                        coroutineScope.launch {
-                                            offsetX.snapTo(0f)
-                                        }
-                                        viewModel.deleteTransaction(transaction)
-                                    },
-                                    modifier = Modifier.align(Alignment.CenterEnd)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "删除",
-                                        tint = MaterialTheme.colorScheme.onError
-                                    )
+                            // 当 visible 状态变为 false 时，此效应会启动
+                            LaunchedEffect(visible) {
+                                if (!visible) {
+                                    // 等待动画播放完毕
+                                    delay(animationDuration.toLong())
+                                    // 动画结束后，再真正删除数据
+                                    viewModel.deleteTransaction(transaction)
                                 }
+                            }
 
-                                // 2. 前景内容：你的 TransactionItem
-                                Box(
-                                    modifier = Modifier
-                                        .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                                        .pointerInput(Unit) {
-                                            detectHorizontalDragGestures(
-                                                onDragEnd = {
-                                                    coroutineScope.launch {
-                                                        // 拖动结束后，判断应该停在哪里
-                                                        val threshold = -deleteButtonWidthPx / 2
-                                                        if (offsetX.value < threshold) {
-                                                            // 超过阈值，完全展开
-                                                            offsetX.animateTo(
-                                                                targetValue = -deleteButtonWidthPx,
-                                                                animationSpec = tween(durationMillis = 200)
-                                                            )
-                                                        } else {
-                                                            // 未超过阈值，收回
-                                                            offsetX.animateTo(
-                                                                targetValue = 0f,
-                                                                animationSpec = tween(durationMillis = 200)
+                            AnimatedVisibility(
+                                visible = visible,
+                                exit = shrinkVertically(animationSpec = tween(durationMillis = animationDuration)) +
+                                        fadeOut(animationSpec = tween(durationMillis = animationDuration)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                val coroutineScope = rememberCoroutineScope()
+                                val deleteButtonWidth = 80.dp
+                                val deleteButtonWidthPx =
+                                    with(LocalDensity.current) { deleteButtonWidth.toPx() }
+                                val offsetX = remember { Animatable(0f) }
+
+                                Box {
+                                    Box(
+                                        modifier = Modifier
+                                            .matchParentSize()
+                                            .background(MaterialTheme.colorScheme.error)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .align(Alignment.CenterEnd)
+                                                .fillMaxHeight()
+                                                .width(deleteButtonWidth),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            IconButton(
+                                                onClick = {
+                                                    coroutineScope.launch { offsetX.snapTo(0f) }
+                                                    // 触发动画，而不是直接删除
+                                                    visible = false
+                                                }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Delete,
+                                                    contentDescription = "删除",
+                                                    tint = Color.White
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                                            .pointerInput(Unit) {
+                                                detectHorizontalDragGestures(
+                                                    onDragEnd = {
+                                                        coroutineScope.launch {
+                                                            val threshold = -deleteButtonWidthPx / 2
+                                                            if (offsetX.value < threshold) {
+                                                                offsetX.animateTo(
+                                                                    targetValue = -deleteButtonWidthPx,
+                                                                    animationSpec = tween(durationMillis = 200)
+                                                                )
+                                                            } else {
+                                                                offsetX.animateTo(
+                                                                    targetValue = 0f,
+                                                                    animationSpec = tween(durationMillis = 200)
+                                                                )
+                                                            }
+                                                        }
+                                                    },
+                                                    onHorizontalDrag = { change, dragAmount ->
+                                                        change.consume()
+                                                        coroutineScope.launch {
+                                                            val newOffset =
+                                                                offsetX.value + dragAmount
+                                                            offsetX.snapTo(
+                                                                newOffset.coerceIn(
+                                                                    -deleteButtonWidthPx,
+                                                                    0f
+                                                                )
                                                             )
                                                         }
                                                     }
-                                                },
-                                                onHorizontalDrag = { change, dragAmount ->
-                                                    change.consume()
-                                                    coroutineScope.launch {
-                                                        // 拖动时，更新偏移量
-                                                        val newOffset = offsetX.value + dragAmount
-                                                        // 限制拖动范围，不能向右滑，向左不能超过按钮宽度
-                                                        offsetX.snapTo(newOffset.coerceIn(-deleteButtonWidthPx, 0f))
-                                                    }
+                                                )
+                                            }
+                                    ) {
+                                        TransactionItem(
+                                            transaction = transaction,
+                                            onClick = {
+                                                if (offsetX.value == 0f) {
+                                                    onTransactionClick(transaction.id)
                                                 }
-                                            )
-                                        }
-                                ) {
-                                    TransactionItem(
-                                        transaction = transaction,
-                                        onClick = { onTransactionClick(transaction.id) }
+                                            }
+                                        )
+                                    }
+
+                                    Divider(
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(start = 72.dp)
                                     )
                                 }
                             }
-                            Divider(
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                modifier = Modifier.padding(start = 72.dp)
-                            )
                         }
                     }
                 }
@@ -314,9 +348,9 @@ fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .background(MaterialTheme.colorScheme.surface),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -367,7 +401,6 @@ fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
     }
 }
 
-// 其他函数 (EmptyState, SummaryHeader, 等) 保持不变
 @Composable
 fun EmptyState() {
     Box(
@@ -475,7 +508,12 @@ private fun DatePickerModule(
 }
 
 @Composable
-private fun IncomeExpenseGroup(income: String, expense: String, contentColor: Color, modifier: Modifier = Modifier) {
+private fun IncomeExpenseGroup(
+    income: String,
+    expense: String,
+    contentColor: Color,
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceAround,
