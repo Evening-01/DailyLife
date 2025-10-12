@@ -1,5 +1,6 @@
 package com.evening.dailylife.feature.transaction.editor
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
@@ -12,14 +13,17 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
 import javax.inject.Inject
 import kotlin.math.abs
 
 @HiltViewModel
 class TransactionEditorViewModel @Inject constructor(
-    private val repository: TransactionRepository
+    private val repository: TransactionRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TransactionEditorUiState())
@@ -27,6 +31,49 @@ class TransactionEditorViewModel @Inject constructor(
 
     private val _events = MutableSharedFlow<TransactionEditorEvent>()
     val events: SharedFlow<TransactionEditorEvent> = _events.asSharedFlow()
+
+    private val editingTransactionId: Int? =
+        savedStateHandle.get<Int>("transactionId")?.takeIf { it != -1 }
+
+    private var originalTransaction: TransactionEntity? = null
+
+    init {
+        editingTransactionId?.let { id ->
+            loadTransaction(id)
+        }
+    }
+
+    private fun loadTransaction(transactionId: Int) {
+        viewModelScope.launch {
+            val transaction = repository.getTransactionById(transactionId).firstOrNull()
+            transaction?.let { entity ->
+                originalTransaction = entity
+                val moodName = entity.mood?.let { score ->
+                    MoodRepository.moods.find { it.score == score }?.name
+                } ?: ""
+
+                _uiState.update {
+                    it.copy(
+                        amount = formatAmountForInput(abs(entity.amount)),
+                        category = entity.category,
+                        description = entity.description,
+                        date = entity.date,
+                        isExpense = entity.amount < 0,
+                        mood = moodName,
+                        transactionId = entity.id,
+                        isEditing = true
+                    )
+                }
+            }
+        }
+    }
+
+    private fun formatAmountForInput(amount: Double): String {
+        val df = DecimalFormat("0.##")
+        df.isGroupingUsed = false
+        return df.format(amount)
+    }
+
 
     fun onAmountChange(amount: String) {
         _uiState.update { it.copy(amount = amount) }
@@ -91,7 +138,13 @@ class TransactionEditorViewModel @Inject constructor(
             }
 
 
-            val newTransaction = TransactionEntity(
+            val newTransaction = originalTransaction?.copy(
+                amount = transactionAmount,
+                category = currentState.category,
+                description = currentState.description,
+                mood = moodScore,
+                date = currentState.date
+            ) ?: TransactionEntity(
                 amount = transactionAmount,
                 category = currentState.category,
                 description = currentState.description,
@@ -100,17 +153,30 @@ class TransactionEditorViewModel @Inject constructor(
             )
 
             runCatching {
-                repository.insertTransaction(newTransaction)
+                if (currentState.isEditing && currentState.transactionId != null) {
+                    repository.updateTransaction(newTransaction)
+                } else {
+                    repository.insertTransaction(newTransaction)
+                }
             }.onSuccess {
-                _uiState.update {
-                    it.copy(
-                        amount = "",
-                        category = "",
-                        description = "",
-                        mood = "",
-                        isSaving = false,
-                        error = null
-                    )
+                if (currentState.isEditing) {
+                    originalTransaction = newTransaction
+                } else {
+                    originalTransaction = null
+                }
+                if (currentState.isEditing) {
+                    _uiState.update { it.copy(isSaving = false, error = null) }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            amount = "",
+                            category = "",
+                            description = "",
+                            mood = "",
+                            isSaving = false,
+                            error = null
+                        )
+                    }
                 }
                 _events.emit(TransactionEditorEvent.SaveSuccess)
             }.onFailure { throwable ->

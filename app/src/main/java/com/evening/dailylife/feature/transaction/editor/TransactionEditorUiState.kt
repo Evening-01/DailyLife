@@ -7,6 +7,8 @@ data class TransactionEditorUiState(
     val date: Long = System.currentTimeMillis(),
     val isExpense: Boolean = true,
     val mood: String = "",
+    val transactionId: Int? = null,
+    val isEditing: Boolean = false,
     val isSaving: Boolean = false,
     val error: String? = null
 )

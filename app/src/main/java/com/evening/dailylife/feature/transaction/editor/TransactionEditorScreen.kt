@@ -154,6 +154,8 @@ fun TransactionEditorContent(
     LaunchedEffect(uiState.amount) {
         if (uiState.amount.isBlank()) {
             displayExpression = "0.00"
+        } else if (displayExpression == "0.00") {
+            displayExpression = uiState.amount
         }
     }
 
@@ -176,7 +178,15 @@ fun TransactionEditorContent(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(if (uiState.isExpense) "记一笔支出" else "记一笔收入") },
+                title = {
+                    Text(
+                        when {
+                            uiState.isEditing -> "编辑账单"
+                            uiState.isExpense -> "记一笔支出"
+                            else -> "记一笔收入"
+                        }
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (showCalculator) {
