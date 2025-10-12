@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.evening.dailylife.app.navigation.Route
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.model.TransactionCategoryRepository
@@ -95,7 +96,10 @@ fun TransactionDetailsScreen(
                             }
                         },
                         onEdit = {
-                            TODO("Not yet implemented")
+                            // 点击编辑按钮，导航到编辑页面并传递 transactionId
+                            navController.navigate(
+                                Route.addEditTransactionWithId(uiState.transaction!!.id)
+                            )
                         }
                     )
                 }

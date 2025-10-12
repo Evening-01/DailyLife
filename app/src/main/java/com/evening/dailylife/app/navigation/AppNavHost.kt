@@ -27,12 +27,19 @@ fun AppNavHost(
         composable(Route.HOME) {
             HomeScreen(
                 onAddTransactionClick = {
-                    navController.navigate(Route.ADD_EDIT_TRANSACTION)
+                    // 导航到编辑页面，不带参数表示新建
+                    navController.navigate(Route.ADD_EDIT_TRANSACTION.replace("{transactionId}", "-1"))
                 },
                 appNavController = navController
             )
         }
-        composable(Route.ADD_EDIT_TRANSACTION) {
+        composable(
+            route = Route.ADD_EDIT_TRANSACTION,
+            arguments = listOf(navArgument("transactionId") {
+                type = NavType.IntType
+                defaultValue = -1 // -1 表示新建
+            })
+        ) {
             TransactionEditorScreen(navController = navController)
         }
         composable(

@@ -6,9 +6,15 @@ object Route {
     const val CHART = "chart"
     const val DISCOVER = "discover"
     const val ME = "me"
-    const val ADD_EDIT_TRANSACTION = "add_edit_transaction"
+
+    private const val ADD_EDIT_TRANSACTION_ROUTE = "add_edit_transaction"
+    const val ADD_EDIT_TRANSACTION = "$ADD_EDIT_TRANSACTION_ROUTE?transactionId={transactionId}"
 
     const val TRANSACTION_DETAILS = "transaction_details/{transactionId}"
 
     fun transactionDetails(transactionId: Int) = "transaction_details/$transactionId"
+
+    fun addEditTransactionWithId(transactionId: Int): String {
+        return "$ADD_EDIT_TRANSACTION_ROUTE?transactionId=$transactionId"
+    }
 }
