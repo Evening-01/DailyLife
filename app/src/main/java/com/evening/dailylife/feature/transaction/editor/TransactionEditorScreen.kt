@@ -144,18 +144,25 @@ fun TransactionEditorContent(
     onAmountChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onDateChange: (Long) -> Unit,
-    onMoodChange: (String) -> Unit, // 添加 onMoodChange 回调
+    onMoodChange: (String) -> Unit,
     onSaveTransaction: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     var showCalculator by remember { mutableStateOf(false) }
     var displayExpression by remember { mutableStateOf(uiState.amount.ifEmpty { "0.00" }) }
+    val hapticFeedback = LocalHapticFeedback.current
 
     LaunchedEffect(uiState.amount) {
         if (uiState.amount.isBlank()) {
             displayExpression = "0.00"
         } else if (displayExpression == "0.00") {
             displayExpression = uiState.amount
+        }
+    }
+
+    LaunchedEffect(uiState.isEditing, uiState.category) {
+        if (uiState.isEditing && uiState.category.isNotBlank()) {
+            showCalculator = true
         }
     }
 
@@ -246,6 +253,7 @@ fun TransactionEditorContent(
                         category = category,
                         isSelected = category.name == uiState.category,
                         onClick = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             onCategoryChange(category.name)
                             showCalculator = true
                         }
