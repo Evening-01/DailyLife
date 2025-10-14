@@ -1,5 +1,6 @@
 package com.evening.dailylife.app.main
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,10 +10,13 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.evening.dailylife.R
+import com.evening.dailylife.core.data.preferences.PreferencesKeys
 import com.evening.dailylife.core.data.preferences.ThemeMode
 import com.evening.dailylife.core.designsystem.theme.DailyTheme
 import com.moriafly.salt.ui.UnstableSaltApi
 import dagger.hilt.android.AndroidEntryPoint
+import io.fastkv.FastKV
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -21,8 +25,11 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(UnstableSaltApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        if (shouldUseDynamicSplashIcon()) {
+            setTheme(R.style.Theme_App_Starting_Dynamic)
+        }
         installSplashScreen()
+        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             val themeMode by viewModel.themeMode.collectAsState()
@@ -41,5 +48,12 @@ class MainActivity : ComponentActivity() {
                 DailyLifeApp()
             }
         }
+    }
+    private fun shouldUseDynamicSplashIcon(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return false
+        }
+        val fastKV = FastKV.Builder(applicationContext, PreferencesKeys.PREFERENCES_NAME).build()
+        return fastKV.getBoolean(PreferencesKeys.KEY_DYNAMIC_COLOR, false)
     }
 }

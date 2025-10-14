@@ -15,17 +15,13 @@ class PreferencesManager @Inject constructor(
     private val appIconManager: AppIconManager,
 ) {
 
-    private val fastKV: FastKV = FastKV.Builder(context, PREFERENCES_NAME).build()
-
-    companion object {
-        private const val PREFERENCES_NAME = "user_preferences"
-        private const val KEY_THEME_MODE = "theme_mode"
-        private const val KEY_DYNAMIC_COLOR = "dynamic_color"
-    }
-
+    private val fastKV: FastKV = FastKV.Builder(context, PreferencesKeys.PREFERENCES_NAME).build()
     private val _themeMode = MutableStateFlow(
         try {
-            val themeName = fastKV.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name) ?: ThemeMode.SYSTEM.name
+            val themeName = fastKV.getString(
+                PreferencesKeys.KEY_THEME_MODE,
+                ThemeMode.SYSTEM.name
+            ) ?: ThemeMode.SYSTEM.name
             ThemeMode.valueOf(themeName)
         } catch (e: IllegalArgumentException) {
             ThemeMode.SYSTEM
@@ -34,7 +30,9 @@ class PreferencesManager @Inject constructor(
     val themeMode = _themeMode.asStateFlow() // 对外暴露为不可变的 StateFlow
 
     // 2. 将 dynamicColor 改造为 StateFlow
-    private val _dynamicColor = MutableStateFlow(fastKV.getBoolean(KEY_DYNAMIC_COLOR, false))
+    private val _dynamicColor = MutableStateFlow(
+        fastKV.getBoolean(PreferencesKeys.KEY_DYNAMIC_COLOR, false)
+    )
     val dynamicColor = _dynamicColor.asStateFlow() // 对外暴露为不可变的 StateFlow
 
     init {
@@ -43,12 +41,12 @@ class PreferencesManager @Inject constructor(
 
     // 创建用于更新数据的方法
     fun setThemeMode(mode: ThemeMode) {
-        fastKV.putString(KEY_THEME_MODE, mode.name)
+        fastKV.putString(PreferencesKeys.KEY_THEME_MODE, mode.name)
         _themeMode.value = mode // 更新 Flow 的值，通知所有观察者
     }
 
     fun setDynamicColor(enabled: Boolean) {
-        fastKV.putBoolean(KEY_DYNAMIC_COLOR, enabled)
+        fastKV.putBoolean(PreferencesKeys.KEY_DYNAMIC_COLOR, enabled)
         _dynamicColor.value = enabled // 更新 Flow 的值，通知所有观察者
         appIconManager.applyDynamicIcon(enabled)
     }
