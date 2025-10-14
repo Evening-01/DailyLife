@@ -1,6 +1,7 @@
 package com.evening.dailylife.core.data.preferences
 
 import android.content.Context
+import com.evening.dailylife.core.appicon.AppIconManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.fastkv.FastKV
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,7 +10,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class PreferencesManager @Inject constructor(@ApplicationContext context: Context) {
+class PreferencesManager @Inject constructor(
+    @ApplicationContext context: Context,
+    private val appIconManager: AppIconManager,
+) {
 
     private val fastKV: FastKV = FastKV.Builder(context, PREFERENCES_NAME).build()
 
@@ -33,7 +37,11 @@ class PreferencesManager @Inject constructor(@ApplicationContext context: Contex
     private val _dynamicColor = MutableStateFlow(fastKV.getBoolean(KEY_DYNAMIC_COLOR, false))
     val dynamicColor = _dynamicColor.asStateFlow() // 对外暴露为不可变的 StateFlow
 
-    // 3. 创建用于更新数据的方法
+    init {
+        appIconManager.applyDynamicIcon(_dynamicColor.value)
+    }
+
+    // 创建用于更新数据的方法
     fun setThemeMode(mode: ThemeMode) {
         fastKV.putString(KEY_THEME_MODE, mode.name)
         _themeMode.value = mode // 更新 Flow 的值，通知所有观察者
@@ -42,6 +50,7 @@ class PreferencesManager @Inject constructor(@ApplicationContext context: Contex
     fun setDynamicColor(enabled: Boolean) {
         fastKV.putBoolean(KEY_DYNAMIC_COLOR, enabled)
         _dynamicColor.value = enabled // 更新 Flow 的值，通知所有观察者
+        appIconManager.applyDynamicIcon(enabled)
     }
 
 }

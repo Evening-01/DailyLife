@@ -7,7 +7,7 @@
 
         <!-- Use windowSplashScreenAnimatedIcon to add either a drawable or an
              animated drawable. One of these is required. -->
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_dynamic</item>
         <!-- Required for animated icons -->
         <item name="windowSplashScreenAnimationDuration">100</item>
 
