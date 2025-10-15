@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -38,10 +39,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.evening.dailylife.R
 import com.evening.dailylife.app.navigation.Route
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.model.MoodRepository
@@ -61,12 +65,12 @@ fun TransactionDetailsScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("明细") },
+                title = { Text(stringResource(R.string.details)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -85,7 +89,7 @@ fun TransactionDetailsScreen(
                     CircularProgressIndicator()
                 }
                 uiState.error != null -> {
-                    Text(text = uiState.error ?: "加载失败")
+                    Text(text = uiState.error ?: stringResource(R.string.error_load_failed))
                 }
                 uiState.transaction != null -> {
                     TransactionDetailsContent(
@@ -114,6 +118,7 @@ fun TransactionDetailsContent(
     onDelete: () -> Unit,
     onEdit: () -> Unit
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -125,7 +130,7 @@ fun TransactionDetailsContent(
         // 顶部信息卡片
         TransactionSummaryCard(
             transaction = transaction,
-            iconVector = TransactionCategoryRepository.getIcon(transaction.category)
+            iconVector = TransactionCategoryRepository.getIcon(context, transaction.category)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -217,15 +222,27 @@ fun TransactionSummaryCard(
 
 @Composable
 fun DetailsList(transaction: TransactionEntity) {
-    val sdf = SimpleDateFormat("yyyy年MM月dd日 EEEE", Locale.CHINESE)
+    val datePattern = stringResource(R.string.transaction_details_date_pattern)
+    val sdf = remember(datePattern) { SimpleDateFormat(datePattern, Locale.CHINESE) }
     val dateString = sdf.format(Date(transaction.date))
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        DetailItem(label = "分类", value = transaction.category)
+        DetailItem(
+            label = stringResource(R.string.transaction_detail_category),
+            value = transaction.category
+        )
         HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
-        DetailItem(label = "时间", value = dateString)
+        DetailItem(
+            label = stringResource(R.string.transaction_detail_time),
+            value = dateString
+        )
         HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
-        DetailItem(label = "来源", value = transaction.source)
+        DetailItem(
+            label = stringResource(R.string.transaction_detail_source),
+            value = transaction.source.ifBlank {
+                stringResource(R.string.transaction_detail_source_default)
+            }
+        )
         HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
 
         // 仅在心情不为空时显示
@@ -233,13 +250,14 @@ fun DetailsList(transaction: TransactionEntity) {
             // 根据分数获取心情对象
             val mood = MoodRepository.getMoodByScore(transaction.mood)
             if (mood != null) {
+                val moodName = stringResource(mood.nameRes)
                 MoodDetailItem(
-                    label = "心情",
-                    mood = mood.name,
+                    label = stringResource(R.string.transaction_detail_mood),
+                    mood = moodName,
                     icon = {
                         Icon(
                             imageVector = mood.icon,
-                            contentDescription = mood.name,
+                            contentDescription = moodName,
                             modifier = Modifier.size(24.dp),
                             tint = mood.color
                         )
@@ -249,7 +267,12 @@ fun DetailsList(transaction: TransactionEntity) {
             }
         }
 
-        DetailItem(label = "备注", value = transaction.description.ifBlank { "暂无" })
+        DetailItem(
+            label = stringResource(R.string.transaction_detail_note),
+            value = transaction.description.ifBlank {
+                stringResource(R.string.transaction_detail_note_empty)
+            }
+        )
     }
 }
 
@@ -314,13 +337,13 @@ fun ActionButtons(
             onClick = onDelete,
             modifier = Modifier.weight(1f)
         ) {
-            Text("删除")
+            Text(stringResource(R.string.common_delete))
         }
         OutlinedButton(
             onClick = onEdit,
             modifier = Modifier.weight(1f)
         ) {
-            Text("编辑")
+            Text(stringResource(R.string.common_edit))
         }
     }
 }

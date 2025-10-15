@@ -2,9 +2,11 @@ package com.evening.dailylife.feature.details
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.evening.dailylife.R
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.core.model.MoodRepository
+import com.evening.dailylife.core.util.StringProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
-    private val repository: TransactionRepository
+    private val repository: TransactionRepository,
+    private val stringProvider: StringProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetailsUiState())
@@ -90,7 +93,9 @@ class DetailsViewModel @Inject constructor(
                             val transactionsWithMood = trans.filter { it.mood != null }
                             val dailyMood = if (transactionsWithMood.isNotEmpty()) {
                                 val dailyMoodScore = transactionsWithMood.sumOf { it.mood!! }
-                                MoodRepository.getMoodByScore(dailyMoodScore)?.name ?: ""
+                                MoodRepository.getMoodByScore(dailyMoodScore)?.let { mood ->
+                                    stringProvider.getString(mood.nameRes)
+                                } ?: ""
                             } else {
                                 ""
                             }
@@ -130,7 +135,10 @@ class DetailsViewModel @Inject constructor(
 
         return when {
             calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
-                    calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "今天 ${sdf.format(calendar.time)}"
+                    calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> stringProvider.getString(
+                R.string.details_today_with_date,
+                sdf.format(calendar.time)
+            )
             else -> sdf.format(calendar.time)
         }
     }

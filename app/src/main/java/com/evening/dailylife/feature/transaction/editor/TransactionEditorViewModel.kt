@@ -3,9 +3,11 @@ package com.evening.dailylife.feature.transaction.editor
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.evening.dailylife.R
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.core.model.MoodRepository
+import com.evening.dailylife.core.util.StringProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +25,7 @@ import kotlin.math.abs
 @HiltViewModel
 class TransactionEditorViewModel @Inject constructor(
     private val repository: TransactionRepository,
+    private val stringProvider: StringProvider,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -49,7 +52,7 @@ class TransactionEditorViewModel @Inject constructor(
             transaction?.let { entity ->
                 originalTransaction = entity
                 val moodName = entity.mood?.let { score ->
-                    MoodRepository.moods.find { it.score == score }?.name
+                    MoodRepository.getMoodNameByScore(stringProvider, score)
                 } ?: ""
 
                 _uiState.update {
@@ -115,14 +118,16 @@ class TransactionEditorViewModel @Inject constructor(
             val amountValue = currentState.amount.toDoubleOrNull()
 
             if (amountValue == null || amountValue == 0.0) {
-                _uiState.update { it.copy(error = "请输入有效的金额") }
-                _events.emit(TransactionEditorEvent.ShowMessage("请输入有效的金额"))
+                val error = stringProvider.getString(R.string.editor_error_invalid_amount)
+                _uiState.update { it.copy(error = error) }
+                _events.emit(TransactionEditorEvent.ShowMessage(error))
                 return@launch
             }
 
             if (currentState.category.isBlank()) {
-                _uiState.update { it.copy(error = "请选择一个分类") }
-                _events.emit(TransactionEditorEvent.ShowMessage("请选择一个分类"))
+                val error = stringProvider.getString(R.string.editor_error_select_category)
+                _uiState.update { it.copy(error = error) }
+                _events.emit(TransactionEditorEvent.ShowMessage(error))
                 return@launch
             }
 
@@ -131,10 +136,8 @@ class TransactionEditorViewModel @Inject constructor(
             val transactionAmount = if (currentState.isExpense) -abs(amountValue) else abs(amountValue)
 
             // 将心情名称转换为分数，如果未选择心情，则为 null
-            val moodScore = if (currentState.mood.isNotEmpty()) {
-                MoodRepository.moods.find { it.name == currentState.mood }?.score
-            } else {
-                null
+            val moodScore = currentState.mood.takeIf { it.isNotEmpty() }?.let {
+                MoodRepository.getMoodScoreByName(stringProvider, it)
             }
 
 
@@ -149,6 +152,7 @@ class TransactionEditorViewModel @Inject constructor(
                 category = currentState.category,
                 description = currentState.description,
                 mood = moodScore,
+                source = stringProvider.getString(R.string.app_name),
                 date = currentState.date,
             )
 
@@ -180,8 +184,10 @@ class TransactionEditorViewModel @Inject constructor(
                 }
                 _events.emit(TransactionEditorEvent.SaveSuccess)
             }.onFailure { throwable ->
-                _uiState.update { it.copy(isSaving = false, error = throwable.message) }
-                _events.emit(TransactionEditorEvent.ShowMessage("保存失败，请稍后重试"))
+                val error = throwable.message
+                    ?: stringProvider.getString(R.string.editor_error_save_failed)
+                _uiState.update { it.copy(isSaving = false, error = error) }
+                _events.emit(TransactionEditorEvent.ShowMessage(error))
             }
         }
     }

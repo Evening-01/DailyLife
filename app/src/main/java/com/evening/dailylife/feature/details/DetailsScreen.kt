@@ -54,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -90,8 +91,10 @@ fun DetailsScreen(
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
 
-    val yearFormat = SimpleDateFormat("yyyy年", Locale.getDefault())
-    val monthFormat = SimpleDateFormat("M月", Locale.getDefault())
+    val yearPattern = stringResource(R.string.details_year_pattern)
+    val monthPattern = stringResource(R.string.details_month_pattern)
+    val yearFormat = remember(yearPattern) { SimpleDateFormat(yearPattern, Locale.getDefault()) }
+    val monthFormat = remember(monthPattern) { SimpleDateFormat(monthPattern, Locale.getDefault()) }
 
     val headerContainerColor = LocalExtendedColorScheme.current.headerContainer
     val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
@@ -138,8 +141,13 @@ fun DetailsScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { onAddTransactionClick() },
-                icon = { Icon(Icons.Default.Add, contentDescription = "添加账单") },
-                text = { Text("记一笔") }
+                icon = {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.details_add_transaction_content_description)
+                    )
+                },
+                text = { Text(stringResource(R.string.details_add_transaction_label)) }
             )
         }
     ) { innerPadding ->
@@ -219,7 +227,7 @@ fun DetailsScreen(
                                             ) {
                                                 Icon(
                                                     imageVector = Icons.Default.Delete,
-                                                    contentDescription = "删除",
+                                                    contentDescription = stringResource(R.string.common_delete),
                                                     tint = Color.White
                                                 )
                                             }
@@ -292,13 +300,19 @@ fun DetailsScreen(
 
 @Composable
 fun DailyHeader(date: String, income: Double, expense: Double, mood: String) {
-    fun formatDate(date: String): String {
-        if (date.startsWith("今天")) {
-            return "今天"
-        }
+    val context = LocalContext.current
+    val todayLabel = stringResource(R.string.label_today)
+    val formattedDate = if (date.startsWith(todayLabel)) {
+        todayLabel
+    } else {
         val parts = date.split(" ")
         val dateParts = parts[0].split("/")
-        return "${dateParts[0]}月${dateParts[1]}日 ${parts[1]}"
+        stringResource(
+            R.string.details_month_day_with_weekday,
+            dateParts[0],
+            dateParts[1],
+            parts.getOrNull(1).orEmpty()
+        )
     }
 
     Row(
@@ -308,7 +322,7 @@ fun DailyHeader(date: String, income: Double, expense: Double, mood: String) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = formatDate(date),
+            text = formattedDate,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -316,16 +330,19 @@ fun DailyHeader(date: String, income: Double, expense: Double, mood: String) {
 
         if (mood.isNotBlank()) {
             Icon(
-                imageVector = MoodRepository.getIcon(mood),
-                contentDescription = "Daily Mood",
+                imageVector = MoodRepository.getIcon(context, mood),
+                contentDescription = stringResource(R.string.details_mood_content_description),
                 modifier = Modifier.size(20.dp),
-                tint = MoodRepository.getColor(mood)
+                tint = MoodRepository.getColor(context, mood)
             )
         }
         Row {
             if (income > 0) {
                 Text(
-                    text = "收入: ${"%.2f".format(income)}",
+                    text = stringResource(
+                        R.string.details_income_amount,
+                        "%.2f".format(income)
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 8.dp)
@@ -333,7 +350,10 @@ fun DailyHeader(date: String, income: Double, expense: Double, mood: String) {
             }
             if (expense < 0) {
                 Text(
-                    text = "支出: ${"%.2f".format(abs(expense))}",
+                    text = stringResource(
+                        R.string.details_expense_amount,
+                        "%.2f".format(abs(expense))
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 8.dp)
@@ -345,6 +365,7 @@ fun DailyHeader(date: String, income: Double, expense: Double, mood: String) {
 
 @Composable
 fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -361,7 +382,7 @@ fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = TransactionCategoryRepository.getIcon(transaction.category),
+                imageVector = TransactionCategoryRepository.getIcon(context, transaction.category),
                 contentDescription = transaction.category,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
@@ -414,13 +435,13 @@ fun EmptyState() {
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
-                contentDescription = "空数据",
+                contentDescription = stringResource(R.string.details_empty_state_content_description),
                 modifier = Modifier.size(80.dp),
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "暂无账单数据\n点击右下角的按钮记一笔吧！",
+                text = stringResource(R.string.details_empty_state_message),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
@@ -499,7 +520,7 @@ private fun DatePickerModule(
             )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
-                contentDescription = "选择月份",
+                contentDescription = stringResource(R.string.details_select_month),
                 tint = contentColor
             )
         }
@@ -518,8 +539,16 @@ private fun IncomeExpenseGroup(
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SummaryItem(title = "收入", amount = income, contentColor = contentColor)
-        SummaryItem(title = "支出", amount = expense, contentColor = contentColor)
+        SummaryItem(
+            title = stringResource(R.string.chart_type_income),
+            amount = income,
+            contentColor = contentColor
+        )
+        SummaryItem(
+            title = stringResource(R.string.chart_type_expense),
+            amount = expense,
+            contentColor = contentColor
+        )
     }
 }
 

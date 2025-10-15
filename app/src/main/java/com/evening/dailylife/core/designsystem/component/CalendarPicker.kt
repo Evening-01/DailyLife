@@ -43,8 +43,10 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.evening.dailylife.R
 import java.time.LocalDate
 import java.util.Calendar
 import kotlin.math.abs
@@ -227,14 +229,14 @@ fun CalendarPicker(
             onItemSelected = { index -> onYearChange(years[index]) },
             modifier = Modifier.weight(1.2f)
         )
-        Text("年", modifier = Modifier.padding(horizontal = 8.dp))
+        Text(stringResource(R.string.calendar_year), modifier = Modifier.padding(horizontal = 8.dp))
         WheelPicker(
             items = months,
             initialIndex = months.indexOf(month).coerceAtLeast(0),
             onItemSelected = { index -> onMonthChange(months[index]) },
             modifier = Modifier.weight(1f)
         )
-        Text("月", modifier = Modifier.padding(horizontal = 8.dp))
+        Text(stringResource(R.string.calendar_month), modifier = Modifier.padding(horizontal = 8.dp))
         if (type == CalendarPickerType.DATE) {
             WheelPicker(
                 items = days,
@@ -242,7 +244,7 @@ fun CalendarPicker(
                 onItemSelected = { index -> onDayChange(days[index]) },
                 modifier = Modifier.weight(1f)
             )
-            Text("日", modifier = Modifier.padding(horizontal = 8.dp))
+            Text(stringResource(R.string.calendar_day), modifier = Modifier.padding(horizontal = 8.dp))
         }
     }
 }
@@ -278,7 +280,11 @@ fun CalendarPickerBottomSheet(
             ) {
                 // 【优化】标题单独居中显示
                 Text(
-                    text = if (type == CalendarPickerType.DATE) "选择日期" else "选择月份",
+                    text = if (type == CalendarPickerType.DATE) {
+                        stringResource(R.string.calendar_select_date)
+                    } else {
+                        stringResource(R.string.calendar_select_month)
+                    },
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -300,7 +306,7 @@ fun CalendarPickerBottomSheet(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = { onDismiss() }) {
-                        Text("取消")
+                        Text(stringResource(R.string.common_cancel))
                     }
                     Spacer(modifier = Modifier.width(8.dp)) // 按钮间距
                     TextButton(onClick = {
@@ -311,7 +317,7 @@ fun CalendarPickerBottomSheet(
                         }
                         onDismiss()
                     }) {
-                        Text("确定")
+                        Text(stringResource(R.string.common_confirm))
                     }
                 }
             }

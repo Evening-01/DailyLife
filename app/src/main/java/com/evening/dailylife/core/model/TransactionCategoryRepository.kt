@@ -1,5 +1,6 @@
 package com.evening.dailylife.core.model
 
+import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCard
 import androidx.compose.material.icons.filled.Build
@@ -40,70 +41,73 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.VolunteerActivism
+import com.evening.dailylife.R
 
 object TransactionCategoryRepository {
-    val expenseCategories = listOf(
+
+    fun getExpenseCategories(context: Context): List<TransactionCategory> = listOf(
         // --- 高频日常 ---
-        TransactionCategory("餐饮", Icons.Default.Restaurant),
-        TransactionCategory("交通", Icons.Default.Commute),
-        TransactionCategory("购物", Icons.Default.ShoppingCart),
-        TransactionCategory("日用", Icons.Default.LocalConvenienceStore),
-        TransactionCategory("蔬菜", Icons.Default.LocalFlorist),
-        TransactionCategory("水果", Icons.Default.EnergySavingsLeaf),
-        TransactionCategory("零食", Icons.Default.Icecream),
-        TransactionCategory("通讯", Icons.Default.Phone),
-        TransactionCategory("快递", Icons.Default.LocalShipping),
+        TransactionCategory(context.getString(R.string.category_food), Icons.Default.Restaurant),
+        TransactionCategory(context.getString(R.string.category_transport), Icons.Default.Commute),
+        TransactionCategory(context.getString(R.string.category_shopping), Icons.Default.ShoppingCart),
+        TransactionCategory(context.getString(R.string.category_daily_use), Icons.Default.LocalConvenienceStore),
+        TransactionCategory(context.getString(R.string.category_vegetable), Icons.Default.LocalFlorist),
+        TransactionCategory(context.getString(R.string.category_fruit), Icons.Default.EnergySavingsLeaf),
+        TransactionCategory(context.getString(R.string.category_snack), Icons.Default.Icecream),
+        TransactionCategory(context.getString(R.string.category_communication), Icons.Default.Phone),
+        TransactionCategory(context.getString(R.string.category_delivery), Icons.Default.LocalShipping),
 
         // --- 住房居家 ---
-        TransactionCategory("住房", Icons.Default.Home),
-        TransactionCategory("居家", Icons.Default.Deck),
+        TransactionCategory(context.getString(R.string.category_housing), Icons.Default.Home),
+        TransactionCategory(context.getString(R.string.category_home), Icons.Default.Deck),
 
         // --- 休闲娱乐 ---
-        TransactionCategory("娱乐", Icons.Default.SportsEsports),
-        TransactionCategory("电影", Icons.Default.Movie),
-        TransactionCategory("运动", Icons.Default.FitnessCenter),
-        TransactionCategory("旅行", Icons.Default.Luggage),
-        TransactionCategory("烟酒", Icons.Default.LocalBar),
+        TransactionCategory(context.getString(R.string.category_entertainment), Icons.Default.SportsEsports),
+        TransactionCategory(context.getString(R.string.category_movie), Icons.Default.Movie),
+        TransactionCategory(context.getString(R.string.category_sport), Icons.Default.FitnessCenter),
+        TransactionCategory(context.getString(R.string.category_travel), Icons.Default.Luggage),
+        TransactionCategory(context.getString(R.string.category_tobacco_alcohol), Icons.Default.LocalBar),
 
         // --- 个人提升与形象 ---
-        TransactionCategory("服饰", Icons.Default.Checkroom),
-        TransactionCategory("美容", Icons.Default.ContentCut),
-        TransactionCategory("学习", Icons.Default.School),
-        TransactionCategory("书籍", Icons.Default.MenuBook),
+        TransactionCategory(context.getString(R.string.category_clothing), Icons.Default.Checkroom),
+        TransactionCategory(context.getString(R.string.category_beauty), Icons.Default.ContentCut),
+        TransactionCategory(context.getString(R.string.category_learning), Icons.Default.School),
+        TransactionCategory(context.getString(R.string.category_books), Icons.Default.MenuBook),
 
         // --- 家庭与社交 ---
-        TransactionCategory("孩子", Icons.Default.ChildCare),
-        TransactionCategory("长辈", Icons.Default.Elderly),
-        TransactionCategory("宠物", Icons.Default.Pets),
-        TransactionCategory("社交", Icons.Default.People),
-        TransactionCategory("亲友", Icons.Default.FamilyRestroom),
-        TransactionCategory("礼物", Icons.Default.CardGiftcard),
-        TransactionCategory("礼金", Icons.Default.Payments),
+        TransactionCategory(context.getString(R.string.category_children), Icons.Default.ChildCare),
+        TransactionCategory(context.getString(R.string.category_elder), Icons.Default.Elderly),
+        TransactionCategory(context.getString(R.string.category_pet), Icons.Default.Pets),
+        TransactionCategory(context.getString(R.string.category_social), Icons.Default.People),
+        TransactionCategory(context.getString(R.string.category_family), Icons.Default.FamilyRestroom),
+        TransactionCategory(context.getString(R.string.category_gift), Icons.Default.CardGiftcard),
+        TransactionCategory(context.getString(R.string.category_cash_gift), Icons.Default.Payments),
 
         // --- 医疗与办公 ---
-        TransactionCategory("医疗", Icons.Default.LocalHospital),
-        TransactionCategory("办公", Icons.Default.BusinessCenter),
+        TransactionCategory(context.getString(R.string.category_medical), Icons.Default.LocalHospital),
+        TransactionCategory(context.getString(R.string.category_office), Icons.Default.BusinessCenter),
 
         // --- 资产与维修 ---
-        TransactionCategory("数码", Icons.Default.Computer),
-        TransactionCategory("汽车", Icons.Default.DirectionsCar),
-        TransactionCategory("维修", Icons.Default.Build),
+        TransactionCategory(context.getString(R.string.category_digital), Icons.Default.Computer),
+        TransactionCategory(context.getString(R.string.category_vehicle), Icons.Default.DirectionsCar),
+        TransactionCategory(context.getString(R.string.category_repair), Icons.Default.Build),
 
         // --- 其他 ---
-        TransactionCategory("捐赠", Icons.Default.VolunteerActivism),
-        TransactionCategory("彩票", Icons.Default.ConfirmationNumber),
-        TransactionCategory("其他", Icons.Default.MoreHoriz)
+        TransactionCategory(context.getString(R.string.category_donation), Icons.Default.VolunteerActivism),
+        TransactionCategory(context.getString(R.string.category_lottery), Icons.Default.ConfirmationNumber),
+        TransactionCategory(context.getString(R.string.category_others), Icons.Default.MoreHoriz)
     )
 
-    val incomeCategories = listOf(
-        TransactionCategory("工资", Icons.Default.MonetizationOn),
-        TransactionCategory("兼职", Icons.Default.AddCard),
-        TransactionCategory("理财", Icons.Default.TrendingUp),
-        TransactionCategory("礼金", Icons.Default.Redeem),
-        TransactionCategory("其他", Icons.Default.MoreHoriz)
+    fun getIncomeCategories(context: Context): List<TransactionCategory> = listOf(
+        TransactionCategory(context.getString(R.string.category_salary), Icons.Default.MonetizationOn),
+        TransactionCategory(context.getString(R.string.category_part_time), Icons.Default.AddCard),
+        TransactionCategory(context.getString(R.string.category_finance), Icons.Default.TrendingUp),
+        TransactionCategory(context.getString(R.string.category_cash_gift_income), Icons.Default.Redeem),
+        TransactionCategory(context.getString(R.string.category_others), Icons.Default.MoreHoriz)
     )
 
-    private val categoryIconMap = (expenseCategories + incomeCategories).associate { it.name to it.icon }
-
-    fun getIcon(categoryName: String) = categoryIconMap[categoryName] ?: Icons.Default.MoreHoriz
+    fun getIcon(context: Context, categoryName: String) =
+        (getExpenseCategories(context) + getIncomeCategories(context))
+            .firstOrNull { it.name == categoryName }
+            ?.icon ?: Icons.Default.MoreHoriz
 }

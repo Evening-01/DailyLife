@@ -1,6 +1,8 @@
 package com.evening.dailylife.feature.chart
 
+import com.evening.dailylife.R
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
+import com.evening.dailylife.core.util.StringProvider
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -30,12 +32,16 @@ internal object ChartDataCalculator {
         val average: Double
     )
 
-    fun buildRange(period: ChartPeriod, reference: Calendar = Calendar.getInstance()): Range {
+    fun buildRange(
+        period: ChartPeriod,
+        stringProvider: StringProvider,
+        reference: Calendar = Calendar.getInstance()
+    ): Range {
         val todayEnd = (reference.clone() as Calendar).apply { setToEndOfDay() }
         return when (period) {
             ChartPeriod.Week -> buildWeekRange(todayEnd)
-            ChartPeriod.Month -> buildMonthRange(todayEnd)
-            ChartPeriod.Year -> buildYearRange(todayEnd)
+            ChartPeriod.Month -> buildMonthRange(todayEnd, stringProvider)
+            ChartPeriod.Year -> buildYearRange(todayEnd, stringProvider)
         }
     }
 
@@ -115,7 +121,7 @@ internal object ChartDataCalculator {
         )
     }
 
-    private fun buildMonthRange(todayEnd: Calendar): Range {
+    private fun buildMonthRange(todayEnd: Calendar, stringProvider: StringProvider): Range {
         val monthStart = (todayEnd.clone() as Calendar).apply {
             set(Calendar.DAY_OF_MONTH, 1)
             setToStartOfDay()
@@ -125,7 +131,10 @@ internal object ChartDataCalculator {
             val dayStart = (monthStart.clone() as Calendar).apply { add(Calendar.DAY_OF_MONTH, offset) }
             val dayEnd = (dayStart.clone() as Calendar).apply { setToEndOfDay() }
             Bucket(
-                label = "${dayStart.get(Calendar.DAY_OF_MONTH)}日",
+                label = stringProvider.getString(
+                    R.string.chart_label_day,
+                    dayStart.get(Calendar.DAY_OF_MONTH)
+                ),
                 start = dayStart.timeInMillis,
                 end = dayEnd.timeInMillis
             )
@@ -137,7 +146,7 @@ internal object ChartDataCalculator {
         )
     }
 
-    private fun buildYearRange(todayEnd: Calendar): Range {
+    private fun buildYearRange(todayEnd: Calendar, stringProvider: StringProvider): Range {
         val yearStart = (todayEnd.clone() as Calendar).apply {
             set(Calendar.MONTH, Calendar.JANUARY)
             set(Calendar.DAY_OF_MONTH, 1)
@@ -153,7 +162,7 @@ internal object ChartDataCalculator {
                 setToEndOfDay()
             }
             Bucket(
-                label = "${monthIndex + 1}月",
+                label = stringProvider.getString(R.string.chart_label_month, monthIndex + 1),
                 start = monthStart.timeInMillis,
                 end = minOf(monthEnd.timeInMillis, todayEnd.timeInMillis)
             )

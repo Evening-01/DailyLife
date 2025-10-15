@@ -74,6 +74,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
@@ -86,6 +87,7 @@ import com.evening.dailylife.core.designsystem.component.CalendarPickerType
 import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.model.TransactionCategory
 import com.evening.dailylife.core.model.TransactionCategoryRepository
+import com.evening.dailylife.R
 import com.moriafly.salt.ui.UnstableSaltApi
 import com.moriafly.salt.ui.popup.PopupMenu
 import com.moriafly.salt.ui.popup.rememberPopupState
@@ -151,6 +153,7 @@ fun TransactionEditorContent(
     var showCalculator by remember { mutableStateOf(false) }
     var displayExpression by remember { mutableStateOf(uiState.amount.ifEmpty { "0.00" }) }
     val hapticFeedback = LocalHapticFeedback.current
+    val context = LocalContext.current
 
     LaunchedEffect(uiState.amount) {
         if (uiState.amount.isBlank()) {
@@ -166,17 +169,18 @@ fun TransactionEditorContent(
         }
     }
 
-    val categories = if (uiState.isExpense) {
-        TransactionCategoryRepository.expenseCategories
-    } else {
-        TransactionCategoryRepository.incomeCategories
+    val categories = remember(uiState.isExpense, context) {
+        if (uiState.isExpense) {
+            TransactionCategoryRepository.getExpenseCategories(context)
+        } else {
+            TransactionCategoryRepository.getIncomeCategories(context)
+        }
     }
     val selectedDate = remember(uiState.date) {
         Calendar.getInstance().apply { timeInMillis = uiState.date }
     }
 
     val remarkFocusRequester = remember { FocusRequester() }
-    val context = LocalContext.current
 
     BackHandler(enabled = showCalculator) {
         showCalculator = false
@@ -186,13 +190,12 @@ fun TransactionEditorContent(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        when {
-                            uiState.isEditing -> "编辑账单"
-                            uiState.isExpense -> "记一笔支出"
-                            else -> "记一笔收入"
-                        }
-                    )
+                    val title = when {
+                        uiState.isEditing -> stringResource(R.string.editor_title_edit_transaction)
+                        uiState.isExpense -> stringResource(R.string.editor_title_add_expense)
+                        else -> stringResource(R.string.editor_title_add_income)
+                    }
+                    Text(title)
                 },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -202,7 +205,10 @@ fun TransactionEditorContent(
                             onNavigateBack()
                         }
                     }) {
-                        Icon(Icons.Sharp.ArrowBackIosNew, contentDescription = "关闭")
+                        Icon(
+                            Icons.Sharp.ArrowBackIosNew,
+                            contentDescription = stringResource(R.string.editor_nav_close)
+                        )
                     }
                 }
             )
@@ -224,14 +230,14 @@ fun TransactionEditorContent(
                     Tab(
                         selected = uiState.isExpense,
                         onClick = { onTransactionTypeChange(true) },
-                        text = { Text("支出") },
+                        text = { Text(stringResource(R.string.editor_tab_expense)) },
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Tab(
                         selected = !uiState.isExpense,
                         onClick = { onTransactionTypeChange(false) },
-                        text = { Text("收入") },
+                        text = { Text(stringResource(R.string.editor_tab_income)) },
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -260,11 +266,16 @@ fun TransactionEditorContent(
                     )
                 }
                 item {
+                    val settingsLabel = stringResource(R.string.editor_category_settings)
                     CategoryItem(
-                        category = TransactionCategory("设置", Icons.Default.Settings),
+                        category = TransactionCategory(settingsLabel, Icons.Default.Settings),
                         isSelected = false,
                         onClick = {
-                            Toast.makeText(context, "跳转到分类设置界面", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.editor_toast_category_settings),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     )
                 }
@@ -324,7 +335,14 @@ fun TransactionEditorContent(
                                             onValueChange = { newText ->
                                                 if (newText.length > MAX_DESCRIPTION_LENGTH && uiState.description.length < MAX_DESCRIPTION_LENGTH) {
                                                     Toast
-                                                        .makeText(context, "备注最多只能输入${MAX_DESCRIPTION_LENGTH}个字", Toast.LENGTH_SHORT)
+                                                        .makeText(
+                                                            context,
+                                                            context.getString(
+                                                                R.string.editor_remark_length_warning,
+                                                                MAX_DESCRIPTION_LENGTH
+                                                            ),
+                                                            Toast.LENGTH_SHORT
+                                                        )
                                                         .show()
                                                 }
                                                 onDescriptionChange(newText.take(MAX_DESCRIPTION_LENGTH))
@@ -342,7 +360,7 @@ fun TransactionEditorContent(
                                                 Box(contentAlignment = Alignment.CenterStart) {
                                                     if (uiState.description.isEmpty()) {
                                                         Text(
-                                                            text = "备注(可选)",
+                                                            text = stringResource(R.string.editor_remark_hint_optional),
                                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                             fontSize = 16.sp,
                                                             maxLines = 1
@@ -404,6 +422,7 @@ fun MoodSelector(
     onMoodSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val popupState = rememberPopupState()
     val hapticFeedback = LocalHapticFeedback.current
 
@@ -430,14 +449,14 @@ fun MoodSelector(
             ) {
                 Icon(
                     imageVector = if (selectedMood.isNotEmpty()) {
-                        MoodRepository.getIcon(selectedMood)
+                        MoodRepository.getIcon(context, selectedMood)
                     } else {
                         Icons.Outlined.EmojiEmotions
                     },
-                    contentDescription = "选择心情",
+                    contentDescription = stringResource(R.string.editor_mood_select),
                     modifier = Modifier.size(24.dp),
                     tint = if (selectedMood.isNotEmpty()) {
-                        MoodRepository.getColor(selectedMood)
+                        MoodRepository.getColor(context, selectedMood)
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     }
@@ -455,24 +474,25 @@ fun MoodSelector(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 MoodRepository.moods.forEach { mood ->
+                    val moodName = stringResource(mood.nameRes)
                     Icon(
                         imageVector = mood.icon,
-                        contentDescription = mood.name,
+                        contentDescription = moodName,
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
                             .clickable {
-                                onMoodSelected(mood.name)
+                                onMoodSelected(moodName)
                                 popupState.dismiss()
                             }
                             .background(
-                                if (selectedMood == mood.name) MoodRepository
-                                    .getColor(mood.name)
+                                if (selectedMood == moodName) MoodRepository
+                                    .getColor(context, moodName)
                                     .copy(alpha = 0.2f)
                                 else Color.Transparent
                             )
                             .padding(6.dp),
-                        tint = MoodRepository.getColor(mood.name)
+                        tint = MoodRepository.getColor(context, moodName)
                     )
                 }
             }
@@ -532,6 +552,8 @@ fun CalculatorPad(
     var showDatePicker by remember { mutableStateOf(false) }
 
     val hapticFeedback = LocalHapticFeedback.current
+    val doneLabel = stringResource(R.string.editor_action_done)
+    val todayLabel = stringResource(R.string.label_today)
 
     fun isToday(calendar: Calendar): Boolean {
         val today = Calendar.getInstance()
@@ -631,7 +653,7 @@ fun CalculatorPad(
                             performCalculation()
                         }
                     }
-                    "完成" -> {
+                    doneLabel -> {
                         onExpressionChange(currentInput, currentInput)
                         onSaveClick()
                     }
@@ -655,7 +677,7 @@ fun CalculatorPad(
         }
     }
 
-    val finalButtonAction = if (operator != null) "=" else "完成"
+    val finalButtonAction = if (operator != null) "=" else doneLabel
     val buttons = listOf(
         "7", "8", "9", "date",
         "4", "5", "6", "+",
@@ -677,7 +699,7 @@ fun CalculatorPad(
                     .height(60.dp)
 
                 when (item) {
-                    "=", "完成" -> {
+                    "=", doneLabel -> {
                         Button(
                             onClick = { handleInput(item) },
                             modifier = modifier,
@@ -725,11 +747,11 @@ fun CalculatorPad(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
                                             Icons.Outlined.EditCalendar,
-                                            contentDescription = "今天",
+                                            contentDescription = todayLabel,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Spacer(Modifier.width(4.dp))
-                                        Text("今天", fontSize = 16.sp)
+                                        Text(todayLabel, fontSize = 16.sp)
                                     }
                                 } else {
                                     val dateFormat = SimpleDateFormat("yy/M/d", Locale.getDefault())

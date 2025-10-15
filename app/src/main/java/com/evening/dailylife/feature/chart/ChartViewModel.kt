@@ -3,6 +3,7 @@ package com.evening.dailylife.feature.chart
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.repository.TransactionRepository
+import com.evening.dailylife.core.util.StringProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChartViewModel @Inject constructor(
-    private val transactionRepository: TransactionRepository
+    private val transactionRepository: TransactionRepository,
+    private val stringProvider: StringProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChartUiState())
@@ -43,7 +45,7 @@ class ChartViewModel @Inject constructor(
         observeJob?.cancel()
         val type = _uiState.value.selectedType
         val period = _uiState.value.selectedPeriod
-        val range = ChartDataCalculator.buildRange(period)
+        val range = ChartDataCalculator.buildRange(period, stringProvider)
 
         _uiState.value = _uiState.value.copy(isLoading = true)
 

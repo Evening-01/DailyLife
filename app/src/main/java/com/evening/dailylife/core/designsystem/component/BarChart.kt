@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -89,6 +90,7 @@ fun BarChart(
     }
 
     val density = LocalDensity.current
+    val context = LocalContext.current
 
     // 计算最大值与刻度
     val rawMaxValue = remember(entries, averageValue) {
@@ -255,6 +257,10 @@ fun BarChart(
 
                     // 平均线（虚线）与标注
                     if (averageValue > 0f && maxValue > 0f) {
+                        val averageLabel = context.getString(
+                            R.string.chart_average_inline,
+                            currentFormatter(averageValue)
+                        )
                         val ratio = (averageValue / maxValue).coerceAtMost(1f)
                         val y = contentHeight - (contentHeight * ratio)
                         drawLine(
@@ -267,7 +273,7 @@ fun BarChart(
                         )
                         drawIntoCanvas { canvas ->
                             canvas.nativeCanvas.drawText(
-                                "平均 ${currentFormatter(averageValue)}",
+                                averageLabel,
                                 contentWidth - px.avgTextRightPadPx,
                                 (y - px.avgTextTopPadPx).coerceAtLeast(0f),
                                 avgLabelPaint

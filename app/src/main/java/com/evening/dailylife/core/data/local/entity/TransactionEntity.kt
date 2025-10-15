@@ -14,7 +14,7 @@ data class TransactionEntity(
     val description: String,
     val amount: Double,
     val mood: Int?,
-    val source: String = "日子记账",
+    val source: String = "",
     val date: Long,
     val isDeleted: Boolean = false
 )
