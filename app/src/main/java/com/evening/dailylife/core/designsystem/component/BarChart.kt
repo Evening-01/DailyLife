@@ -1,6 +1,10 @@
 package com.evening.dailylife.core.designsystem.component
 
 import android.graphics.Paint
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -35,7 +40,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -47,13 +51,14 @@ import com.evening.dailylife.feature.chart.ChartDataCalculator
 import com.evening.dailylife.feature.chart.ChartEntry
 import java.util.Locale
 import kotlin.math.min
+import kotlinx.coroutines.launch
 
 @Composable
 fun BarChart(
     entries: List<ChartEntry>,
     modifier: Modifier = Modifier,
     averageValue: Float = 0f,
-    maxBarHeight: Dp = 220.dp,
+    maxBarHeight: Dp = 140.dp,
     barWidth: Dp = 32.dp,
     spacing: Dp = 16.dp,
     // 颜色与样式
@@ -62,11 +67,9 @@ fun BarChart(
     gridColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f),
     axisColor: Color = Color.Black, // 轴线为实心黑色
     averageLineColor: Color = MaterialTheme.colorScheme.tertiary,
-    averageLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelBgColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
-    // Y 轴略高于柱子
-    yAxisOvershootTop: Dp = 12.dp,
+    yAxisOvershootTop: Dp = 6.dp,
     // 辅助线粗细
     gridStrokeWidth: Dp = 0.5.dp,
     valueFormatter: (Float) -> String = { value ->
@@ -90,7 +93,6 @@ fun BarChart(
     }
 
     val density = LocalDensity.current
-    val context = LocalContext.current
 
     // 计算最大值与刻度
     val rawMaxValue = remember(entries, averageValue) {
@@ -152,9 +154,6 @@ fun BarChart(
             val yLabelPadV: Float,
             val yLabelCorner: Float,
             val yLabelInsideGap: Float,
-            val avgTextSizePx: Float,
-            val avgTextRightPadPx: Float,
-            val avgTextTopPadPx: Float,
         )
 
         val px = remember(density, usedBarWidth, spacing, sidePadding, gridStrokeWidth, yAxisOvershootTop) {
@@ -172,9 +171,6 @@ fun BarChart(
                     yLabelPadV = 2.dp.toPx(),
                     yLabelCorner = 6.dp.toPx(),
                     yLabelInsideGap = 4.dp.toPx(), // 文字离 Y 轴的水平间距
-                    avgTextSizePx = 12.sp.toPx(),
-                    avgTextRightPadPx = 4.dp.toPx(),
-                    avgTextTopPadPx = 6.dp.toPx(),
                 )
             }
         }
@@ -189,15 +185,6 @@ fun BarChart(
         }
         val yLabelFontMetrics = remember(yLabelPaint) { yLabelPaint.fontMetrics }
         val yLabelTextHeight = remember(yLabelFontMetrics) { yLabelFontMetrics.descent - yLabelFontMetrics.ascent }
-
-        val avgLabelPaint = remember(averageLabelColor, px.avgTextSizePx) {
-            Paint().apply {
-                isAntiAlias = true
-                textAlign = Paint.Align.RIGHT
-                color = averageLabelColor.toArgb()
-                textSize = px.avgTextSizePx
-            }
-        }
 
         // 虚线路径样式
         val dashEffect = remember { PathEffect.dashPathEffect(floatArrayOf(12f, 12f)) }
@@ -255,12 +242,8 @@ fun BarChart(
                         drawPath(path = path, color = barColor)
                     }
 
-                    // 平均线（虚线）与标注
+                    // 平均线（虚线）
                     if (averageValue > 0f && maxValue > 0f) {
-                        val averageLabel = context.getString(
-                            R.string.chart_average_inline,
-                            currentFormatter(averageValue)
-                        )
                         val ratio = (averageValue / maxValue).coerceAtMost(1f)
                         val y = contentHeight - (contentHeight * ratio)
                         drawLine(
@@ -271,14 +254,6 @@ fun BarChart(
                             cap = StrokeCap.Round,
                             pathEffect = dashEffect
                         )
-                        drawIntoCanvas { canvas ->
-                            canvas.nativeCanvas.drawText(
-                                averageLabel,
-                                contentWidth - px.avgTextRightPadPx,
-                                (y - px.avgTextTopPadPx).coerceAtLeast(0f),
-                                avgLabelPaint
-                            )
-                        }
                     }
                 }
 

@@ -99,7 +99,7 @@ fun ChartScreen(
                             expanded = typeMenuExpanded,
                             onDismissRequest = { typeMenuExpanded = false }
                         ) {
-                            val chartTypes = ChartType.values()
+                            val chartTypes = ChartType.entries.toTypedArray()
                             chartTypes.forEach { type ->
                                 DropdownMenuItem(
                                     text = {
@@ -149,7 +149,7 @@ fun ChartScreen(
                                 activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                 inactiveContainerColor = Color.Transparent,
                                 inactiveContentColor = headerContentColor.copy(alpha = 0.8f),
-                                activeBorderColor = headerContentColor
+                                activeBorderColor = MaterialTheme.colorScheme.secondary
                             ),
                             icon = {},
                             label = {
@@ -181,29 +181,18 @@ fun ChartScreen(
                             .padding(horizontal = 12.dp, vertical = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        val totalLine = stringResource(id = R.string.chart_total_label, totalLabel) +
+                            "：" + formattedTotal
                         Text(
-                            text = stringResource(id = R.string.chart_total_label, totalLabel),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = totalLine,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
                         )
                         Text(
-                            text = formattedTotal,
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (selectedType == ChartType.Expense) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            }
+                            text = stringResource(R.string.chart_average_label, formattedAverage),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
                         )
-
-                        if (!uiState.isLoading) {
-                            Text(
-                                text = stringResource(R.string.chart_average_label, formattedAverage),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
 
                         if (uiState.isLoading) {
                             LinearProgressIndicator(
