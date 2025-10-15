@@ -29,6 +29,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +43,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.evening.dailylife.R
 import com.evening.dailylife.core.designsystem.component.BarChart
 import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
@@ -55,6 +60,7 @@ fun ChartScreen(
     val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
 
     var typeMenuExpanded by remember { mutableStateOf(false) }
+    var barAnimationTrigger by remember { mutableStateOf(0) }
 
     val uiState by viewModel.uiState.collectAsState()
     val chartEntries = uiState.entries
@@ -67,6 +73,23 @@ fun ChartScreen(
     }
     val formattedAverage = remember(uiState.averageAmount) {
         numberFormatter.format(uiState.averageAmount)
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                barAnimationTrigger++
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(selectedType, selectedPeriod) {
+        barAnimationTrigger++
     }
 
     Scaffold(
@@ -149,7 +172,10 @@ fun ChartScreen(
                                 activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                 inactiveContainerColor = Color.Transparent,
                                 inactiveContentColor = headerContentColor.copy(alpha = 0.8f),
-                                activeBorderColor = MaterialTheme.colorScheme.secondary
+                                activeBorderColor = MaterialTheme.colorScheme.primary,
+                                inactiveBorderColor = MaterialTheme.colorScheme.outline,
+                                activeLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                inactiveLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
                             icon = {},
                             label = {
@@ -188,11 +214,6 @@ fun ChartScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium
                         )
-                        Text(
-                            text = stringResource(R.string.chart_average_label, formattedAverage),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium
-                        )
 
                         if (uiState.isLoading) {
                             LinearProgressIndicator(
@@ -206,7 +227,8 @@ fun ChartScreen(
                                 averageValue = uiState.averageAmount.toFloat(),
                                 valueFormatter = { value ->
                                     numberFormatter.format(value.toDouble())
-                                }
+                                },
+                                animationKey = barAnimationTrigger
                             )
                         }
                     }

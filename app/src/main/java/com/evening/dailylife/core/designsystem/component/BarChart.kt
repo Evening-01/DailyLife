@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -51,7 +52,6 @@ import com.evening.dailylife.feature.chart.ChartDataCalculator
 import com.evening.dailylife.feature.chart.ChartEntry
 import java.util.Locale
 import kotlin.math.min
-import kotlinx.coroutines.launch
 
 @Composable
 fun BarChart(
@@ -67,6 +67,7 @@ fun BarChart(
     gridColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f),
     axisColor: Color = Color.Black, // 轴线为实心黑色
     averageLineColor: Color = MaterialTheme.colorScheme.tertiary,
+    averageLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelBgColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
     yAxisOvershootTop: Dp = 6.dp,
@@ -74,7 +75,9 @@ fun BarChart(
     gridStrokeWidth: Dp = 0.5.dp,
     valueFormatter: (Float) -> String = { value ->
         if (value % 1f == 0f) value.toInt().toString() else String.format(Locale.CHINA, "%.1f", value)
-    }
+    },
+    barAnimationSpec: AnimationSpec<Float> = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+    animationKey: Any? = null,
 ) {
     if (entries.isEmpty()) {
         Box(
@@ -93,6 +96,7 @@ fun BarChart(
     }
 
     val density = LocalDensity.current
+    val context = LocalContext.current
 
     // 计算最大值与刻度
     val rawMaxValue = remember(entries, averageValue) {
@@ -154,6 +158,9 @@ fun BarChart(
             val yLabelPadV: Float,
             val yLabelCorner: Float,
             val yLabelInsideGap: Float,
+            val avgTextSizePx: Float,
+            val avgTextRightPadPx: Float,
+            val avgTextTopPadPx: Float,
         )
 
         val px = remember(density, usedBarWidth, spacing, sidePadding, gridStrokeWidth, yAxisOvershootTop) {
@@ -171,6 +178,9 @@ fun BarChart(
                     yLabelPadV = 2.dp.toPx(),
                     yLabelCorner = 6.dp.toPx(),
                     yLabelInsideGap = 4.dp.toPx(), // 文字离 Y 轴的水平间距
+                    avgTextSizePx = 12.sp.toPx(),
+                    avgTextRightPadPx = 4.dp.toPx(),
+                    avgTextTopPadPx = 6.dp.toPx(),
                 )
             }
         }
@@ -186,8 +196,23 @@ fun BarChart(
         val yLabelFontMetrics = remember(yLabelPaint) { yLabelPaint.fontMetrics }
         val yLabelTextHeight = remember(yLabelFontMetrics) { yLabelFontMetrics.descent - yLabelFontMetrics.ascent }
 
-        // 虚线路径样式
+        val avgLabelPaint = remember(averageLabelColor, px.avgTextSizePx) {
+            Paint().apply {
+                isAntiAlias = true
+                textAlign = Paint.Align.RIGHT
+                color = averageLabelColor.toArgb()
+                textSize = px.avgTextSizePx
+            }
+        }
+
+        // 虚线路径样式 & 柱状动画
         val dashEffect = remember { PathEffect.dashPathEffect(floatArrayOf(12f, 12f)) }
+        val animationProgress = remember { Animatable(0f) }
+
+        LaunchedEffect(entries, animationKey) {
+            animationProgress.snapTo(0f)
+            animationProgress.animateTo(1f, animationSpec = barAnimationSpec)
+        }
 
         Column {
             // 图表区域（上：柱+网格+平均线，可滚动；上面覆盖层画轴与刻度数字，固定不动）
@@ -224,7 +249,8 @@ fun BarChart(
 
                     // 柱形（整体右移 sidePadding，保证第一根柱前有留白；与下方标签完全同构）
                     entries.forEachIndexed { index, entry ->
-                        val barHeight = if (maxValue == 0f) 0f else (entry.value / maxValue) * contentHeight
+                        val barHeightTarget = if (maxValue == 0f) 0f else (entry.value / maxValue) * contentHeight
+                        val barHeight = barHeightTarget * animationProgress.value
                         val left = px.sidePaddingPx + index * (px.barWidthPx + px.spacingPx)
                         val top = contentHeight - barHeight
                         val right = left + px.barWidthPx
@@ -244,6 +270,10 @@ fun BarChart(
 
                     // 平均线（虚线）
                     if (averageValue > 0f && maxValue > 0f) {
+                        val averageLabel = context.getString(
+                            R.string.chart_average_label,
+                            currentFormatter(averageValue)
+                        )
                         val ratio = (averageValue / maxValue).coerceAtMost(1f)
                         val y = contentHeight - (contentHeight * ratio)
                         drawLine(
@@ -254,6 +284,14 @@ fun BarChart(
                             cap = StrokeCap.Round,
                             pathEffect = dashEffect
                         )
+                        drawIntoCanvas { canvas ->
+                            canvas.nativeCanvas.drawText(
+                                averageLabel,
+                                contentWidth - px.avgTextRightPadPx,
+                                (y - px.avgTextTopPadPx).coerceAtLeast(0f),
+                                avgLabelPaint
+                            )
+                        }
                     }
                 }
 
