@@ -30,6 +30,6 @@ class TransactionRepository @Inject constructor(
     }
 
     suspend fun deleteTransaction(transaction: TransactionEntity) {
-        transactionDao.deleteTransaction(transaction)
+        transactionDao.updateTransaction(transaction.copy(isDeleted = true))
     }
 }
