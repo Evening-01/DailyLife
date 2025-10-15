@@ -18,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.R
 import com.evening.dailylife.core.data.preferences.ThemeMode
 import com.evening.dailylife.core.designsystem.component.ItemPopup
+import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
 import com.moriafly.salt.ui.ItemSwitcher
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
@@ -48,6 +50,9 @@ fun MeScreen(
     val isDynamicColorEnabled by viewModel.dynamicColor.collectAsState()
     val themeModePopupMenuState = rememberPopupState()
 
+    val headerContainerColor = LocalExtendedColorScheme.current.headerContainer
+    val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
+
     val context = LocalContext.current
     val isDynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val dynamicColorUnsupportedMessage = stringResource(R.string.dynamic_color_unsupported)
@@ -62,6 +67,10 @@ fun MeScreen(
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = headerContainerColor,
+                    titleContentColor = headerContentColor
+                )
             )
         }
     ) { innerPadding ->
