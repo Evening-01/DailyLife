@@ -168,14 +168,12 @@ fun ChartScreen(
                                 count = periods.size
                             ),
                             colors = SegmentedButtonDefaults.colors(
-                                activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                inactiveContainerColor = Color.Transparent,
-                                inactiveContentColor = headerContentColor.copy(alpha = 0.8f),
-                                activeBorderColor = MaterialTheme.colorScheme.primary,
-                                inactiveBorderColor = MaterialTheme.colorScheme.outline,
-                                activeLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                inactiveLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f),
+                                inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                activeBorderColor = Color.Black,
+                                inactiveBorderColor = Color.Black
                             ),
                             icon = {},
                             label = {
