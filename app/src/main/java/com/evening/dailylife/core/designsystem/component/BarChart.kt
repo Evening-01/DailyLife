@@ -65,7 +65,7 @@ fun BarChart(
     barColor: Color = MaterialTheme.colorScheme.primary,
     // 辅助线颜色
     gridColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f),
-    axisColor: Color = Color.Black, // 轴线为实心黑色
+    axisColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f),
     averageLineColor: Color = MaterialTheme.colorScheme.tertiary,
     averageLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,

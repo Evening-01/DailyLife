@@ -27,6 +27,17 @@
     <string name="chart_empty_data">暂无相关数据</string>
     <string name="chart_label_day">%1$d日</string>
     <string name="chart_label_month">%1$d月</string>
+    <string name="chart_tab_week_this">本周</string>
+    <string name="chart_tab_week_last">上周</string>
+    <string name="chart_tab_week_number">%1$02d周</string>
+    <string name="chart_tab_week_with_year">%1$d-%2$02d周</string>
+    <string name="chart_tab_month_this">本月</string>
+    <string name="chart_tab_month_last">上月</string>
+    <string name="chart_tab_month_number">%1$02d月</string>
+    <string name="chart_tab_month_with_year">%1$d-%2$02d月</string>
+    <string name="chart_tab_year_this">今年</string>
+    <string name="chart_tab_year_last">去年</string>
+    <string name="chart_tab_year_value">%1$d年</string>
 
     <!-- Preferences -->
     <string name="user_interface">用户界面</string>

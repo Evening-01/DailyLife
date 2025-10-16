@@ -9,7 +9,6 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.log10
-import kotlin.math.max
 import kotlin.math.pow
 
 internal object ChartDataCalculator {
@@ -34,14 +33,22 @@ internal object ChartDataCalculator {
 
     fun buildRange(
         period: ChartPeriod,
-        stringProvider: StringProvider,
-        reference: Calendar = Calendar.getInstance()
+        startMillis: Long,
+        endMillis: Long,
+        stringProvider: StringProvider
     ): Range {
-        val todayEnd = (reference.clone() as Calendar).apply { setToEndOfDay() }
+        val rangeStart = Calendar.getInstance().apply {
+            timeInMillis = startMillis
+            setToStartOfDay()
+        }
+        val rangeEnd = Calendar.getInstance().apply {
+            timeInMillis = endMillis
+            setToEndOfDay()
+        }
         return when (period) {
-            ChartPeriod.Week -> buildWeekRange(todayEnd)
-            ChartPeriod.Month -> buildMonthRange(todayEnd, stringProvider)
-            ChartPeriod.Year -> buildYearRange(todayEnd, stringProvider)
+            ChartPeriod.Week -> buildWeekRange(rangeStart, rangeEnd)
+            ChartPeriod.Month -> buildMonthRange(rangeStart, rangeEnd, stringProvider)
+            ChartPeriod.Year -> buildYearRange(rangeStart, rangeEnd, stringProvider)
         }
     }
 
@@ -97,83 +104,111 @@ internal object ChartDataCalculator {
         return niceNormalized * magnitude
     }
 
-    private fun buildWeekRange(todayEnd: Calendar): Range {
-        val startDay = (todayEnd.clone() as Calendar).apply {
-            add(Calendar.DAY_OF_YEAR, -6)
-            setToStartOfDay()
-        }
-        val dateFormat = SimpleDateFormat("E", Locale.CHINA)
-        val buckets = (0 until 7).map { offset ->
+    private fun buildWeekRange(
+        rangeStart: Calendar,
+        rangeEnd: Calendar
+    ): Range {
+        val startDay = (rangeStart.clone() as Calendar).apply { setToStartOfDay() }
+        val dateFormat = SimpleDateFormat("MM-dd", Locale.CHINA)
+        val buckets = (0 until DAYS_IN_WEEK).map { offset ->
             val dayStart = (startDay.clone() as Calendar).apply {
                 add(Calendar.DAY_OF_YEAR, offset)
+                setToStartOfDay()
             }
             val dayEnd = (dayStart.clone() as Calendar).apply { setToEndOfDay() }
             Bucket(
                 label = dateFormat.format(dayStart.time),
                 start = dayStart.timeInMillis,
-                end = dayEnd.timeInMillis
+                end = minOf(dayEnd.timeInMillis, rangeEnd.timeInMillis)
             )
         }
+        val endMillis = minOf(
+            (startDay.clone() as Calendar).apply {
+                add(Calendar.DAY_OF_YEAR, DAYS_IN_WEEK - 1)
+                setToEndOfDay()
+            }.timeInMillis,
+            rangeEnd.timeInMillis
+        )
         return Range(
-            start = buckets.first().start,
-            end = todayEnd.timeInMillis,
+            start = startDay.timeInMillis,
+            end = endMillis,
             buckets = buckets
         )
     }
 
-    private fun buildMonthRange(todayEnd: Calendar, stringProvider: StringProvider): Range {
-        val monthStart = (todayEnd.clone() as Calendar).apply {
+    private fun buildMonthRange(
+        rangeStart: Calendar,
+        rangeEnd: Calendar,
+        stringProvider: StringProvider
+    ): Range {
+        val monthStart = (rangeStart.clone() as Calendar).apply {
             set(Calendar.DAY_OF_MONTH, 1)
             setToStartOfDay()
         }
-        val totalDays = max(1, todayEnd.get(Calendar.DAY_OF_MONTH))
-        val buckets = (0 until totalDays).map { offset ->
-            val dayStart = (monthStart.clone() as Calendar).apply { add(Calendar.DAY_OF_MONTH, offset) }
-            val dayEnd = (dayStart.clone() as Calendar).apply { setToEndOfDay() }
-            Bucket(
+        val monthEnd = (rangeEnd.clone() as Calendar).apply { setToEndOfDay() }
+        val buckets = mutableListOf<Bucket>()
+        val cursor = (monthStart.clone() as Calendar)
+        while (cursor.timeInMillis <= monthEnd.timeInMillis) {
+            val dayStart = (cursor.clone() as Calendar).apply { setToStartOfDay() }
+            val dayEnd = (cursor.clone() as Calendar).apply { setToEndOfDay() }
+            buckets += Bucket(
                 label = stringProvider.getString(
                     R.string.chart_label_day,
                     dayStart.get(Calendar.DAY_OF_MONTH)
                 ),
                 start = dayStart.timeInMillis,
-                end = dayEnd.timeInMillis
+                end = minOf(dayEnd.timeInMillis, monthEnd.timeInMillis)
             )
+            cursor.add(Calendar.DAY_OF_MONTH, 1)
         }
         return Range(
             start = monthStart.timeInMillis,
-            end = todayEnd.timeInMillis,
+            end = monthEnd.timeInMillis,
             buckets = buckets
         )
     }
 
-    private fun buildYearRange(todayEnd: Calendar, stringProvider: StringProvider): Range {
-        val yearStart = (todayEnd.clone() as Calendar).apply {
+    private fun buildYearRange(
+        rangeStart: Calendar,
+        rangeEnd: Calendar,
+        stringProvider: StringProvider
+    ): Range {
+        val yearStart = (rangeStart.clone() as Calendar).apply {
             set(Calendar.MONTH, Calendar.JANUARY)
             set(Calendar.DAY_OF_MONTH, 1)
             setToStartOfDay()
         }
-        val currentMonthIndex = todayEnd.get(Calendar.MONTH)
-        val buckets = (0..currentMonthIndex).map { monthIndex ->
-            val monthStart = (yearStart.clone() as Calendar).apply {
-                set(Calendar.MONTH, monthIndex)
+        val yearEnd = (rangeEnd.clone() as Calendar).apply { setToEndOfDay() }
+        val buckets = mutableListOf<Bucket>()
+        val cursor = (yearStart.clone() as Calendar)
+        while (cursor.timeInMillis <= yearEnd.timeInMillis) {
+            val monthStart = (cursor.clone() as Calendar).apply {
+                set(Calendar.DAY_OF_MONTH, 1)
+                setToStartOfDay()
             }
             val monthEnd = (monthStart.clone() as Calendar).apply {
                 set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
                 setToEndOfDay()
             }
-            Bucket(
-                label = stringProvider.getString(R.string.chart_label_month, monthIndex + 1),
+            buckets += Bucket(
+                label = stringProvider.getString(
+                    R.string.chart_label_month,
+                    monthStart.get(Calendar.MONTH) + 1
+                ),
                 start = monthStart.timeInMillis,
-                end = minOf(monthEnd.timeInMillis, todayEnd.timeInMillis)
+                end = minOf(monthEnd.timeInMillis, yearEnd.timeInMillis)
             )
+            cursor.add(Calendar.MONTH, 1)
         }
         return Range(
             start = yearStart.timeInMillis,
-            end = todayEnd.timeInMillis,
+            end = yearEnd.timeInMillis,
             buckets = buckets
         )
     }
 }
+
+private const val DAYS_IN_WEEK = 7
 
 private fun Calendar.setToStartOfDay() {
     set(Calendar.HOUR_OF_DAY, 0)

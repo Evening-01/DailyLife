@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,10 +23,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -149,6 +153,8 @@ fun ChartScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
+            val rangeTabs = uiState.rangeTabs
+
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = headerContainerColor
@@ -183,6 +189,59 @@ fun ChartScreen(
                                 )
                             }
                         )
+                    }
+                }
+            }
+
+            if (rangeTabs.isNotEmpty()) {
+                val selectedTabIndex = rangeTabs.indexOfFirst { option ->
+                    option.id == uiState.selectedRangeOption?.id
+                }.takeIf { it >= 0 } ?: 0
+
+                ScrollableTabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    edgePadding = 0.dp,
+                    containerColor = Color.Transparent,
+                    divider = {},
+                    indicator = { tabPositions ->
+                        if (selectedTabIndex in tabPositions.indices) {
+                            TabRowDefaults.Indicator(
+                                modifier = Modifier
+                                    .tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                                color = MaterialTheme.colorScheme.primary,
+                                height = 2.dp
+                            )
+                        }
+                    }
+                ) {
+                    rangeTabs.forEachIndexed { index, option ->
+                        val interactionSource = remember { MutableInteractionSource() }
+                        val isSelected = index == selectedTabIndex
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 6.dp)
+                                .heightIn(min = 30.dp)
+                                .clickable(
+                                    interactionSource = interactionSource,
+                                    indication = null
+                                ) { viewModel.onRangeOptionSelected(option.id) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = option.label,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (isSelected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+                            )
+                        }
                     }
                 }
             }
