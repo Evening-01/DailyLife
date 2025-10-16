@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -25,7 +26,6 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -203,8 +203,8 @@ fun ChartScreen(
                     selectedTabIndex = selectedTabIndex,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    edgePadding = 16.dp,
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    edgePadding = 0.dp,
                     containerColor = Color.Transparent,
                     divider = {},
                     indicator = {
@@ -215,22 +215,31 @@ fun ChartScreen(
                         )
                     }
                 ) {
-                    rangeTabs.forEach { option ->
-                        val isSelected = uiState.selectedRangeOption?.id == option.id
-                        Tab(
-                            selected = isSelected,
-                            onClick = { viewModel.onRangeOptionSelected(option.id) },
-                            interactionSource = remember { MutableInteractionSource() },
-                            selectedContentColor = MaterialTheme.colorScheme.primary,
-                            unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            text = {
-                                Text(
-                                    text = option.label,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
-                                )
-                            }
-                        )
+                    rangeTabs.forEachIndexed { index, option ->
+                        val interactionSource = remember { MutableInteractionSource() }
+                        val isSelected = index == selectedTabIndex
+                        Box(
+                            modifier = Modifier
+                                .padding(horizontal = 6.dp)
+                                .heightIn(min = 30.dp)
+                                .clickable(
+                                    interactionSource = interactionSource,
+                                    indication = null
+                                ) { viewModel.onRangeOptionSelected(option.id) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = option.label,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (isSelected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+                            )
+                        }
                     }
                 }
             }
