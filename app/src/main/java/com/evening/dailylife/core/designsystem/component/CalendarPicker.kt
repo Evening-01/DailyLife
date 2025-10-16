@@ -42,8 +42,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.evening.dailylife.R
@@ -290,7 +290,6 @@ fun CalendarPickerBottomSheet(
                     .padding(bottom = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 【优化】标题单独居中显示
                 Text(
                     text = if (type == CalendarPickerType.DATE) {
                         stringResource(R.string.calendar_select_date)
