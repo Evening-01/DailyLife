@@ -162,7 +162,7 @@ fun ChartScreen(
                 SingleChoiceSegmentedButtonRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     val periods = ChartPeriod.entries.toTypedArray()
                     periods.forEachIndexed { index, period ->
@@ -202,7 +202,7 @@ fun ChartScreen(
                     selectedTabIndex = selectedTabIndex,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     edgePadding = 0.dp,
                     containerColor = Color.Transparent,
                     divider = {},
@@ -250,8 +250,8 @@ fun ChartScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Surface(
                     tonalElevation = 2.dp,
@@ -265,7 +265,7 @@ fun ChartScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         val totalLine = stringResource(id = R.string.chart_total_label, totalLabel) +
-                            "：" + formattedTotal
+                                "：" + formattedTotal
                         Text(
                             text = totalLine,
                             style = MaterialTheme.typography.bodyMedium,
