@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.sp
 import com.evening.dailylife.R
 import com.evening.dailylife.feature.chart.ChartDataCalculator
 import com.evening.dailylife.feature.chart.MoodChartEntry
-import java.util.Locale
 import kotlin.math.abs
 
 @Composable
@@ -48,12 +47,7 @@ fun MoodLineChart(
     pointColor: Color = MaterialTheme.colorScheme.primary,
     gridColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f),
     axisColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f),
-    yLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     xLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    backgroundColor: Color = MaterialTheme.colorScheme.surface,
-    valueFormatter: (Float) -> String = { value ->
-        String.format(Locale.CHINA, "%.1f", value)
-    },
     animationSpec: AnimationSpec<Float> = tween(durationMillis = 600, easing = FastOutSlowInEasing),
     animationKey: Any? = null,
 ) {
@@ -85,14 +79,6 @@ fun MoodLineChart(
     val yMin = -yMax
 
     val steps = 4
-    val yAxisLabels = remember(yMax, yMin, steps, valueFormatter) {
-        val formatter = valueFormatter
-        (0..steps).map { step ->
-            val fraction = step / steps.toFloat()
-            val value = yMax - fraction * (yMax - yMin)
-            formatter(value)
-        }
-    }
 
     val animationProgress = remember { Animatable(0f) }
     LaunchedEffect(entries, animationKey) {
@@ -104,8 +90,8 @@ fun MoodLineChart(
         val chartMaxWidth = this.maxWidth
         val pointCount = entries.size
         val interpolatedCount = (pointCount - 1).coerceAtLeast(1)
-        val leftPadding = 44.dp
-        val rightPadding = 16.dp
+        val leftPadding = 8.dp
+        val rightPadding = 8.dp
         val shouldScroll = pointCount > 1 && (leftPadding + rightPadding + stepSpacing * interpolatedCount) > chartMaxWidth
         val usedSpacing = when {
             pointCount <= 1 -> 0.dp
@@ -125,8 +111,6 @@ fun MoodLineChart(
             val rightPaddingPx: Float,
             val topPaddingPx: Float,
             val bottomPaddingPx: Float,
-            val yLabelTextSizePx: Float,
-            val yLabelSpacePx: Float,
             val xLabelTextSizePx: Float,
             val xLabelBaselineOffsetPx: Float,
             val pointRadiusPx: Float,
@@ -141,12 +125,10 @@ fun MoodLineChart(
                 Px(
                     leftPaddingPx = leftPadding.toPx(),
                     rightPaddingPx = rightPadding.toPx(),
-                    topPaddingPx = 16.dp.toPx(),
-                    bottomPaddingPx = 40.dp.toPx(),
-                    yLabelTextSizePx = 10.sp.toPx(),
-                    yLabelSpacePx = 8.dp.toPx(),
+                    topPaddingPx = 8.dp.toPx(),
+                    bottomPaddingPx = 24.dp.toPx(),
                     xLabelTextSizePx = 10.sp.toPx(),
-                    xLabelBaselineOffsetPx = 12.dp.toPx(),
+                    xLabelBaselineOffsetPx = 16.dp.toPx(),
                     pointRadiusPx = 4.dp.toPx(),
                     lineStrokePx = 2.dp.toPx(),
                     gridStrokePx = 0.5.dp.toPx(),
@@ -164,16 +146,6 @@ fun MoodLineChart(
                 textSize = px.xLabelTextSizePx
             }
         }
-
-        val yLabelPaint = remember(yLabelColor, px.yLabelTextSizePx) {
-            Paint().apply {
-                isAntiAlias = true
-                textAlign = Paint.Align.RIGHT
-                color = yLabelColor.toArgb()
-                textSize = px.yLabelTextSizePx
-            }
-        }
-        val yLabelFontMetrics = remember(yLabelPaint) { yLabelPaint.fontMetrics }
 
         val chartModifier = if (shouldScroll) {
             Modifier
@@ -203,9 +175,6 @@ fun MoodLineChart(
                 chartBottom - chartHeightPx * ratio
             }
 
-            drawRect(color = backgroundColor, size = size)
-
-            // horizontal grid lines
             for (i in 0..steps) {
                 val fraction = i / steps.toFloat()
                 val y = chartTop + chartHeightPx * fraction
@@ -217,11 +186,16 @@ fun MoodLineChart(
                 )
             }
 
-            // axes
             drawLine(
                 color = axisColor,
                 start = Offset(chartLeft, chartTop),
                 end = Offset(chartLeft, chartBottom),
+                strokeWidth = px.axisStrokePx
+            )
+            drawLine(
+                color = axisColor,
+                start = Offset(chartRight, chartTop),
+                end = Offset(chartRight, chartBottom),
                 strokeWidth = px.axisStrokePx
             )
             drawLine(
@@ -254,55 +228,38 @@ fun MoodLineChart(
                 chartWidthPx / interpolatedCount
             }
 
-            var lastPoint: Offset? = null
-            entries.forEachIndexed { index, entry ->
-                val value = entry.value ?: run {
-                    lastPoint = null
-                    return@forEachIndexed
+            val animatedPoints = entries.mapIndexedNotNull { index, entry ->
+                entry.value?.let { value ->
+                    val x = if (pointCount <= 1) {
+                        chartLeft + chartWidthPx / 2f
+                    } else {
+                        chartLeft + spacing * index
+                    }
+                    val targetY = valueToY(value)
+                    val animatedY = zeroY + (targetY - zeroY) * animationProgress.value
+                    Offset(x, animatedY)
                 }
+            }
 
-                val x = if (pointCount <= 1) {
-                    chartLeft + chartWidthPx / 2f
-                } else {
-                    chartLeft + spacing * index
-                }
-                val targetY = valueToY(value)
-                val animatedY = zeroY + (targetY - zeroY) * animationProgress.value
-                val currentPoint = Offset(x, animatedY)
+            for (i in 0 until animatedPoints.size - 1) {
+                drawLine(
+                    color = lineColor,
+                    start = animatedPoints[i],
+                    end = animatedPoints[i + 1],
+                    strokeWidth = px.lineStrokePx,
+                    cap = StrokeCap.Round
+                )
+            }
 
-                lastPoint?.let { previous ->
-                    drawLine(
-                        color = lineColor,
-                        start = previous,
-                        end = currentPoint,
-                        strokeWidth = px.lineStrokePx,
-                        cap = StrokeCap.Round
-                    )
-                }
-                lastPoint = currentPoint
-
+            animatedPoints.forEach { point ->
                 drawCircle(
                     color = pointColor,
                     radius = px.pointRadiusPx,
-                    center = currentPoint
+                    center = point
                 )
             }
 
             drawIntoCanvas { canvas ->
-                // y-axis labels
-                yAxisLabels.forEachIndexed { index, label ->
-                    val fraction = index / steps.toFloat()
-                    val y = chartTop + chartHeightPx * fraction
-                    val baseline = y - (yLabelFontMetrics.ascent + yLabelFontMetrics.descent) / 2f
-                    canvas.nativeCanvas.drawText(
-                        label,
-                        chartLeft - px.yLabelSpacePx,
-                        baseline,
-                        yLabelPaint
-                    )
-                }
-
-                // x-axis labels
                 entries.forEachIndexed { index, entry ->
                     val x = if (pointCount <= 1) {
                         chartLeft + chartWidthPx / 2f

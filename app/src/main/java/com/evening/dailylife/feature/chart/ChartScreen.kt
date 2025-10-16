@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -21,13 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -80,7 +79,6 @@ fun ChartScreen(
     val formattedAverage = remember(uiState.averageAmount) {
         numberFormatter.format(uiState.averageAmount)
     }
-    val moodValueFormatter = remember { DecimalFormat("0.0") }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -201,50 +199,38 @@ fun ChartScreen(
                     option.id == uiState.selectedRangeOption?.id
                 }.takeIf { it >= 0 } ?: 0
 
-                ScrollableTabRow(
+                SecondaryScrollableTabRow(
                     selectedTabIndex = selectedTabIndex,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    edgePadding = 0.dp,
+                        .padding(vertical = 8.dp),
+                    edgePadding = 16.dp,
                     containerColor = Color.Transparent,
                     divider = {},
-                    indicator = { tabPositions ->
-                        if (selectedTabIndex in tabPositions.indices) {
-                            TabRowDefaults.Indicator(
-                                modifier = Modifier
-                                    .tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                                color = MaterialTheme.colorScheme.primary,
-                                height = 2.dp
-                            )
-                        }
+                    indicator = {
+                        TabRowDefaults.SecondaryIndicator(
+                            modifier = Modifier.tabIndicatorOffset(selectedTabIndex),
+                            color = MaterialTheme.colorScheme.primary,
+                            height = 2.dp
+                        )
                     }
                 ) {
-                    rangeTabs.forEachIndexed { index, option ->
-                        val interactionSource = remember { MutableInteractionSource() }
-                        val isSelected = index == selectedTabIndex
-                        Box(
-                            modifier = Modifier
-                                .padding(horizontal = 6.dp)
-                                .heightIn(min = 30.dp)
-                                .clickable(
-                                    interactionSource = interactionSource,
-                                    indication = null
-                                ) { viewModel.onRangeOptionSelected(option.id) }
-                                .padding(horizontal = 12.dp, vertical = 6.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = option.label,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = if (isSelected) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
-                            )
-                        }
+                    rangeTabs.forEach { option ->
+                        val isSelected = uiState.selectedRangeOption?.id == option.id
+                        Tab(
+                            selected = isSelected,
+                            onClick = { viewModel.onRangeOptionSelected(option.id) },
+                            interactionSource = remember { MutableInteractionSource() },
+                            selectedContentColor = MaterialTheme.colorScheme.primary,
+                            unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = {
+                                Text(
+                                    text = option.label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+                                )
+                            }
+                        )
                     }
                 }
             }
@@ -254,7 +240,7 @@ fun ChartScreen(
                     .fillMaxWidth()
                     .weight(1f, fill = true),
 
-            ) {
+                ) {
                 item {
                     RoundedColumn(modifier = Modifier.fillMaxWidth()) {
                         ItemTitle(text = stringResource(id = R.string.chart_overview_title))
@@ -311,9 +297,6 @@ fun ChartScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 16.dp),
-                            valueFormatter = { value ->
-                                moodValueFormatter.format(value.toDouble())
-                            },
                             animationKey = barAnimationTrigger
                         )
                     }

@@ -24,6 +24,7 @@
     <string name="chart_period_year">年</string>
     <string name="chart_total_label">%1$s总计</string>
     <string name="chart_average_label">平均：%1$s</string>
+    <string name="chart_average_prefix">平均：</string>
     <string name="chart_empty_data">暂无相关数据</string>
     <string name="chart_label_day">%1$d日</string>
     <string name="chart_label_month">%1$d月</string>
@@ -38,7 +39,7 @@
     <string name="chart_tab_year_this">今年</string>
     <string name="chart_tab_year_last">去年</string>
     <string name="chart_tab_year_value">%1$d年</string>
-    <string name="chart_overview_title">趋势概览</string>
+    <string name="chart_overview_title">数据概览</string>
     <string name="chart_rank_title_expense">支出排行榜</string>
     <string name="chart_rank_title_income">收入排行榜</string>
     <string name="chart_mood_trend_title">心情趋势</string>
