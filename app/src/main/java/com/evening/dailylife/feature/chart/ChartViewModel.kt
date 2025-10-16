@@ -24,6 +24,13 @@ class ChartViewModel @Inject constructor(
     private val stringProvider: StringProvider
 ) : ViewModel() {
 
+    companion object {
+        private const val DEFAULT_TOP_RANK_LIMIT = 5
+        private const val MILLIS_IN_DAY = 24L * 60L * 60L * 1000L
+        private const val DAYS_IN_WEEK = 7
+        private const val MONTHS_IN_YEAR = 12
+    }
+
     private val _uiState = MutableStateFlow(ChartUiState())
     val uiState: StateFlow<ChartUiState> = _uiState.asStateFlow()
 
@@ -83,15 +90,26 @@ class ChartViewModel @Inject constructor(
                 stringProvider = stringProvider
             )
             val rangeTransactions = filtered.filter { it.date in range.start..range.end }
-            ChartDataCalculator.summarize(rangeTransactions, type, range)
+            ChartDataCalculator.summarize(
+                transactions = rangeTransactions,
+                type = type,
+                range = range,
+                topLimit = DEFAULT_TOP_RANK_LIMIT
+            )
         } else {
-            ChartDataCalculator.Summary(emptyList(), 0.0, 0.0)
+            ChartDataCalculator.Summary(
+                entries = emptyList(),
+                total = 0.0,
+                average = 0.0,
+                categoryRanks = emptyList()
+            )
         }
 
         _uiState.value = _uiState.value.copy(
             rangeTabs = rangeTabs,
             selectedRangeOption = selectedOption,
             entries = summary.entries,
+            categoryRanks = summary.categoryRanks,
             totalAmount = summary.total,
             averageAmount = summary.average,
             isLoading = false
@@ -309,9 +327,4 @@ class ChartViewModel @Inject constructor(
         val month: Int
     )
 
-    private companion object {
-        private const val MILLIS_IN_DAY = 24L * 60L * 60L * 1000L
-        private const val DAYS_IN_WEEK = 7
-        private const val MONTHS_IN_YEAR = 12
-    }
 }

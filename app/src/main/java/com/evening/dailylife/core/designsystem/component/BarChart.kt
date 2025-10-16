@@ -59,8 +59,8 @@ fun BarChart(
     modifier: Modifier = Modifier,
     averageValue: Float = 0f,
     maxBarHeight: Dp = 140.dp,
-    barWidth: Dp = 32.dp,
-    spacing: Dp = 16.dp,
+    barWidth: Dp = 30.dp,
+    spacing: Dp = 14.dp,
     // 颜色与样式
     barColor: Color = MaterialTheme.colorScheme.primary,
     // 辅助线颜色
@@ -70,7 +70,7 @@ fun BarChart(
     averageLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelBgColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
-    yAxisOvershootTop: Dp = 6.dp,
+    yAxisOvershootTop: Dp = 10.dp,
     // 辅助线粗细
     gridStrokeWidth: Dp = 0.5.dp,
     valueFormatter: (Float) -> String = { value ->

@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -52,7 +50,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.evening.dailylife.R
 import com.evening.dailylife.core.designsystem.component.BarChart
+import com.evening.dailylife.core.designsystem.component.CategoryRankingSection
 import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
+import com.moriafly.salt.ui.ItemTitle
+import com.moriafly.salt.ui.RoundedColumn
 import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,13 +149,13 @@ fun ChartScreen(
             )
         }
     ) { innerPadding ->
+        val rangeTabs = uiState.rangeTabs
+
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            val rangeTabs = uiState.rangeTabs
-
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = headerContainerColor
@@ -246,49 +247,58 @@ fun ChartScreen(
                 }
             }
 
-            Column(
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                    .fillMaxWidth()
+                    .weight(1f, fill = true),
+
             ) {
-                Surface(
-                    tonalElevation = 2.dp,
-                    shape = RoundedCornerShape(24.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        val totalLine = stringResource(id = R.string.chart_total_label, totalLabel) +
-                                "：" + formattedTotal
+                item {
+                    RoundedColumn(modifier = Modifier.fillMaxWidth()) {
+                        ItemTitle(text = stringResource(id = R.string.chart_overview_title))
+
+                        val totalLine = stringResource(id = R.string.chart_total_label, totalLabel) + "：" + formattedTotal
                         Text(
                             text = totalLine,
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                        )
+
+                        Text(
+                            text = stringResource(id = R.string.chart_average_label, formattedAverage),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                         )
 
                         if (uiState.isLoading) {
                             LinearProgressIndicator(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 16.dp)
                             )
                         } else {
                             BarChart(
                                 entries = chartEntries,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 16.dp),
                                 averageValue = uiState.averageAmount.toFloat(),
-                                valueFormatter = { value ->
-                                    numberFormatter.format(value.toDouble())
-                                },
+                                valueFormatter = { value -> numberFormatter.format(value.toDouble()) },
                                 animationKey = barAnimationTrigger
                             )
                         }
                     }
+                }
+
+                item {
+                    CategoryRankingSection(
+                        ranks = uiState.categoryRanks,
+                        type = selectedType,
+                        numberFormatter = numberFormatter,
+                        animationKey = barAnimationTrigger
+                    )
                 }
             }
         }

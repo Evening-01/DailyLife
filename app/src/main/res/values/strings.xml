@@ -38,6 +38,11 @@
     <string name="chart_tab_year_this">今年</string>
     <string name="chart_tab_year_last">去年</string>
     <string name="chart_tab_year_value">%1$d年</string>
+    <string name="chart_overview_title">趋势概览</string>
+    <string name="chart_rank_title_expense">支出排行榜</string>
+    <string name="chart_rank_title_income">收入排行榜</string>
+    <string name="chart_rank_empty">暂无可排名的分类</string>
+    <string name="chart_rank_amount">金额：%1$s</string>
 
     <!-- Preferences -->
     <string name="user_interface">用户界面</string>

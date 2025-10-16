@@ -28,7 +28,8 @@ internal object ChartDataCalculator {
     data class Summary(
         val entries: List<ChartEntry>,
         val total: Double,
-        val average: Double
+        val average: Double,
+        val categoryRanks: List<ChartCategoryRank>
     )
 
     fun buildRange(
@@ -55,7 +56,8 @@ internal object ChartDataCalculator {
     fun summarize(
         transactions: List<TransactionEntity>,
         type: ChartType,
-        range: Range
+        range: Range,
+        topLimit: Int
     ): Summary {
         val filtered = transactions.filter {
             when (type) {
@@ -83,12 +85,53 @@ internal object ChartDataCalculator {
 
         val total = normalised.sumOf { it }
         val average = if (range.buckets.isEmpty()) 0.0 else total / range.buckets.size
+        val categoryRanks = buildCategoryRanks(
+            transactions = filtered,
+            type = type,
+            total = total,
+            topLimit = topLimit
+        )
 
         return Summary(
             entries = entries,
             total = total,
-            average = average
+            average = average,
+            categoryRanks = categoryRanks
         )
+    }
+
+    private fun buildCategoryRanks(
+        transactions: List<TransactionEntity>,
+        type: ChartType,
+        total: Double,
+        topLimit: Int
+    ): List<ChartCategoryRank> {
+        if (transactions.isEmpty() || total <= 0.0 || topLimit <= 0) {
+            return emptyList()
+        }
+
+        val amounts = transactions.groupBy { it.category }
+            .mapValues { (_, list) ->
+                list.sumOf { entity ->
+                    when (type) {
+                        ChartType.Expense -> abs(entity.amount)
+                        ChartType.Income -> entity.amount
+                    }
+                }
+            }
+            .filterValues { it > 0.0 }
+
+        return amounts.entries
+            .sortedByDescending { it.value }
+            .take(topLimit)
+            .map { (category, amount) ->
+                val ratio = if (total > 0) (amount / total).toFloat() else 0f
+                ChartCategoryRank(
+                    category = category,
+                    amount = amount,
+                    ratio = ratio.coerceIn(0f, 1f)
+                )
+            }
     }
 
     fun roundUpToNiceNumber(value: Float): Float {

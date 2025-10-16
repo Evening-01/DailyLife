@@ -18,3 +18,9 @@ data class ChartEntry(
     val label: String,
     val value: Float
 )
+
+data class ChartCategoryRank(
+    val category: String,
+    val amount: Double,
+    val ratio: Float
+)

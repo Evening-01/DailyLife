@@ -6,6 +6,7 @@ data class ChartUiState(
     val rangeTabs: List<ChartRangeOption> = emptyList(),
     val selectedRangeOption: ChartRangeOption? = null,
     val entries: List<ChartEntry> = emptyList(),
+    val categoryRanks: List<ChartCategoryRank> = emptyList(),
     val totalAmount: Double = 0.0,
     val averageAmount: Double = 0.0,
     val isLoading: Boolean = true
