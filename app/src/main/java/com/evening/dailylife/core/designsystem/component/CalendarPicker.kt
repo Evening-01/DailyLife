@@ -162,8 +162,17 @@ fun <T> WheelPicker(
 }
 
 private fun calculateScaleAndAlpha(listState: LazyListState, index: Int): Pair<Float, Float> {
-    val center = listState.layoutInfo.viewportEndOffset / 2f
-    val itemInfo = listState.layoutInfo.visibleItemsInfo.find { it.index == index }
+    val layoutInfo = listState.layoutInfo
+    if (layoutInfo.visibleItemsInfo.isEmpty()) {
+        return 1f to 1f
+    }
+    val viewportStart = layoutInfo.viewportStartOffset.toFloat()
+    val viewportEnd = layoutInfo.viewportEndOffset.toFloat()
+    if (viewportStart == viewportEnd) {
+        return 1f to 1f
+    }
+    val center = (viewportStart + viewportEnd) / 2f
+    val itemInfo = layoutInfo.visibleItemsInfo.find { it.index == index }
 
     val distanceFromCenter = if (itemInfo != null) {
         abs((itemInfo.offset + itemInfo.size / 2) - center)
@@ -179,7 +188,10 @@ private fun calculateScaleAndAlpha(listState: LazyListState, index: Int): Pair<F
 
 private fun calculateCenterIndex(listState: LazyListState): Int {
     val layoutInfo = listState.layoutInfo
-    val viewportCenter = layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset / 2
+    if (layoutInfo.visibleItemsInfo.isEmpty()) {
+        return -1
+    }
+    val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
     val closestItem = layoutInfo.visibleItemsInfo.minByOrNull {
         abs((it.offset + it.size / 2) - viewportCenter)
     }
