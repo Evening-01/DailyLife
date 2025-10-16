@@ -24,3 +24,8 @@ data class ChartCategoryRank(
     val amount: Double,
     val ratio: Float
 )
+
+data class MoodChartEntry(
+    val label: String,
+    val value: Float?
+)

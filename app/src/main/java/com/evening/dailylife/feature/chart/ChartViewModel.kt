@@ -82,13 +82,16 @@ class ChartViewModel @Inject constructor(
             }
         }
 
-        val summary = if (selectedOption != null) {
-            val range = ChartDataCalculator.buildRange(
+        val range = selectedOption?.let {
+            ChartDataCalculator.buildRange(
                 period = period,
-                startMillis = selectedOption.startInclusive,
-                endMillis = selectedOption.endInclusive,
+                startMillis = it.startInclusive,
+                endMillis = it.endInclusive,
                 stringProvider = stringProvider
             )
+        }
+
+        val summary = if (range != null) {
             val rangeTransactions = filtered.filter { it.date in range.start..range.end }
             ChartDataCalculator.summarize(
                 transactions = rangeTransactions,
@@ -105,6 +108,15 @@ class ChartViewModel @Inject constructor(
             )
         }
 
+        val moodEntries = if (range != null) {
+            ChartDataCalculator.buildMoodEntries(
+                transactions = cachedTransactions,
+                range = range
+            )
+        } else {
+            emptyList()
+        }
+
         _uiState.value = _uiState.value.copy(
             rangeTabs = rangeTabs,
             selectedRangeOption = selectedOption,
@@ -112,6 +124,7 @@ class ChartViewModel @Inject constructor(
             categoryRanks = summary.categoryRanks,
             totalAmount = summary.total,
             averageAmount = summary.average,
+            moodEntries = moodEntries,
             isLoading = false
         )
     }

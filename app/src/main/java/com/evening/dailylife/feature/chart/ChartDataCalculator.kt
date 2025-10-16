@@ -100,6 +100,49 @@ internal object ChartDataCalculator {
         )
     }
 
+    fun buildMoodEntries(
+        transactions: List<TransactionEntity>,
+        range: Range
+    ): List<MoodChartEntry> {
+        if (range.buckets.isEmpty()) return emptyList()
+
+        val moodTransactions = transactions.filter { entity ->
+            entity.mood != null && entity.date in range.start..range.end
+        }
+
+        if (moodTransactions.isEmpty()) {
+            return range.buckets.map { bucket ->
+                MoodChartEntry(label = bucket.label, value = null)
+            }
+        }
+
+        val bucketMoodValues = range.buckets.associate { bucket ->
+            bucket.start to mutableListOf<Int>()
+        }
+
+        moodTransactions.forEach { entity ->
+            val bucket = range.buckets.firstOrNull { bucket ->
+                entity.date in bucket.start..bucket.end
+            }
+            if (bucket != null) {
+                bucketMoodValues[bucket.start]?.add(entity.mood!!)
+            }
+        }
+
+        return range.buckets.map { bucket ->
+            val moods = bucketMoodValues[bucket.start].orEmpty()
+            val average = if (moods.isEmpty()) {
+                null
+            } else {
+                moods.sum().toFloat() / moods.size
+            }
+            MoodChartEntry(
+                label = bucket.label,
+                value = average
+            )
+        }
+    }
+
     private fun buildCategoryRanks(
         transactions: List<TransactionEntity>,
         type: ChartType,

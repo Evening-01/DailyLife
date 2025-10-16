@@ -51,6 +51,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.evening.dailylife.R
 import com.evening.dailylife.core.designsystem.component.BarChart
 import com.evening.dailylife.core.designsystem.component.CategoryRankingSection
+import com.evening.dailylife.core.designsystem.component.MoodLineChart
 import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
@@ -79,6 +80,7 @@ fun ChartScreen(
     val formattedAverage = remember(uiState.averageAmount) {
         numberFormatter.format(uiState.averageAmount)
     }
+    val moodValueFormatter = remember { DecimalFormat("0.0") }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -299,6 +301,22 @@ fun ChartScreen(
                         numberFormatter = numberFormatter,
                         animationKey = barAnimationTrigger
                     )
+                }
+
+                item {
+                    RoundedColumn(modifier = Modifier.fillMaxWidth()) {
+                        ItemTitle(text = stringResource(id = R.string.chart_mood_trend_title))
+                        MoodLineChart(
+                            entries = uiState.moodEntries,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                            valueFormatter = { value ->
+                                moodValueFormatter.format(value.toDouble())
+                            },
+                            animationKey = barAnimationTrigger
+                        )
+                    }
                 }
             }
         }

@@ -9,5 +9,6 @@ data class ChartUiState(
     val categoryRanks: List<ChartCategoryRank> = emptyList(),
     val totalAmount: Double = 0.0,
     val averageAmount: Double = 0.0,
+    val moodEntries: List<MoodChartEntry> = emptyList(),
     val isLoading: Boolean = true
 )

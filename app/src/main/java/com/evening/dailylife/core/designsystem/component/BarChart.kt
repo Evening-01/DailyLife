@@ -205,7 +205,7 @@ fun BarChart(
             }
         }
 
-        // 虚线路径样式 & 柱状动画
+        // 虚线路径样式 和 柱状动画
         val dashEffect = remember { PathEffect.dashPathEffect(floatArrayOf(12f, 12f)) }
         val animationProgress = remember { Animatable(0f) }
 

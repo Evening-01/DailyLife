@@ -41,6 +41,7 @@
     <string name="chart_overview_title">趋势概览</string>
     <string name="chart_rank_title_expense">支出排行榜</string>
     <string name="chart_rank_title_income">收入排行榜</string>
+    <string name="chart_mood_trend_title">心情趋势</string>
     <string name="chart_rank_empty">暂无可排名的分类</string>
     <string name="chart_rank_amount">金额：%1$s</string>
 
