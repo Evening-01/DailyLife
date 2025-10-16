@@ -296,7 +296,7 @@ fun ChartScreen(
                             entries = uiState.moodEntries,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
                             animationKey = barAnimationTrigger
                         )
                     }

@@ -20,7 +20,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -35,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.evening.dailylife.R
 import com.evening.dailylife.feature.chart.ChartDataCalculator
 import com.evening.dailylife.feature.chart.MoodChartEntry
+import java.util.Locale
 import kotlin.math.abs
 
 @Composable
@@ -48,6 +51,11 @@ fun MoodLineChart(
     gridColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f),
     axisColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f),
     xLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    yLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    yLabelBgColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+    yLabelFormatter: (Float) -> String = { value ->
+        if (value % 1f == 0f) value.toInt().toString() else String.format(Locale.CHINA, "%.1f", value)
+    },
     animationSpec: AnimationSpec<Float> = tween(durationMillis = 600, easing = FastOutSlowInEasing),
     animationKey: Any? = null,
 ) {
@@ -117,7 +125,12 @@ fun MoodLineChart(
             val lineStrokePx: Float,
             val gridStrokePx: Float,
             val axisStrokePx: Float,
-            val spacingPx: Float
+            val spacingPx: Float,
+            val yLabelTextSizePx: Float,
+            val yLabelPadHPx: Float,
+            val yLabelPadVPx: Float,
+            val yLabelCornerPx: Float,
+            val yLabelInsideGapPx: Float
         )
 
         val px = remember(density, usedSpacing) {
@@ -133,7 +146,12 @@ fun MoodLineChart(
                     lineStrokePx = 2.dp.toPx(),
                     gridStrokePx = 0.5.dp.toPx(),
                     axisStrokePx = 1.dp.toPx(),
-                    spacingPx = usedSpacing.toPx()
+                    spacingPx = usedSpacing.toPx(),
+                    yLabelTextSizePx = 10.sp.toPx(),
+                    yLabelPadHPx = 4.dp.toPx(),
+                    yLabelPadVPx = 2.dp.toPx(),
+                    yLabelCornerPx = 6.dp.toPx(),
+                    yLabelInsideGapPx = 4.dp.toPx()
                 )
             }
         }
@@ -145,6 +163,19 @@ fun MoodLineChart(
                 color = xLabelColor.toArgb()
                 textSize = px.xLabelTextSizePx
             }
+        }
+
+        val yLabelPaint = remember(yLabelColor, px.yLabelTextSizePx) {
+            Paint().apply {
+                isAntiAlias = true
+                textAlign = Paint.Align.LEFT
+                color = yLabelColor.toArgb()
+                textSize = px.yLabelTextSizePx
+            }
+        }
+        val yLabelFontMetrics = remember(yLabelPaint) { yLabelPaint.fontMetrics }
+        val yLabelTextHeight = remember(yLabelFontMetrics) {
+            yLabelFontMetrics.descent - yLabelFontMetrics.ascent
         }
 
         val chartModifier = if (shouldScroll) {
@@ -259,6 +290,12 @@ fun MoodLineChart(
                 )
             }
 
+            val yAxisLabels = (0..steps).map { step ->
+                val fraction = step / steps.toFloat()
+                val value = yMax - (yMax - yMin) * fraction
+                yLabelFormatter(value)
+            }
+
             drawIntoCanvas { canvas ->
                 entries.forEachIndexed { index, entry ->
                     val x = if (pointCount <= 1) {
@@ -271,6 +308,34 @@ fun MoodLineChart(
                         x,
                         chartBottom + px.xLabelBaselineOffsetPx,
                         xLabelPaint
+                    )
+                }
+            }
+
+            for (i in 0..steps) {
+                val label = yAxisLabels[i]
+                val fraction = i / steps.toFloat()
+                val y = chartTop + chartHeightPx * fraction
+                val textWidth = yLabelPaint.measureText(label)
+                val bgWidth = textWidth + 2 * px.yLabelPadHPx
+                val bgHeight = yLabelTextHeight + 2 * px.yLabelPadVPx
+                val bgLeft = chartLeft + px.yLabelInsideGapPx
+                val bgTop = (y - bgHeight / 2f).coerceIn(chartTop, chartBottom - bgHeight)
+
+                drawRoundRect(
+                    color = yLabelBgColor,
+                    topLeft = Offset(bgLeft, bgTop),
+                    size = Size(bgWidth, bgHeight),
+                    cornerRadius = CornerRadius(px.yLabelCornerPx, px.yLabelCornerPx)
+                )
+
+                val baselineY = bgTop + px.yLabelPadVPx - yLabelFontMetrics.ascent
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawText(
+                        label,
+                        bgLeft + px.yLabelPadHPx,
+                        baselineY,
+                        yLabelPaint
                     )
                 }
             }
