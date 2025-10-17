@@ -37,7 +37,6 @@ import com.evening.dailylife.feature.chart.ChartType
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
 import com.moriafly.salt.ui.UnstableSaltApi
-import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -46,7 +45,7 @@ import java.util.Locale
 internal fun CategoryRankingSection(
     ranks: List<ChartCategoryRank>,
     type: ChartType,
-    numberFormatter: DecimalFormat,
+    amountFormatter: (Double) -> String,
     animationKey: Any?,
     modifier: Modifier = Modifier
 ) {
@@ -76,7 +75,7 @@ internal fun CategoryRankingSection(
             ranks.forEachIndexed { index, rank ->
                 CategoryRankingItem(
                     rank = rank,
-                    numberFormatter = numberFormatter,
+                    amountFormatter = amountFormatter,
                     percentFormatter = percentFormatter,
                     animationKey = animationKey,
                 )
@@ -95,7 +94,7 @@ internal fun CategoryRankingSection(
 @Composable
 private fun CategoryRankingItem(
     rank: ChartCategoryRank,
-    numberFormatter: DecimalFormat,
+    amountFormatter: (Double) -> String,
     percentFormatter: NumberFormat,
     animationKey: Any?
 ) {
@@ -153,7 +152,7 @@ private fun CategoryRankingItem(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
-                    text = numberFormatter.format(rank.amount),
+                    text = amountFormatter(rank.amount),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

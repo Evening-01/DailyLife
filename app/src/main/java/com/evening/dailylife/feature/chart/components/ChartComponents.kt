@@ -1,6 +1,5 @@
 package com.evening.dailylife.feature.chart.components
 
-import android.R.attr.value
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -158,7 +157,7 @@ fun ChartOverviewSection(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 16.dp),
                 averageValue = averageValue.toFloat(),
-                valueFormatter = { valueFormatter(value.toDouble()) },
+                valueFormatter = { value -> valueFormatter(value.toDouble()) },
                 animationKey = animationKey
             )
         }
