@@ -31,9 +31,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.R
+import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.data.preferences.ThemeMode
 import com.evening.dailylife.core.designsystem.component.ItemPopup
-import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
 import com.moriafly.salt.ui.ItemSwitcher
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn

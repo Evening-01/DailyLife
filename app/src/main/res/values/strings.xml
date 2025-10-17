@@ -103,6 +103,7 @@
     <string name="editor_remark_length_warning">备注最多只能输入%1$d个字</string>
     <string name="editor_remark_hint_optional">备注(可选)</string>
     <string name="editor_mood_select">选择心情</string>
+    <string name="editor_action_backspace">删除一位</string>
     <string name="editor_action_done">完成</string>
     <string name="editor_error_invalid_amount">请输入有效的金额</string>
     <string name="editor_error_select_category">请选择一个分类</string>

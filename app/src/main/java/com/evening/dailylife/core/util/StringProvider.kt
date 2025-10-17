@@ -7,7 +7,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Lightweight helper for retrieving localized strings outside of @Composable scope.
+ * 提供在非 @Composable 环境下获取字符串资源的能力。
  */
 @Singleton
 class StringProvider @Inject constructor(

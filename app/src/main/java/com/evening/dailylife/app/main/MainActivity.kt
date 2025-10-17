@@ -13,7 +13,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.evening.dailylife.R
 import com.evening.dailylife.core.data.preferences.PreferencesKeys
 import com.evening.dailylife.core.data.preferences.ThemeMode
-import com.evening.dailylife.core.designsystem.theme.DailyTheme
+import com.evening.dailylife.app.ui.theme.DailyTheme
 import com.moriafly.salt.ui.UnstableSaltApi
 import dagger.hilt.android.AndroidEntryPoint
 import io.fastkv.FastKV

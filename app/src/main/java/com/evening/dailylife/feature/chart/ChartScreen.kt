@@ -18,15 +18,9 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SecondaryScrollableTabRow
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -48,13 +42,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.evening.dailylife.R
-import com.evening.dailylife.core.designsystem.component.BarChart
+import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.designsystem.component.CategoryRankingSection
 import com.evening.dailylife.core.designsystem.component.MoodLineChart
-import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
 import java.text.DecimalFormat
+import com.evening.dailylife.feature.chart.components.ChartOverviewSection
+import com.evening.dailylife.feature.chart.components.ChartPeriodSelector
+import com.evening.dailylife.feature.chart.components.ChartRangeTabRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -160,88 +156,24 @@ fun ChartScreen(
                 modifier = Modifier.fillMaxWidth(),
                 color = headerContainerColor
             ) {
-                SingleChoiceSegmentedButtonRow(
+                ChartPeriodSelector(
+                    selectedPeriod = selectedPeriod,
+                    onPeriodSelected = viewModel::onPeriodSelected,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    val periods = ChartPeriod.entries.toTypedArray()
-                    periods.forEachIndexed { index, period ->
-                        SegmentedButton(
-                            selected = selectedPeriod == period,
-                            onClick = { viewModel.onPeriodSelected(period) },
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = periods.size
-                            ),
-                            colors = SegmentedButtonDefaults.colors(
-                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f),
-                                inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                activeBorderColor = Color.Black,
-                                inactiveBorderColor = Color.Black
-                            ),
-                            icon = {},
-                            label = {
-                                Text(
-                                    text = stringResource(id = period.labelRes),
-                                    style = MaterialTheme.typography.labelLarge
-                                )
-                            }
-                        )
-                    }
-                }
+                )
             }
 
             if (rangeTabs.isNotEmpty()) {
-                val selectedTabIndex = rangeTabs.indexOfFirst { option ->
-                    option.id == uiState.selectedRangeOption?.id
-                }.takeIf { it >= 0 } ?: 0
-
-                SecondaryScrollableTabRow(
-                    selectedTabIndex = selectedTabIndex,
+                ChartRangeTabRow(
+                    rangeTabs = rangeTabs,
+                    selectedOptionId = uiState.selectedRangeOption?.id,
+                    onRangeSelected = viewModel::onRangeOptionSelected,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    edgePadding = 0.dp,
-                    containerColor = Color.Transparent,
-                    divider = {},
-                    indicator = {
-                        TabRowDefaults.SecondaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(selectedTabIndex),
-                            color = MaterialTheme.colorScheme.primary,
-                            height = 2.dp
-                        )
-                    }
-                ) {
-                    rangeTabs.forEachIndexed { index, option ->
-                        val interactionSource = remember { MutableInteractionSource() }
-                        val isSelected = index == selectedTabIndex
-                        Box(
-                            modifier = Modifier
-                                .padding(horizontal = 6.dp)
-                                .heightIn(min = 30.dp)
-                                .clickable(
-                                    interactionSource = interactionSource,
-                                    indication = null
-                                ) { viewModel.onRangeOptionSelected(option.id) }
-                                .padding(horizontal = 12.dp, vertical = 6.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = option.label,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = if (isSelected) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
-                            )
-                        }
-                    }
-                }
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
             }
 
             LazyColumn(
@@ -251,42 +183,17 @@ fun ChartScreen(
 
                 ) {
                 item {
-                    RoundedColumn(modifier = Modifier.fillMaxWidth()) {
-                        ItemTitle(text = stringResource(id = R.string.chart_overview_title))
-
-                        val totalLine = stringResource(id = R.string.chart_total_label, totalLabel) + "：" + formattedTotal
-                        Text(
-                            text = totalLine,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                        )
-
-                        Text(
-                            text = stringResource(id = R.string.chart_average_label, formattedAverage),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                        )
-
-                        if (uiState.isLoading) {
-                            LinearProgressIndicator(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 16.dp)
-                            )
-                        } else {
-                            BarChart(
-                                entries = chartEntries,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                                averageValue = uiState.averageAmount.toFloat(),
-                                valueFormatter = { value -> numberFormatter.format(value.toDouble()) },
-                                animationKey = barAnimationTrigger
-                            )
-                        }
-                    }
+                    ChartOverviewSection(
+                        title = stringResource(id = R.string.chart_overview_title),
+                        totalDescription = stringResource(id = R.string.chart_total_label, totalLabel) + "：" + formattedTotal,
+                        averageDescription = stringResource(id = R.string.chart_average_label, formattedAverage),
+                        isLoading = uiState.isLoading,
+                        entries = chartEntries,
+                        averageValue = uiState.averageAmount,
+                        valueFormatter = { amount -> numberFormatter.format(amount) },
+                        animationKey = barAnimationTrigger,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
 
                 item {

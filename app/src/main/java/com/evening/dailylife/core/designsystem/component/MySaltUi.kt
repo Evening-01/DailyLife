@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.evening.dailylife.R
-import com.evening.dailylife.core.util.Tools
+import com.evening.dailylife.core.util.PopupPositionCalculator
 import com.moriafly.salt.ui.SaltTheme
 import com.moriafly.salt.ui.Text
 import com.moriafly.salt.ui.UnstableSaltApi
@@ -146,7 +146,7 @@ fun ItemPopup(
                 state.dismiss()
             },
             offset = DpOffset(
-                Tools.calculatePopupOffset(
+                PopupPositionCalculator.calculateOffset(
                     density = context.resources.displayMetrics.density,
                     clickOffsetX = clickOffsetX.floatValue,
                     popupWidth = popupWidth,

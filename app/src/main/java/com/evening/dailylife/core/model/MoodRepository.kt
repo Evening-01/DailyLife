@@ -12,6 +12,11 @@ import androidx.compose.material.icons.outlined.SentimentVerySatisfied
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.evening.dailylife.R
+import com.evening.dailylife.app.ui.theme.MoodBadColor
+import com.evening.dailylife.app.ui.theme.MoodGoodColor
+import com.evening.dailylife.app.ui.theme.MoodHappyColor
+import com.evening.dailylife.app.ui.theme.MoodNeutralColor
+import com.evening.dailylife.app.ui.theme.MoodTerribleColor
 import com.evening.dailylife.core.util.StringProvider
 
 data class Mood(
@@ -23,11 +28,11 @@ data class Mood(
 
 object MoodRepository {
     val moods = listOf(
-        Mood(R.string.mood_happy, Icons.Outlined.SentimentVerySatisfied, Color(0xFF4CAF50), 2),
-        Mood(R.string.mood_good, Icons.Outlined.SentimentSatisfied, Color(0xFF8BC34A), 1),
-        Mood(R.string.mood_normal, Icons.Outlined.SentimentNeutral, Color(0xFFFFC107), 0),
-        Mood(R.string.mood_bad, Icons.Outlined.SentimentDissatisfied, Color(0xFFFF9800), -1),
-        Mood(R.string.mood_terrible, Icons.Outlined.SentimentVeryDissatisfied, Color(0xFFF44336), -2),
+        Mood(R.string.mood_happy, Icons.Outlined.SentimentVerySatisfied, MoodHappyColor, 2),
+        Mood(R.string.mood_good, Icons.Outlined.SentimentSatisfied, MoodGoodColor, 1),
+        Mood(R.string.mood_normal, Icons.Outlined.SentimentNeutral, MoodNeutralColor, 0),
+        Mood(R.string.mood_bad, Icons.Outlined.SentimentDissatisfied, MoodBadColor, -1),
+        Mood(R.string.mood_terrible, Icons.Outlined.SentimentVeryDissatisfied, MoodTerribleColor, -2),
     )
 
     private fun findMoodByName(context: Context, moodName: String): Mood? =

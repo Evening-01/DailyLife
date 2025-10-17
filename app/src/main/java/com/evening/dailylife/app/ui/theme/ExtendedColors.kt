@@ -1,12 +1,11 @@
-package com.evening.dailylife.core.designsystem.theme
+package com.evening.dailylife.app.ui.theme
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 /**
- * 定义了 MaterialTheme.colorScheme 未包含的扩展颜色。
- * 这有助于将所有应用的颜色集中管理，方便主题切换和维护。
+ * MaterialTheme.colorScheme 未覆盖的扩展色值统一在此声明。
  */
 @Immutable
 data class ExtendedColorScheme(
@@ -16,8 +15,7 @@ data class ExtendedColorScheme(
 )
 
 /**
- * 通过 CompositionLocalProvider 提供扩展颜色方案。
- * 默认值设为 Unspecified，以在未提供时尽早暴露问题。
+ * 通过 CompositionLocal 提供扩展色值，未显式提供时使用 Unspecified 暴露错误。
  */
 val LocalExtendedColorScheme = staticCompositionLocalOf {
     ExtendedColorScheme(

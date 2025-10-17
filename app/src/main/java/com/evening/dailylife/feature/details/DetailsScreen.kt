@@ -8,28 +8,19 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
@@ -51,26 +42,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.R
-import com.evening.dailylife.core.data.local.entity.TransactionEntity
+import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomSheet
 import com.evening.dailylife.core.designsystem.component.CalendarPickerType
-import com.evening.dailylife.core.designsystem.theme.LocalExtendedColorScheme
-import com.evening.dailylife.core.designsystem.theme.SuccessGreen
-import com.evening.dailylife.core.model.MoodRepository
-import com.evening.dailylife.core.model.TransactionCategoryRepository
+import com.evening.dailylife.feature.details.components.DailyHeader
+import com.evening.dailylife.feature.details.components.DetailsEmptyState
+import com.evening.dailylife.feature.details.components.DetailsSummaryHeader
+import com.evening.dailylife.feature.details.components.TransactionListItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -152,7 +138,7 @@ fun DetailsScreen(
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            SummaryHeader(
+            DetailsSummaryHeader(
                 year = yearFormat.format(selectedDate.time),
                 month = monthFormat.format(selectedDate.time),
                 income = "%.2f".format(uiState.totalIncome),
@@ -165,7 +151,7 @@ fun DetailsScreen(
             if (uiState.isLoading) {
                 // 你可以在这里添加一个加载指示器
             } else if (uiState.transactions.isEmpty()) {
-                EmptyState()
+                DetailsEmptyState()
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
@@ -271,7 +257,7 @@ fun DetailsScreen(
                                                 )
                                             }
                                     ) {
-                                        TransactionItem(
+                                    TransactionListItem(
                                             transaction = transaction,
                                             onClick = {
                                                 if (offsetX.value == 0f) {
@@ -298,285 +284,3 @@ fun DetailsScreen(
 }
 
 
-@Composable
-fun DailyHeader(date: String, income: Double, expense: Double, mood: String) {
-    val context = LocalContext.current
-    val todayLabel = stringResource(R.string.label_today)
-    val formattedDate = if (date.startsWith(todayLabel)) {
-        todayLabel
-    } else {
-        val parts = date.split(" ")
-        val dateParts = parts[0].split("/")
-        stringResource(
-            R.string.details_month_day_with_weekday,
-            dateParts[0],
-            dateParts[1],
-            parts.getOrNull(1).orEmpty()
-        )
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = formattedDate,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.weight(1f))
-
-        if (mood.isNotBlank()) {
-            Icon(
-                imageVector = MoodRepository.getIcon(context, mood),
-                contentDescription = stringResource(R.string.details_mood_content_description),
-                modifier = Modifier.size(20.dp),
-                tint = MoodRepository.getColor(context, mood)
-            )
-        }
-        Row {
-            if (income > 0) {
-                Text(
-                    text = stringResource(
-                        R.string.details_income_amount,
-                        "%.2f".format(income)
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-            if (expense < 0) {
-                Text(
-                    text = stringResource(
-                        R.string.details_expense_amount,
-                        "%.2f".format(abs(expense))
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun TransactionItem(transaction: TransactionEntity, onClick: () -> Unit) {
-    val context = LocalContext.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = TransactionCategoryRepository.getIcon(context, transaction.category),
-                contentDescription = transaction.category,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Box(modifier = Modifier.weight(1f)) {
-            if (transaction.description.isNotBlank()) {
-                Column {
-                    Text(
-                        text = transaction.category,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = transaction.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                Text(
-                    text = transaction.category,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
-
-        Text(
-            text = "%.2f".format(transaction.amount),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = if (transaction.amount > 0) SuccessGreen else MaterialTheme.colorScheme.error
-        )
-    }
-}
-@Composable
-fun EmptyState() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
-                contentDescription = stringResource(R.string.details_empty_state_content_description),
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.details_empty_state_message),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
-
-
-@Composable
-fun SummaryHeader(
-    year: String,
-    month: String,
-    income: String,
-    expense: String,
-    onDateClick: () -> Unit,
-    containerColor: Color,
-    contentColor: Color
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(containerColor)
-            .padding(top = 4.dp, bottom = 16.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            DatePickerModule(
-                year = year,
-                month = month,
-                onClick = onDateClick,
-                contentColor = contentColor,
-                modifier = Modifier.weight(1f)
-            )
-            VerticalDivider(contentColor)
-            IncomeExpenseGroup(
-                income = income,
-                expense = expense,
-                contentColor = contentColor,
-                modifier = Modifier.weight(3f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun DatePickerModule(
-    year: String,
-    month: String,
-    onClick: () -> Unit,
-    contentColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        horizontalAlignment = Alignment.Start,
-        modifier = modifier
-            .clip(MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick)
-            .padding(vertical = 4.dp, horizontal = 16.dp)
-    ) {
-        Text(
-            text = year,
-            color = contentColor.copy(alpha = 0.8f)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = month,
-                color = contentColor,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Icon(
-                imageVector = Icons.Default.ArrowDropDown,
-                contentDescription = stringResource(R.string.details_select_month),
-                tint = contentColor
-            )
-        }
-    }
-}
-
-@Composable
-private fun IncomeExpenseGroup(
-    income: String,
-    expense: String,
-    contentColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        SummaryItem(
-            title = stringResource(R.string.chart_type_income),
-            amount = income,
-            contentColor = contentColor
-        )
-        SummaryItem(
-            title = stringResource(R.string.chart_type_expense),
-            amount = expense,
-            contentColor = contentColor
-        )
-    }
-}
-
-@Composable
-private fun VerticalDivider(color: Color) {
-    Box(
-        modifier = Modifier
-            .fillMaxHeight(0.6f)
-            .width(1.dp)
-            .background(color.copy(alpha = 0.3f))
-    )
-}
-
-@Composable
-fun SummaryItem(title: String, amount: String, contentColor: Color) {
-    Column(
-        horizontalAlignment = Alignment.Start
-    ) {
-        Text(
-            text = title,
-            color = contentColor.copy(alpha = 0.8f)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = amount,
-            color = contentColor,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-}

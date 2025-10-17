@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.evening.dailylife.R
+import com.evening.dailylife.app.ui.theme.SuccessGreen
 import java.text.DecimalFormat
 
 @Composable
@@ -61,7 +62,7 @@ fun TypeProfileSection(
     )
 
     val expenseColor = MaterialTheme.colorScheme.error
-    val incomeColor = IncomeGreen
+    val incomeColor = SuccessGreen
     val neutralBalanceColor = MaterialTheme.colorScheme.onSurface
 
     Column(modifier = modifier) {
@@ -193,5 +194,3 @@ private fun TypeProfileStatCard(
         }
     }
 }
-
-private val IncomeGreen = Color(0xFF2E7D32)

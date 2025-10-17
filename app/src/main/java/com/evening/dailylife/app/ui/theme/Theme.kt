@@ -1,4 +1,4 @@
-package com.evening.dailylife.core.designsystem.theme
+package com.evening.dailylife.app.ui.theme
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -27,21 +27,18 @@ import com.moriafly.salt.ui.saltColorsByColorScheme
 import com.moriafly.salt.ui.saltConfigs
 import com.moriafly.salt.ui.saltTextStyles
 
-// 亮色扩展配色（用于头部等自定义区域）
 private val lightExtendedColorScheme = ExtendedColorScheme(
     headerContainer = SunnyGold,
     onHeaderContainer = OnSunnyGold,
     success = SuccessGreen
 )
 
-// 暗色扩展配色
 private val darkExtendedColorScheme = ExtendedColorScheme(
     headerContainer = WarmGinger,
     onHeaderContainer = OnWarmGinger,
     success = SuccessGreen
 )
 
-// 亮色主题
 private val LightColorScheme = lightColorScheme(
     primary = SunnyGold,
     onPrimary = OnSunnyGold,
@@ -80,7 +77,6 @@ private val LightColorScheme = lightColorScheme(
     scrim = Scrim,
 )
 
-// 暗色主题
 private val DarkColorScheme = darkColorScheme(
     primary = WarmGinger,
     onPrimary = OnWarmGinger,
