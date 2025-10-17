@@ -27,20 +27,19 @@ import com.moriafly.salt.ui.saltColorsByColorScheme
 import com.moriafly.salt.ui.saltConfigs
 import com.moriafly.salt.ui.saltTextStyles
 
-// 亮色主题的扩展颜色
+// 亮色扩展配色（用于头部等自定义区域）
 private val lightExtendedColorScheme = ExtendedColorScheme(
     headerContainer = SunnyGold,
     onHeaderContainer = OnSunnyGold,
     success = SuccessGreen
 )
 
-// 暗色主题的扩展颜色
+// 暗色扩展配色
 private val darkExtendedColorScheme = ExtendedColorScheme(
     headerContainer = WarmGinger,
     onHeaderContainer = OnWarmGinger,
-    success = SuccessGreen // 在暗色主题下可以考虑使用一个更柔和的绿色
+    success = SuccessGreen
 )
-
 
 // 亮色主题
 private val LightColorScheme = lightColorScheme(
@@ -63,7 +62,7 @@ private val LightColorScheme = lightColorScheme(
     background = ParchmentWhite,
     onBackground = TextPrimaryLight,
 
-    surface = LightCream,
+    surface = ParchmentWhite,
     onSurface = TextPrimaryLight,
     surfaceVariant = SurfaceVariantLight,
     onSurfaceVariant = OnSurfaceVariantLight,
@@ -102,7 +101,7 @@ private val DarkColorScheme = darkColorScheme(
     background = DeepSlate,
     onBackground = TextPrimaryDark,
 
-    surface = CharcoalGray,
+    surface = DeepSlate,
     onSurface = TextPrimaryDark,
     surfaceVariant = SurfaceVariantDark,
     onSurfaceVariant = OnSurfaceVariantDark,
@@ -119,7 +118,6 @@ private val DarkColorScheme = darkColorScheme(
     outlineVariant = OutlineVariantDark,
     scrim = Scrim,
 )
-
 
 @SuppressLint("NewApi")
 @OptIn(UnstableSaltApi::class)
@@ -151,7 +149,7 @@ fun DailyTheme(
                 ExtendedColorScheme(
                     headerContainer = materialColorScheme.primaryContainer,
                     onHeaderContainer = materialColorScheme.onPrimaryContainer,
-                    success = SuccessGreen // 动态颜色时也保持一致
+                    success = SuccessGreen
                 )
             } else {
                 ExtendedColorScheme(
@@ -164,7 +162,6 @@ fun DailyTheme(
             if (darkTheme) darkExtendedColorScheme else lightExtendedColorScheme
         }
     }
-
 
     val view = LocalView.current
     if (!view.isInEditMode) {
