@@ -26,6 +26,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,7 +58,7 @@ fun ChartScreen(
     val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
 
     var typeMenuExpanded by remember { mutableStateOf(false) }
-    var barAnimationTrigger by remember { mutableStateOf(0) }
+    var barAnimationTrigger by remember { mutableIntStateOf(0) }
 
     val uiState by viewModel.uiState.collectAsState()
     val chartEntries = uiState.entries

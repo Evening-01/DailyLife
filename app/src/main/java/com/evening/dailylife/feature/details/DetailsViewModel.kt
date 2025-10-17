@@ -9,14 +9,18 @@ import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.util.StringProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,6 +49,9 @@ class DetailsViewModel @Inject constructor(
         viewModelScope.launch {
             repository.deleteTransaction(transaction)
             // 删除后无需手动刷新，Room 的 Flow 会自动通知更新
+            repository.pruneDeletedTransactions(
+                System.currentTimeMillis() - SOFT_DELETE_RETENTION_MILLIS
+            )
         }
     }
 
@@ -69,55 +76,58 @@ class DetailsViewModel @Inject constructor(
                 set(Calendar.MILLISECOND, 999)
             }
 
-            repository.getTransactionsByDateRange(
-                startCalendar.timeInMillis,
-                endCalendar.timeInMillis
-            )
-                .map { transactions ->
-                    val grouped = transactions.groupBy {
-                        val cal = Calendar.getInstance().apply { timeInMillis = it.date }
-                        cal.set(Calendar.HOUR_OF_DAY, 0)
-                        cal.set(Calendar.MINUTE, 0)
-                        cal.set(Calendar.SECOND, 0)
-                        cal.set(Calendar.MILLISECOND, 0)
-                        cal.timeInMillis
-                    }
+            val startMillis = startCalendar.timeInMillis
+            val endMillis = endCalendar.timeInMillis
 
-                    val dailyTransactions = grouped.entries
+            repository.getTransactionsWithDayRange(startMillis, endMillis)
+                .combine(repository.getDailySummaries(startMillis, endMillis)) { transactions, summaries ->
+                    val summaryByDay = summaries.associateBy { it.dayStartMillis }
+                    val dailyTransactions = transactions
+                        .groupBy { it.dayStartMillis }
+                        .entries
                         .sortedByDescending { it.key }
-                        .map { (dateMillis, trans) ->
-                            val dailyIncome = trans.filter { it.amount > 0 }.sumOf { it.amount }
-                            val dailyExpense = trans.filter { it.amount < 0 }.sumOf { it.amount }
-
-                            // 心情计算逻辑
-                            val transactionsWithMood = trans.filter { it.mood != null }
-                            val dailyMood = if (transactionsWithMood.isNotEmpty()) {
-                                val dailyMoodScore = transactionsWithMood.sumOf { it.mood!! }
-                                MoodRepository.getMoodByScore(dailyMoodScore)?.let { mood ->
-                                    stringProvider.getString(mood.nameRes)
-                                } ?: ""
-                            } else {
-                                ""
-                            }
+                        .map { (dayStartMillis, items) ->
+                            val summary = summaryByDay[dayStartMillis]
+                            val dailyMood = summary
+                                ?.takeIf { it.moodCount > 0 }
+                                ?.let {
+                                    MoodRepository.getMoodByScore(it.moodScoreSum)?.let { mood ->
+                                        stringProvider.getString(mood.nameRes)
+                                    }
+                                }
+                                ?: ""
 
                             DailyTransactions(
-                                date = formatDate(dateMillis),
-                                transactions = trans,
-                                dailyIncome = dailyIncome,
-                                dailyExpense = dailyExpense,
-                                dailyMood = dailyMood // 将计算出的心情传递给UI状态
+                                date = formatDate(dayStartMillis),
+                                transactions = items.map { it.transaction },
+                                dailyIncome = summary?.totalIncome ?: 0.0,
+                                dailyExpense = summary?.totalExpense ?: 0.0,
+                                dailyMood = dailyMood
                             )
                         }
 
-                    val totalIncome = transactions.filter { it.amount > 0 }.sumOf { it.amount }
-                    val totalExpense = transactions.filter { it.amount < 0 }.sumOf { it.amount }
+                    val totalIncome = summaries.sumOf { it.totalIncome }
+                    val totalExpense = summaries.sumOf { it.totalExpense }
+                    val totalMoodScore = summaries.sumOf { it.moodScoreSum }
+                    val totalMoodCount = summaries.sumOf { it.moodCount }
+                    val averageMood = if (totalMoodCount > 0) {
+                        totalMoodScore / totalMoodCount
+                    } else {
+                        null
+                    }
 
                     DetailsUiState(
                         transactions = dailyTransactions,
                         totalIncome = totalIncome,
                         totalExpense = totalExpense,
+                        averageMood = averageMood,
                         isLoading = false
                     )
+                }
+                .flowOn(Dispatchers.Default)
+                .catch { throwable ->
+                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    // Surface minimal signal while avoiding crash; upstream should handle logging.
                 }
                 .collect { newState ->
                     _uiState.value = newState
@@ -141,5 +151,10 @@ class DetailsViewModel @Inject constructor(
             )
             else -> sdf.format(calendar.time)
         }
+    }
+
+    companion object {
+        private val SOFT_DELETE_RETENTION_MILLIS =
+            TimeUnit.DAYS.toMillis(30)
     }
 }
