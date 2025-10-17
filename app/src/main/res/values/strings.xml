@@ -45,6 +45,13 @@
     <string name="chart_mood_trend_title">心情趋势</string>
     <string name="chart_rank_empty">暂无可排名的分类</string>
     <string name="chart_rank_amount">金额：%1$s</string>
+    <string name="chart_type_profile_title">支出/收入画像</string>
+    <string name="chart_type_profile_expense">支出</string>
+    <string name="chart_type_profile_income">收入</string>
+    <string name="chart_type_profile_transactions">笔数 %1$d</string>
+    <string name="chart_type_profile_balance">结余：%1$s</string>
+    <string name="chart_type_profile_ratio">支出占比 %1$s · 收入占比 %2$s</string>
+    <string name="chart_type_profile_empty">该时间段暂无记录</string>
 
     <!-- Preferences -->
     <string name="user_interface">用户界面</string>

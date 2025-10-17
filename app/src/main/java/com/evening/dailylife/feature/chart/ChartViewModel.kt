@@ -91,8 +91,13 @@ class ChartViewModel @Inject constructor(
             )
         }
 
+        val rangeTransactions = if (range != null) {
+            filtered.filter { it.date in range.start..range.end }
+        } else {
+            emptyList()
+        }
+
         val summary = if (range != null) {
-            val rangeTransactions = filtered.filter { it.date in range.start..range.end }
             ChartDataCalculator.summarize(
                 transactions = rangeTransactions,
                 type = type,
