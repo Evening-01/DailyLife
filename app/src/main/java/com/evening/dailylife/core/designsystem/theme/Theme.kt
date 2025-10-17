@@ -36,8 +36,8 @@ private val lightExtendedColorScheme = ExtendedColorScheme(
 
 // 暗色主题的扩展颜色
 private val darkExtendedColorScheme = ExtendedColorScheme(
-    headerContainer = WarmGingerContainer,
-    onHeaderContainer = OnWarmGingerContainer,
+    headerContainer = WarmGinger,
+    onHeaderContainer = OnWarmGinger,
     success = SuccessGreen // 在暗色主题下可以考虑使用一个更柔和的绿色
 )
 
@@ -52,8 +52,8 @@ private val LightColorScheme = lightColorScheme(
 
     secondary = SoftCitrine,
     onSecondary = OnSoftCitrine,
-    secondaryContainer = SunnyGoldContainer,
-    onSecondaryContainer = OnSunnyGoldContainer,
+    secondaryContainer = SoftCitrineContainer,
+    onSecondaryContainer = OnSoftCitrineContainer,
 
     tertiary = MutedSage,
     onTertiary = OnMutedSage,
@@ -63,10 +63,10 @@ private val LightColorScheme = lightColorScheme(
     background = ParchmentWhite,
     onBackground = TextPrimaryLight,
 
-    surface = ParchmentWhite,
+    surface = LightCream,
     onSurface = TextPrimaryLight,
-    surfaceVariant = ParchmentWhite,
-    onSurfaceVariant = TextSecondaryLight,
+    surfaceVariant = SurfaceVariantLight,
+    onSurfaceVariant = OnSurfaceVariantLight,
     surfaceTint = SunnyGold,
     inverseSurface = DeepSlate,
     inverseOnSurface = TextPrimaryDark,
@@ -83,17 +83,16 @@ private val LightColorScheme = lightColorScheme(
 
 // 暗色主题
 private val DarkColorScheme = darkColorScheme(
-    primary = SunnyGoldContainer,
-    onPrimary = OnSunnyGoldContainer,
-
+    primary = WarmGinger,
+    onPrimary = OnWarmGinger,
     primaryContainer = WarmGingerContainer,
     onPrimaryContainer = OnWarmGingerContainer,
     inversePrimary = SunnyGold,
 
     secondary = PaleMoon,
     onSecondary = OnPaleMoon,
-    secondaryContainer = WarmGingerContainer,
-    onSecondaryContainer = OnWarmGingerContainer,
+    secondaryContainer = PaleMoonContainer,
+    onSecondaryContainer = OnPaleMoonContainer,
 
     tertiary = SageNight,
     onTertiary = OnSageNight,
@@ -103,10 +102,10 @@ private val DarkColorScheme = darkColorScheme(
     background = DeepSlate,
     onBackground = TextPrimaryDark,
 
-    surface = DeepSlate,
+    surface = CharcoalGray,
     onSurface = TextPrimaryDark,
-    surfaceVariant = DeepSlate,
-    onSurfaceVariant = TextSecondaryDark,
+    surfaceVariant = SurfaceVariantDark,
+    onSurfaceVariant = OnSurfaceVariantDark,
     surfaceTint = WarmGinger,
     inverseSurface = ParchmentWhite,
     inverseOnSurface = TextPrimaryLight,
