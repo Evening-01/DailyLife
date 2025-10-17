@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.Calendar
+import java.util.Locale
 
 @HiltViewModel
 class DiscoverViewModel @Inject constructor(
@@ -24,9 +26,24 @@ class DiscoverViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             transactionRepository.getAllTransactions().collectLatest { transactions ->
+                val now = Calendar.getInstance(Locale.getDefault())
+                val monthStart = (now.clone() as Calendar).apply {
+                    set(Calendar.DAY_OF_MONTH, 1)
+                    setToStartOfDay()
+                }
+                val monthEnd = (monthStart.clone() as Calendar).apply {
+                    set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+                    setToEndOfDay()
+                }
+                val monthTransactions = transactions.filter { entity ->
+                    entity.date in monthStart.timeInMillis..monthEnd.timeInMillis
+                }
+
                 _uiState.value = DiscoverUiState(
-                    typeProfile = buildTypeProfile(transactions),
-                    isLoading = false
+                    typeProfile = buildTypeProfile(monthTransactions),
+                    isLoading = false,
+                    year = monthStart.get(Calendar.YEAR),
+                    month = monthStart.get(Calendar.MONTH) + 1
                 )
             }
         }
@@ -62,4 +79,18 @@ class DiscoverViewModel @Inject constructor(
             incomeCount = incomeCount
         )
     }
+}
+
+private fun Calendar.setToStartOfDay() {
+    set(Calendar.HOUR_OF_DAY, 0)
+    set(Calendar.MINUTE, 0)
+    set(Calendar.SECOND, 0)
+    set(Calendar.MILLISECOND, 0)
+}
+
+private fun Calendar.setToEndOfDay() {
+    set(Calendar.HOUR_OF_DAY, 23)
+    set(Calendar.MINUTE, 59)
+    set(Calendar.SECOND, 59)
+    set(Calendar.MILLISECOND, 999)
 }

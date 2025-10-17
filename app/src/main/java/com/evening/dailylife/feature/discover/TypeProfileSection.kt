@@ -60,11 +60,9 @@ fun TypeProfileSection(
         numberFormatter.format(profile.net)
     )
 
-    val balanceColor = when {
-        profile.net > 0.0 -> MaterialTheme.colorScheme.primary
-        profile.net < 0.0 -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurface
-    }
+    val expenseColor = MaterialTheme.colorScheme.error
+    val incomeColor = IncomeGreen
+    val neutralBalanceColor = MaterialTheme.colorScheme.onSurface
 
     Column(modifier = modifier) {
         Row(
@@ -75,14 +73,14 @@ fun TypeProfileSection(
                 label = stringResource(id = R.string.chart_type_profile_expense),
                 amountText = expenseAmountText,
                 countText = expenseCountText,
-                color = MaterialTheme.colorScheme.error,
+                color = expenseColor,
                 modifier = Modifier.weight(1f)
             )
             TypeProfileStatCard(
                 label = stringResource(id = R.string.chart_type_profile_income),
                 amountText = incomeAmountText,
                 countText = incomeCountText,
-                color = MaterialTheme.colorScheme.primary,
+                color = incomeColor,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -91,7 +89,9 @@ fun TypeProfileSection(
 
         TypeProfileRatioBar(
             expenseRatio = profile.expenseRatio,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            expenseColor = expenseColor,
+            incomeColor = incomeColor
         )
 
         Text(
@@ -109,7 +109,11 @@ fun TypeProfileSection(
             text = balanceText,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            color = balanceColor,
+            color = when {
+                profile.net > 0.0 -> incomeColor
+                profile.net < 0.0 -> expenseColor
+                else -> neutralBalanceColor
+            },
             modifier = Modifier.padding(top = 12.dp)
         )
     }
@@ -118,7 +122,9 @@ fun TypeProfileSection(
 @Composable
 private fun TypeProfileRatioBar(
     expenseRatio: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    expenseColor: Color,
+    incomeColor: Color
 ) {
     val clampedExpenseRatio = expenseRatio.coerceIn(0f, 1f)
     val incomeRatio = 1f - clampedExpenseRatio
@@ -136,7 +142,7 @@ private fun TypeProfileRatioBar(
                 modifier = Modifier
                     .weight(clampedExpenseRatio)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.error)
+                    .background(expenseColor)
             )
         }
         if (hasIncome) {
@@ -144,7 +150,7 @@ private fun TypeProfileRatioBar(
                 modifier = Modifier
                     .weight(incomeRatio)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(incomeColor)
             )
         }
     }
@@ -187,3 +193,5 @@ private fun TypeProfileStatCard(
         }
     }
 }
+
+private val IncomeGreen = Color(0xFF2E7D32)

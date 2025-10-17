@@ -1,5 +1,7 @@
 package com.evening.dailylife.feature.discover
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -55,10 +57,38 @@ fun DiscoverScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
+            contentPadding = PaddingValues(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
                 RoundedColumn(modifier = Modifier.fillMaxWidth()) {
                     ItemTitle(text = stringResource(id = R.string.chart_type_profile_title))
+                    val year = uiState.year
+                    val month = uiState.month
+                    if (year != null && month != null) {
+                        Text(
+                            text = stringResource(
+                                id = R.string.discover_type_profile_month_label,
+                                year,
+                                month
+                            ),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                        )
+                        if (!uiState.isLoading) {
+                            Text(
+                                text = stringResource(id = R.string.discover_type_profile_subtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
                     if (uiState.isLoading) {
                         LinearProgressIndicator(
                             modifier = Modifier

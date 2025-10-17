@@ -52,6 +52,8 @@
     <string name="chart_type_profile_balance">结余：%1$s</string>
     <string name="chart_type_profile_ratio">支出占比 %1$s · 收入占比 %2$s</string>
     <string name="chart_type_profile_empty">该时间段暂无记录</string>
+    <string name="discover_type_profile_month_label">%1$d年%2$d月</string>
+    <string name="discover_type_profile_subtitle">本月记录概览</string>
 
     <!-- Preferences -->
     <string name="user_interface">用户界面</string>
