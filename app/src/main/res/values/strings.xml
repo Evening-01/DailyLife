@@ -60,7 +60,12 @@
     <string name="discover_ai_chip_insight">趋势分析</string>
     <string name="discover_ai_chip_plan">预算建议</string>
     <string name="discover_ai_chip_alert">账单提醒</string>
-    <string name="discover_ai_toast">正在开发中...</string>
+    <string name="discover_ai_toast">正在开发中…</string>
+    <string name="discover_common_tools_title">常用理财工具</string>
+    <string name="discover_common_tool_mortgage_title">房贷智算器</string>
+    <string name="discover_common_tool_fx_title">汇率换算</string>
+    <string name="discover_common_tool_check_title">支票存档</string>
+    <string name="discover_common_tool_budget_title">资产规划</string>
 
     <!-- Preferences -->
     <string name="user_interface">用户界面</string>

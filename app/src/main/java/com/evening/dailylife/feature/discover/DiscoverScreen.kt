@@ -112,6 +112,9 @@ fun DiscoverScreen(
                         .padding(horizontal = 16.dp, vertical = 2.dp)
                 )
             }
+            item {
+                DiscoverCommonToolsSection()
+            }
         }
     }
 }
