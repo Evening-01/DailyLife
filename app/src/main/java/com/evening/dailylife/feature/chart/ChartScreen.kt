@@ -187,6 +187,7 @@ fun ChartScreen(
                         totalDescription = stringResource(id = R.string.chart_total_label, totalLabel) + "：" + formattedTotal,
                         averageDescription = stringResource(id = R.string.chart_average_label, formattedAverage),
                         isLoading = uiState.isLoading,
+                        hasLoadedContent = uiState.hasLoadedContent,
                         entries = chartEntries,
                         averageValue = uiState.averageAmount,
                         valueFormatter = formatAmount,

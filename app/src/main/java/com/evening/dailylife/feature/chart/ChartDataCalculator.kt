@@ -59,38 +59,85 @@ internal object ChartDataCalculator {
         range: Range,
         topLimit: Int
     ): Summary {
-        val filtered = transactions.filter {
-            when (type) {
-                ChartType.Expense -> it.amount < 0
-                ChartType.Income -> it.amount > 0
-            }
-        }
-
-        val normalised = filtered.map { transaction ->
-            if (type == ChartType.Expense) abs(transaction.amount) else transaction.amount
-        }
-
-        val entries = range.buckets.map { bucket ->
-            val bucketTotal = filtered
-                .filter { it.date in bucket.start..bucket.end }
-                .sumOf { transaction ->
-                    if (type == ChartType.Expense) abs(transaction.amount) else transaction.amount
-                }
-
-            ChartEntry(
-                label = bucket.label,
-                value = bucketTotal.toFloat()
+        val buckets = range.buckets
+        if (buckets.isEmpty()) {
+            return Summary(
+                entries = emptyList(),
+                total = 0.0,
+                average = 0.0,
+                categoryRanks = emptyList()
             )
         }
 
-        val total = normalised.sumOf { it }
-        val average = if (range.buckets.isEmpty()) 0.0 else total / range.buckets.size
-        val categoryRanks = buildCategoryRanks(
-            transactions = filtered,
-            type = type,
-            total = total,
-            topLimit = topLimit
-        )
+        if (transactions.isEmpty()) {
+            return Summary(
+                entries = buckets.map { bucket ->
+                    ChartEntry(label = bucket.label, value = 0f)
+                },
+                total = 0.0,
+                average = 0.0,
+                categoryRanks = emptyList()
+            )
+        }
+
+        val bucketTotals = DoubleArray(buckets.size)
+        val categoryTotals = mutableMapOf<String, Double>()
+        var bucketIndex = 0
+        var total = 0.0
+
+        for (transaction in transactions) {
+            val normalized = when (type) {
+                ChartType.Expense -> if (transaction.amount < 0) abs(transaction.amount) else continue
+                ChartType.Income -> if (transaction.amount > 0) transaction.amount else continue
+            }
+
+            val date = transaction.date
+            if (date < range.start) {
+                continue
+            }
+            if (date > range.end) {
+                break
+            }
+
+            while (bucketIndex < buckets.lastIndex && date > buckets[bucketIndex].end) {
+                bucketIndex++
+            }
+            if (bucketIndex >= buckets.size) {
+                break
+            }
+
+            if (date in buckets[bucketIndex].start..buckets[bucketIndex].end) {
+                bucketTotals[bucketIndex] += normalized
+            }
+
+            categoryTotals[transaction.category] =
+                categoryTotals.getOrDefault(transaction.category, 0.0) + normalized
+            total += normalized
+        }
+
+        val entries = buckets.mapIndexed { index, bucket ->
+            ChartEntry(
+                label = bucket.label,
+                value = bucketTotals[index].toFloat()
+            )
+        }
+
+        val average = if (buckets.isEmpty()) 0.0 else total / buckets.size
+        val categoryRanks = if (total <= 0.0 || categoryTotals.isEmpty() || topLimit <= 0) {
+            emptyList()
+        } else {
+            categoryTotals.entries
+                .sortedByDescending { it.value }
+                .take(topLimit)
+                .map { (category, amount) ->
+                    val ratio = (amount / total).toFloat().coerceIn(0f, 1f)
+                    ChartCategoryRank(
+                        category = category,
+                        amount = amount,
+                        ratio = ratio
+                    )
+                }
+        }
 
         return Summary(
             entries = entries,
@@ -116,65 +163,34 @@ internal object ChartDataCalculator {
             }
         }
 
-        val bucketMoodValues = range.buckets.associate { bucket ->
-            bucket.start to mutableListOf<Int>()
+        val buckets = range.buckets
+        val moodSums = FloatArray(buckets.size)
+        val moodCounts = IntArray(buckets.size)
+
+        val sortedMoods = moodTransactions.sortedBy(TransactionEntity::date)
+        var bucketIndex = 0
+
+        sortedMoods.forEach { entity ->
+            val date = entity.date
+            while (bucketIndex < buckets.lastIndex && date > buckets[bucketIndex].end) {
+                bucketIndex++
+            }
+            val bucket = buckets.getOrNull(bucketIndex)
+            val moodValue = entity.mood
+            if (bucket != null && moodValue != null && date in bucket.start..bucket.end) {
+                moodSums[bucketIndex] += moodValue
+                moodCounts[bucketIndex] += 1
+            }
         }
 
-        moodTransactions.forEach { entity ->
-            val bucket = range.buckets.firstOrNull { bucket ->
-                entity.date in bucket.start..bucket.end
-            }
-            if (bucket != null) {
-                bucketMoodValues[bucket.start]?.add(entity.mood!!)
-            }
-        }
-
-        return range.buckets.map { bucket ->
-            val moods = bucketMoodValues[bucket.start].orEmpty()
-            val average = if (moods.isEmpty()) {
-                null
-            } else {
-                moods.sum().toFloat() / moods.size
-            }
+        return buckets.mapIndexed { index, bucket ->
+            val count = moodCounts[index]
+            val average = if (count == 0) null else moodSums[index] / count
             MoodChartEntry(
                 label = bucket.label,
                 value = average
             )
         }
-    }
-
-    private fun buildCategoryRanks(
-        transactions: List<TransactionEntity>,
-        type: ChartType,
-        total: Double,
-        topLimit: Int
-    ): List<ChartCategoryRank> {
-        if (transactions.isEmpty() || total <= 0.0 || topLimit <= 0) {
-            return emptyList()
-        }
-
-        val amounts = transactions.groupBy { it.category }
-            .mapValues { (_, list) ->
-                list.sumOf { entity ->
-                    when (type) {
-                        ChartType.Expense -> abs(entity.amount)
-                        ChartType.Income -> entity.amount
-                    }
-                }
-            }
-            .filterValues { it > 0.0 }
-
-        return amounts.entries
-            .sortedByDescending { it.value }
-            .take(topLimit)
-            .map { (category, amount) ->
-                val ratio = if (total > 0) (amount / total).toFloat() else 0f
-                ChartCategoryRank(
-                    category = category,
-                    amount = amount,
-                    ratio = ratio.coerceIn(0f, 1f)
-                )
-            }
     }
 
     fun roundUpToNiceNumber(value: Float): Float {

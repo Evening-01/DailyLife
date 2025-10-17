@@ -121,6 +121,7 @@ fun ChartOverviewSection(
     totalDescription: String,
     averageDescription: String,
     isLoading: Boolean,
+    hasLoadedContent: Boolean,
     entries: List<com.evening.dailylife.feature.chart.ChartEntry>,
     averageValue: Double,
     valueFormatter: (Double) -> String,
@@ -144,7 +145,7 @@ fun ChartOverviewSection(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
 
-        if (isLoading) {
+        if (isLoading || !hasLoadedContent) {
             LinearProgressIndicator(
                 modifier = Modifier
                     .fillMaxWidth()
