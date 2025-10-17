@@ -54,6 +54,13 @@
     <string name="chart_type_profile_empty">该时间段暂无记录</string>
     <string name="discover_type_profile_month_label">%1$d年%2$d月</string>
     <string name="discover_type_profile_subtitle">本月记录概览</string>
+    <string name="discover_ai_title">AI 理财助手</string>
+    <string name="discover_ai_subtitle">洞察消费趋势、规划预算、智能提醒即将上线</string>
+    <string name="discover_ai_card_title">即将支持的智能功能</string>
+    <string name="discover_ai_chip_insight">趋势分析</string>
+    <string name="discover_ai_chip_plan">预算建议</string>
+    <string name="discover_ai_chip_alert">账单提醒</string>
+    <string name="discover_ai_toast">正在开发中...</string>
 
     <!-- Preferences -->
     <string name="user_interface">用户界面</string>
