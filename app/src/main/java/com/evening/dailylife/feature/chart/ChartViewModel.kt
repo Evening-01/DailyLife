@@ -7,18 +7,21 @@ import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.core.util.StringProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.GregorianCalendar
 import java.util.Locale
+import javax.inject.Inject
 import kotlin.math.max
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class ChartViewModel @Inject constructor(
@@ -38,41 +41,57 @@ class ChartViewModel @Inject constructor(
     private val selectedRangeId = MutableStateFlow<String?>(null)
 
     private val transactionsState: StateFlow<TransactionsState> =
-        transactionRepository.getAllTransactions()
-            .map<List<TransactionEntity>, TransactionsState> { entities ->
-                val sorted = entities.sortedBy(TransactionEntity::date)
-                TransactionsState.Loaded(sorted)
+        transactionRepository.observeAllTransactions()
+            .map<List<TransactionEntity>?, TransactionsState> { entities ->
+                if (entities == null) {
+                    TransactionsState.Loading
+                } else {
+                    TransactionsState.Loaded(entities)
+                }
             }
-            .onStart { emit(TransactionsState.Loading) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = TransactionsState.Loading
             )
 
-    val uiState: StateFlow<ChartUiState> = combine(
+    private val selectionState = combine(
         transactionsState,
         selectedType,
         selectedPeriod,
         selectedRangeId
     ) { transactions, type, period, preferredRangeId ->
-        when (transactions) {
-            TransactionsState.Loading -> ChartUiState(
-                selectedType = type,
-                selectedPeriod = period,
-                contentStatus = ChartContentStatus.Loading
-            )
+        SelectionState(
+            transactions = transactions,
+            type = type,
+            period = period,
+            preferredRangeId = preferredRangeId
+        )
+    }
 
-            is TransactionsState.Loaded -> buildUiState(
-                type = type,
-                period = period,
-                preferredRangeId = preferredRangeId,
-                allTransactions = transactions.items
-            )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<ChartUiState> = selectionState
+        .mapLatest { selection ->
+            when (val transactions = selection.transactions) {
+                TransactionsState.Loading -> ChartUiState(
+                    selectedType = selection.type,
+                    selectedPeriod = selection.period,
+                    contentStatus = ChartContentStatus.Loading
+                )
+
+                is TransactionsState.Loaded -> withContext(Dispatchers.Default) {
+                    buildUiState(
+                        type = selection.type,
+                        period = selection.period,
+                        preferredRangeId = selection.preferredRangeId,
+                        allTransactions = transactions.items
+                    )
+                }
+            }
         }
-    }.stateIn(
+        .stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.Eagerly,
         initialValue = ChartUiState()
     )
 
@@ -100,7 +119,7 @@ class ChartViewModel @Inject constructor(
         allTransactions: List<TransactionEntity>
     ): ChartUiState {
         val typedTransactions = filterTransactionsByType(allTransactions, type)
-        val rangeOptions = buildRangeOptions(
+        val rangeOptions = ensureRangeOptions(
             period = period,
             transactions = typedTransactions
         )
@@ -144,9 +163,10 @@ class ChartViewModel @Inject constructor(
             emptyList()
         }
 
-        val contentStatus = when {
-            selectedOption == null -> ChartContentStatus.Empty
-            else -> ChartContentStatus.Content
+        val contentStatus = if (summary.entries.isEmpty()) {
+            ChartContentStatus.Empty
+        } else {
+            ChartContentStatus.Content
         }
 
         return ChartUiState(
@@ -180,6 +200,21 @@ class ChartViewModel @Inject constructor(
             ChartType.Expense -> transactions.filter { it.amount < 0 }
             ChartType.Income -> transactions.filter { it.amount > 0 }
         }
+    }
+
+    private fun ensureRangeOptions(
+        period: ChartPeriod,
+        transactions: List<TransactionEntity>
+    ): List<ChartRangeOption> {
+        val options = buildRangeOptions(period, transactions)
+        if (options.isNotEmpty()) return options
+
+        val fallbackOption = when (period) {
+            ChartPeriod.Week -> buildCurrentWeekOption()
+            ChartPeriod.Month -> buildCurrentMonthOption()
+            ChartPeriod.Year -> buildCurrentYearOption()
+        }
+        return listOf(fallbackOption)
     }
 
     private fun buildRangeOptions(
@@ -255,6 +290,68 @@ class ChartViewModel @Inject constructor(
                 endInclusive = endMillis
             )
         }.sortedByDescending { it.startInclusive }
+    }
+
+    private fun buildCurrentWeekOption(): ChartRangeOption {
+        val calendar = isoCalendar().apply {
+            timeInMillis = System.currentTimeMillis()
+        }
+        val startMillis = calendar.weekStartMillis()
+        val endMillis = (calendar.clone() as Calendar).apply {
+            timeInMillis = startMillis
+            add(Calendar.DAY_OF_YEAR, DAYS_IN_WEEK - 1)
+            setToEndOfDay()
+        }.timeInMillis
+
+        return ChartRangeOption(
+            id = "week-current",
+            period = ChartPeriod.Week,
+            label = stringProvider.getString(R.string.chart_tab_week_this),
+            startInclusive = startMillis,
+            endInclusive = endMillis
+        )
+    }
+
+    private fun buildCurrentMonthOption(): ChartRangeOption {
+        val now = Calendar.getInstance(Locale.getDefault())
+        val startCal = (now.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            setToStartOfDay()
+        }
+        val endCal = (startCal.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+            setToEndOfDay()
+        }
+
+        return ChartRangeOption(
+            id = "month-current",
+            period = ChartPeriod.Month,
+            label = stringProvider.getString(R.string.chart_tab_month_this),
+            startInclusive = startCal.timeInMillis,
+            endInclusive = endCal.timeInMillis
+        )
+    }
+
+    private fun buildCurrentYearOption(): ChartRangeOption {
+        val now = Calendar.getInstance(Locale.getDefault())
+        val startCal = (now.clone() as Calendar).apply {
+            set(Calendar.MONTH, Calendar.JANUARY)
+            set(Calendar.DAY_OF_MONTH, 1)
+            setToStartOfDay()
+        }
+        val endCal = (startCal.clone() as Calendar).apply {
+            set(Calendar.MONTH, Calendar.DECEMBER)
+            set(Calendar.DAY_OF_MONTH, 31)
+            setToEndOfDay()
+        }
+
+        return ChartRangeOption(
+            id = "year-current",
+            period = ChartPeriod.Year,
+            label = stringProvider.getString(R.string.chart_tab_year_this),
+            startInclusive = startCal.timeInMillis,
+            endInclusive = endCal.timeInMillis
+        )
     }
 
     private fun buildMonthOptions(
@@ -396,6 +493,13 @@ class ChartViewModel @Inject constructor(
     private data class MonthKey(
         val year: Int,
         val month: Int
+    )
+
+    private data class SelectionState(
+        val transactions: TransactionsState,
+        val type: ChartType,
+        val period: ChartPeriod,
+        val preferredRangeId: String?
     )
 
     private sealed interface TransactionsState {

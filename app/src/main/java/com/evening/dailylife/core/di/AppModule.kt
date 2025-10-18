@@ -9,6 +9,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import javax.inject.Singleton
 
 @Module
@@ -29,7 +32,17 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideTransactionRepository(transactionDao: TransactionDao): TransactionRepository {
-        return TransactionRepository(transactionDao)
+    @ApplicationScope
+    fun provideApplicationScope(): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    }
+
+    @Singleton
+    @Provides
+    fun provideTransactionRepository(
+        transactionDao: TransactionDao,
+        @ApplicationScope applicationScope: CoroutineScope
+    ): TransactionRepository {
+        return TransactionRepository(transactionDao, applicationScope)
     }
 }

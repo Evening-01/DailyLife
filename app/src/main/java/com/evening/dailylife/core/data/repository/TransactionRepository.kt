@@ -4,12 +4,32 @@ import com.evening.dailylife.core.data.local.dao.TransactionDao
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.local.model.DailyTransactionSummary
 import com.evening.dailylife.core.data.local.model.TransactionWithDay
+import com.evening.dailylife.core.di.ApplicationScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 class TransactionRepository @Inject constructor(
-    private val transactionDao: TransactionDao
+    private val transactionDao: TransactionDao,
+    @ApplicationScope private val applicationScope: CoroutineScope
 ) {
+
+    private val allTransactionsState: StateFlow<List<TransactionEntity>?> =
+        transactionDao.getAllTransactions()
+            .map { entities -> entities.sortedBy(TransactionEntity::date) }
+            .stateIn(
+                scope = applicationScope,
+                started = SharingStarted.Eagerly,
+                initialValue = null
+            )
+
+    fun observeAllTransactions(): StateFlow<List<TransactionEntity>?> {
+        return allTransactionsState
+    }
 
     fun getAllTransactions(): Flow<List<TransactionEntity>> {
         return transactionDao.getAllTransactions()
