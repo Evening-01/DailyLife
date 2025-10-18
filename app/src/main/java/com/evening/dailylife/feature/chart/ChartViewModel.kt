@@ -7,23 +7,22 @@ import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.core.util.StringProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import javax.inject.Inject
 import java.util.Calendar
 import java.util.GregorianCalendar
 import java.util.Locale
-import javax.inject.Inject
 import kotlin.math.max
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class ChartViewModel @Inject constructor(
-    private val transactionRepository: TransactionRepository,
+    transactionRepository: TransactionRepository,
     private val stringProvider: StringProvider
 ) : ViewModel() {
 
@@ -34,90 +33,78 @@ class ChartViewModel @Inject constructor(
         private const val MONTHS_IN_YEAR = 12
     }
 
-    private val _uiState = MutableStateFlow(ChartUiState())
-    val uiState: StateFlow<ChartUiState> = _uiState.asStateFlow()
+    private val selectedType = MutableStateFlow(ChartType.Expense)
+    private val selectedPeriod = MutableStateFlow(ChartPeriod.Week)
+    private val selectedRangeId = MutableStateFlow<String?>(null)
 
-    private var cachedTransactions: List<TransactionEntity> = emptyList()
-    private val cachedTransactionsByType: MutableMap<ChartType, List<TransactionEntity>> = mutableMapOf(
-        ChartType.Expense to emptyList(),
-        ChartType.Income to emptyList(),
-    )
-    private val rangeOptionsCache = mutableMapOf<RangeCacheKey, List<ChartRangeOption>>()
-    private val summaryCache = mutableMapOf<SummaryCacheKey, CachedSummary>()
-    private var refreshJob: Job? = null
-
-    init {
-        viewModelScope.launch {
-            transactionRepository.getAllTransactions().collectLatest { transactions ->
-                cachedTransactions = transactions.sortedBy(TransactionEntity::date)
-                cachedTransactionsByType[ChartType.Expense] = cachedTransactions.filter { it.amount < 0 }
-                cachedTransactionsByType[ChartType.Income] = cachedTransactions.filter { it.amount > 0 }
-                invalidateCaches()
-                refreshState(preferredOptionId = _uiState.value.selectedRangeOption?.id)
+    private val transactionsState: StateFlow<TransactionsState> =
+        transactionRepository.getAllTransactions()
+            .map<List<TransactionEntity>, TransactionsState> { entities ->
+                val sorted = entities.sortedBy(TransactionEntity::date)
+                TransactionsState.Loaded(sorted)
             }
+            .onStart { emit(TransactionsState.Loading) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = TransactionsState.Loading
+            )
+
+    val uiState: StateFlow<ChartUiState> = combine(
+        transactionsState,
+        selectedType,
+        selectedPeriod,
+        selectedRangeId
+    ) { transactions, type, period, preferredRangeId ->
+        when (transactions) {
+            TransactionsState.Loading -> ChartUiState(
+                selectedType = type,
+                selectedPeriod = period,
+                contentStatus = ChartContentStatus.Loading
+            )
+
+            is TransactionsState.Loaded -> buildUiState(
+                type = type,
+                period = period,
+                preferredRangeId = preferredRangeId,
+                allTransactions = transactions.items
+            )
         }
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = ChartUiState()
+    )
 
     fun onTypeSelected(type: ChartType) {
-        if (type == _uiState.value.selectedType) return
-        _uiState.value = _uiState.value.copy(selectedType = type)
-        refreshState(resetRangeSelection = true)
+        if (selectedType.value == type) return
+        selectedType.value = type
+        selectedRangeId.value = null
     }
 
     fun onPeriodSelected(period: ChartPeriod) {
-        if (period == _uiState.value.selectedPeriod) return
-        _uiState.value = _uiState.value.copy(selectedPeriod = period)
-        refreshState(resetRangeSelection = true)
+        if (selectedPeriod.value == period) return
+        selectedPeriod.value = period
+        selectedRangeId.value = null
     }
 
     fun onRangeOptionSelected(optionId: String) {
-        if (optionId == _uiState.value.selectedRangeOption?.id) return
-        refreshState(preferredOptionId = optionId)
+        if (selectedRangeId.value == optionId) return
+        selectedRangeId.value = optionId
     }
 
-    private fun refreshState(
-        resetRangeSelection: Boolean = false,
-        preferredOptionId: String? = null
-    ) {
-        val currentState = _uiState.value
-        val transactionsSnapshot = cachedTransactions
-
-        refreshJob?.cancel()
-        refreshJob = viewModelScope.launch {
-            val newState = withContext(Dispatchers.Default) {
-                buildState(
-                    baseState = currentState,
-                    transactions = transactionsSnapshot,
-                    resetRangeSelection = resetRangeSelection,
-                    preferredOptionId = preferredOptionId
-                )
-            }
-            _uiState.value = newState
-        }
-    }
-
-    private fun buildState(
-        baseState: ChartUiState,
-        transactions: List<TransactionEntity>,
-        resetRangeSelection: Boolean,
-        preferredOptionId: String?
+    private fun buildUiState(
+        type: ChartType,
+        period: ChartPeriod,
+        preferredRangeId: String?,
+        allTransactions: List<TransactionEntity>
     ): ChartUiState {
-        val type = baseState.selectedType
-        val period = baseState.selectedPeriod
-        val filtered = filterTransactionsByType(type)
-        val rangeTabs = buildRangeOptions(type, period, filtered)
-
-        val selectedOption = when {
-            rangeTabs.isEmpty() -> null
-            preferredOptionId != null -> rangeTabs.firstOrNull { it.id == preferredOptionId }
-                ?: rangeTabs.first()
-            resetRangeSelection -> rangeTabs.first()
-            else -> {
-                val currentId = baseState.selectedRangeOption?.id
-                rangeTabs.firstOrNull { it.id == currentId } ?: rangeTabs.first()
-            }
-        }
-
+        val typedTransactions = filterTransactionsByType(allTransactions, type)
+        val rangeOptions = buildRangeOptions(
+            period = period,
+            transactions = typedTransactions
+        )
+        val selectedOption = selectRangeOption(rangeOptions, preferredRangeId)
         val range = selectedOption?.let {
             ChartDataCalculator.buildRange(
                 period = period,
@@ -127,74 +114,83 @@ class ChartViewModel @Inject constructor(
             )
         }
 
-        val (summary, moodEntries) = if (range != null) {
-            val cacheKey = SummaryCacheKey(
-                type = type,
-                period = period,
+        val summary = if (range != null) {
+            val rangeTransactions = transactionsInRange(
+                transactions = typedTransactions,
                 start = range.start,
                 end = range.end
             )
-            summaryCache[cacheKey]?.let { cached ->
-                cached.summary to cached.moodEntries
-            } ?: run {
-                val rangeTransactions = transactionsInRange(filtered, range.start, range.end)
-                val computedSummary = ChartDataCalculator.summarize(
-                    transactions = rangeTransactions,
-                    type = type,
-                    range = range,
-                    topLimit = DEFAULT_TOP_RANK_LIMIT
-                )
-                val computedMood = ChartDataCalculator.buildMoodEntries(
-                    transactions = transactions,
-                    range = range
-                )
-                summaryCache[cacheKey] = CachedSummary(
-                    summary = computedSummary,
-                    moodEntries = computedMood
-                )
-                computedSummary to computedMood
-            }
+            ChartDataCalculator.summarize(
+                transactions = rangeTransactions,
+                type = type,
+                range = range,
+                topLimit = DEFAULT_TOP_RANK_LIMIT
+            )
         } else {
             ChartDataCalculator.Summary(
                 entries = emptyList(),
                 total = 0.0,
                 average = 0.0,
                 categoryRanks = emptyList()
-            ) to emptyList()
+            )
         }
 
-        return baseState.copy(
-            rangeTabs = rangeTabs,
+        val moodEntries = if (range != null) {
+            ChartDataCalculator.buildMoodEntries(
+                transactions = allTransactions,
+                range = range
+            )
+        } else {
+            emptyList()
+        }
+
+        val contentStatus = when {
+            selectedOption == null -> ChartContentStatus.Empty
+            else -> ChartContentStatus.Content
+        }
+
+        return ChartUiState(
+            selectedType = type,
+            selectedPeriod = period,
+            rangeTabs = rangeOptions,
             selectedRangeOption = selectedOption,
             entries = summary.entries,
             categoryRanks = summary.categoryRanks,
             totalAmount = summary.total,
             averageAmount = summary.average,
             moodEntries = moodEntries,
-            isLoading = false,
-            hasLoadedContent = true
+            contentStatus = contentStatus
         )
     }
 
-    private fun filterTransactionsByType(type: ChartType): List<TransactionEntity> {
-        return cachedTransactionsByType[type].orEmpty()
+    private fun selectRangeOption(
+        options: List<ChartRangeOption>,
+        preferredId: String?
+    ): ChartRangeOption? {
+        if (options.isEmpty()) return null
+        if (preferredId == null) return options.first()
+        return options.firstOrNull { it.id == preferredId } ?: options.first()
+    }
+
+    private fun filterTransactionsByType(
+        transactions: List<TransactionEntity>,
+        type: ChartType
+    ): List<TransactionEntity> {
+        return when (type) {
+            ChartType.Expense -> transactions.filter { it.amount < 0 }
+            ChartType.Income -> transactions.filter { it.amount > 0 }
+        }
     }
 
     private fun buildRangeOptions(
-        type: ChartType,
         period: ChartPeriod,
         transactions: List<TransactionEntity>
     ): List<ChartRangeOption> {
-        val cacheKey = RangeCacheKey(type = type, period = period)
-        rangeOptionsCache[cacheKey]?.let { return it }
-
-        val result = when (period) {
+        return when (period) {
             ChartPeriod.Week -> buildWeekOptions(transactions)
             ChartPeriod.Month -> buildMonthOptions(transactions)
             ChartPeriod.Year -> buildYearOptions(transactions)
         }
-        rangeOptionsCache[cacheKey] = result
-        return result
     }
 
     private fun transactionsInRange(
@@ -210,11 +206,6 @@ class ChartViewModel @Inject constructor(
             result.add(entity)
         }
         return result
-    }
-
-    private fun invalidateCaches() {
-        rangeOptionsCache.clear()
-        summaryCache.clear()
     }
 
     private fun buildWeekOptions(
@@ -407,21 +398,8 @@ class ChartViewModel @Inject constructor(
         val month: Int
     )
 
-    private data class RangeCacheKey(
-        val type: ChartType,
-        val period: ChartPeriod
-    )
-
-    private data class SummaryCacheKey(
-        val type: ChartType,
-        val period: ChartPeriod,
-        val start: Long,
-        val end: Long
-    )
-
-    private data class CachedSummary(
-        val summary: ChartDataCalculator.Summary,
-        val moodEntries: List<MoodChartEntry>
-    )
-
+    private sealed interface TransactionsState {
+        data object Loading : TransactionsState
+        data class Loaded(val items: List<TransactionEntity>) : TransactionsState
+    }
 }

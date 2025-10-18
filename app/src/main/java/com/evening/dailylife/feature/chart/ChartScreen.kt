@@ -64,6 +64,7 @@ fun ChartScreen(
     val chartEntries = uiState.entries
     val selectedType = uiState.selectedType
     val selectedPeriod = uiState.selectedPeriod
+    val contentStatus = uiState.contentStatus
     val totalLabel = stringResource(id = selectedType.labelRes)
     val formatAmount = remember {
         { value: Double -> String.format(Locale.getDefault(), "%,.2f", value) }
@@ -186,8 +187,7 @@ fun ChartScreen(
                         title = stringResource(id = R.string.chart_overview_title),
                         totalDescription = stringResource(id = R.string.chart_total_label, totalLabel) + "：" + formattedTotal,
                         averageDescription = stringResource(id = R.string.chart_average_label, formattedAverage),
-                        isLoading = uiState.isLoading,
-                        hasLoadedContent = uiState.hasLoadedContent,
+                        contentStatus = contentStatus,
                         entries = chartEntries,
                         averageValue = uiState.averageAmount,
                         valueFormatter = formatAmount,
@@ -201,7 +201,8 @@ fun ChartScreen(
                         ranks = uiState.categoryRanks,
                         type = selectedType,
                         amountFormatter = formatAmount,
-                        animationKey = barAnimationTrigger
+                        animationKey = barAnimationTrigger,
+                        contentStatus = contentStatus
                     )
                 }
 

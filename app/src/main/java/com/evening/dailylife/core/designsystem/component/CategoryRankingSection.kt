@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.evening.dailylife.R
 import com.evening.dailylife.core.model.TransactionCategoryRepository
+import com.evening.dailylife.feature.chart.ChartContentStatus
 import com.evening.dailylife.feature.chart.ChartCategoryRank
 import com.evening.dailylife.feature.chart.ChartType
 import com.moriafly.salt.ui.ItemTitle
@@ -47,6 +49,7 @@ internal fun CategoryRankingSection(
     type: ChartType,
     amountFormatter: (Double) -> String,
     animationKey: Any?,
+    contentStatus: ChartContentStatus,
     modifier: Modifier = Modifier
 ) {
     val titleRes = if (type == ChartType.Expense) {
@@ -64,27 +67,37 @@ internal fun CategoryRankingSection(
     RoundedColumn(modifier = modifier.fillMaxWidth()) {
         ItemTitle(text = stringResource(id = titleRes))
 
-        if (ranks.isEmpty()) {
-            Text(
-                text = stringResource(id = R.string.chart_rank_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-            )
-        } else {
-            ranks.forEachIndexed { index, rank ->
-                CategoryRankingItem(
-                    rank = rank,
-                    amountFormatter = amountFormatter,
-                    percentFormatter = percentFormatter,
-                    animationKey = animationKey,
+        when (contentStatus) {
+            ChartContentStatus.Loading -> {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
                 )
-
-                if (index != ranks.lastIndex) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+            }
+            ChartContentStatus.Empty -> {
+                Text(
+                    text = stringResource(id = R.string.chart_rank_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                )
+            }
+            ChartContentStatus.Content -> {
+                ranks.forEachIndexed { index, rank ->
+                    CategoryRankingItem(
+                        rank = rank,
+                        amountFormatter = amountFormatter,
+                        percentFormatter = percentFormatter,
+                        animationKey = animationKey,
                     )
+
+                    if (index != ranks.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                        )
+                    }
                 }
             }
         }

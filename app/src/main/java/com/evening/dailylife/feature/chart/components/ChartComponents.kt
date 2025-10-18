@@ -15,6 +15,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,7 +23,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.evening.dailylife.R
 import com.evening.dailylife.core.designsystem.component.BarChart
+import com.evening.dailylife.feature.chart.ChartContentStatus
 import com.evening.dailylife.feature.chart.ChartPeriod
 import com.evening.dailylife.feature.chart.ChartRangeOption
 import com.moriafly.salt.ui.ItemTitle
@@ -120,8 +123,7 @@ fun ChartOverviewSection(
     title: String,
     totalDescription: String,
     averageDescription: String,
-    isLoading: Boolean,
-    hasLoadedContent: Boolean,
+    contentStatus: ChartContentStatus,
     entries: List<com.evening.dailylife.feature.chart.ChartEntry>,
     averageValue: Double,
     valueFormatter: (Double) -> String,
@@ -145,22 +147,48 @@ fun ChartOverviewSection(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
 
-        if (isLoading || !hasLoadedContent) {
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
-            )
-        } else {
-            BarChart(
-                entries = entries,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                averageValue = averageValue.toFloat(),
-                valueFormatter = { value -> valueFormatter(value.toDouble()) },
-                animationKey = animationKey
-            )
+        when (contentStatus) {
+            ChartContentStatus.Loading -> {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
+                )
+            }
+            ChartContentStatus.Empty -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.chart_empty_data),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            ChartContentStatus.Content -> {
+                if (entries.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 140.dp)
+                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                    )
+                } else {
+                    BarChart(
+                        entries = entries,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                        averageValue = averageValue.toFloat(),
+                        valueFormatter = { value -> valueFormatter(value.toDouble()) },
+                        animationKey = animationKey
+                    )
+                }
+            }
         }
     }
 }

@@ -10,6 +10,11 @@ data class ChartUiState(
     val totalAmount: Double = 0.0,
     val averageAmount: Double = 0.0,
     val moodEntries: List<MoodChartEntry> = emptyList(),
-    val isLoading: Boolean = true,
-    val hasLoadedContent: Boolean = false
+    val contentStatus: ChartContentStatus = ChartContentStatus.Loading,
 )
+
+enum class ChartContentStatus {
+    Loading,
+    Content,
+    Empty,
+}
