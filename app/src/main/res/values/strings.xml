@@ -2,6 +2,8 @@
     <!-- App -->
     <string name="app_name">日子记账</string>
 
+    <string name="unsupported_android_version">当前设备系统版本过低，无法运行 DailyLife，请升级至 Android 8.0（API 26）及以上。</string>
+
     <!-- Navigation -->
     <string name="details">明细</string>
     <string name="chart">图表</string>
