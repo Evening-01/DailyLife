@@ -111,7 +111,7 @@ internal object ChartDataCalculator {
             }
 
             categoryTotals[transaction.category] =
-                categoryTotals.getOrDefault(transaction.category, 0.0) + normalized
+                (categoryTotals[transaction.category] ?: 0.0) + normalized
             total += normalized
         }
 
