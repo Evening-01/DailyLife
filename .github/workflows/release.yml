@@ -1,0 +1,82 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to build (leave blank to use latest commit)'
+        required: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Determine build tag
+        id: resolve_tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENT_NAME" = "push" ]; then
+            echo "build_tag=$REF_NAME" >> "$GITHUB_OUTPUT"
+          else
+            input_tag=$(jq -r '.inputs.tag // ""' "$GITHUB_EVENT_PATH")
+            if [ -n "$input_tag" ]; then
+              echo "build_tag=$input_tag" >> "$GITHUB_OUTPUT"
+            else
+              latest_commit=$(git rev-parse HEAD)
+              custom_tag="manual-${latest_commit:0:7}"
+              echo "build_tag=$custom_tag" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Assemble release
+        run: ./gradlew assembleRelease --stacktrace
+        env:
+          BUILD_TAG: ${{ steps.resolve_tag.outputs.build_tag }}
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ steps.resolve_tag.outputs.build_tag }}
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab
+
+      - name: Summary
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          {
+            echo "## Release build"
+            echo "- Trigger: $EVENT_NAME"
+            echo "- Build tag: ${{ steps.resolve_tag.outputs.build_tag }}"
+          } >> "$GITHUB_STEP_SUMMARY"
