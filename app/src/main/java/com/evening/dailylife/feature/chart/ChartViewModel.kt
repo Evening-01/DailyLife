@@ -40,8 +40,21 @@ class ChartViewModel @Inject constructor(
     private val selectedPeriod = MutableStateFlow(ChartPeriod.Week)
     private val selectedRangeId = MutableStateFlow<String?>(null)
 
+    private val transactionsSource = transactionRepository.observeAllTransactions()
+    private val initialTransactionsState: TransactionsState =
+        transactionsSource.value?.let { TransactionsState.Loaded(it) } ?: TransactionsState.Loading
+    private val initialUiState: ChartUiState = when (val initial = initialTransactionsState) {
+        TransactionsState.Loading -> ChartUiState()
+        is TransactionsState.Loaded -> buildUiState(
+            type = selectedType.value,
+            period = selectedPeriod.value,
+            preferredRangeId = selectedRangeId.value,
+            allTransactions = initial.items
+        )
+    }
+
     private val transactionsState: StateFlow<TransactionsState> =
-        transactionRepository.observeAllTransactions()
+        transactionsSource
             .map<List<TransactionEntity>?, TransactionsState> { entities ->
                 if (entities == null) {
                     TransactionsState.Loading
@@ -52,7 +65,7 @@ class ChartViewModel @Inject constructor(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = TransactionsState.Loading
+                initialValue = initialTransactionsState
             )
 
     private val selectionState = combine(
@@ -92,7 +105,7 @@ class ChartViewModel @Inject constructor(
         .stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = ChartUiState()
+        initialValue = initialUiState
     )
 
     fun onTypeSelected(type: ChartType) {

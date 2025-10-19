@@ -26,7 +26,7 @@ import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Luggage
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Movie
@@ -39,7 +39,7 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.SportsEsports
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.VolunteerActivism
 import com.evening.dailylife.R
 
@@ -72,7 +72,7 @@ object TransactionCategoryRepository {
         TransactionCategory(context.getString(R.string.category_clothing), Icons.Default.Checkroom),
         TransactionCategory(context.getString(R.string.category_beauty), Icons.Default.ContentCut),
         TransactionCategory(context.getString(R.string.category_learning), Icons.Default.School),
-        TransactionCategory(context.getString(R.string.category_books), Icons.Default.MenuBook),
+        TransactionCategory(context.getString(R.string.category_books), Icons.AutoMirrored.Filled.MenuBook),
 
         // --- 家庭与社交 ---
         TransactionCategory(context.getString(R.string.category_children), Icons.Default.ChildCare),
@@ -101,7 +101,7 @@ object TransactionCategoryRepository {
     fun getIncomeCategories(context: Context): List<TransactionCategory> = listOf(
         TransactionCategory(context.getString(R.string.category_salary), Icons.Default.MonetizationOn),
         TransactionCategory(context.getString(R.string.category_part_time), Icons.Default.AddCard),
-        TransactionCategory(context.getString(R.string.category_finance), Icons.Default.TrendingUp),
+        TransactionCategory(context.getString(R.string.category_finance), Icons.AutoMirrored.Filled.TrendingUp),
         TransactionCategory(context.getString(R.string.category_cash_gift_income), Icons.Default.Redeem),
         TransactionCategory(context.getString(R.string.category_others), Icons.Default.MoreHoriz)
     )
