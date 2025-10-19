@@ -7,18 +7,15 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -29,13 +26,11 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.evening.dailylife.R
 import com.evening.dailylife.feature.chart.ChartDataCalculator
+import com.evening.dailylife.feature.chart.ChartPeriod
 import com.evening.dailylife.feature.chart.MoodChartEntry
 import java.util.Locale
 import kotlin.math.abs
@@ -43,6 +38,7 @@ import kotlin.math.abs
 @Composable
 fun MoodLineChart(
     entries: List<MoodChartEntry>,
+    period: ChartPeriod,
     modifier: Modifier = Modifier,
     maxChartHeight: Dp = 160.dp,
     stepSpacing: Dp = 48.dp,
@@ -59,28 +55,10 @@ fun MoodLineChart(
     animationSpec: AnimationSpec<Float> = tween(durationMillis = 600, easing = FastOutSlowInEasing),
     animationKey: Any? = null,
 ) {
-    val hasData = entries.any { it.value != null }
-    if (!hasData) {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(maxChartHeight),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = stringResource(id = R.string.chart_empty_data),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
-        return
-    }
-
     val density = LocalDensity.current
 
     val moodValues = entries.mapNotNull { it.value }
-    val maxAbsValue = moodValues.maxOf { abs(it) }
+    val maxAbsValue = moodValues.maxOfOrNull { abs(it) } ?: 0f
     val targetMax = maxAbsValue.coerceAtLeast(2f)
     val roundedMax = ChartDataCalculator.roundUpToNiceNumber(targetMax)
     val yMax = if (roundedMax > 0f) roundedMax else 2f
@@ -303,8 +281,12 @@ fun MoodLineChart(
                     } else {
                         chartLeft + spacing * index
                     }
+                    val labelText = when (period) {
+                        ChartPeriod.Week -> entry.label.substringBefore(' ').ifBlank { entry.label }
+                        else -> entry.label
+                    }
                     canvas.nativeCanvas.drawText(
-                        entry.label,
+                        labelText,
                         x,
                         chartBottom + px.xLabelBaselineOffsetPx,
                         xLabelPaint
