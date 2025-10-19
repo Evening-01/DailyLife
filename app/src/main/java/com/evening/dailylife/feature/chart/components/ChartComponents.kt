@@ -15,7 +15,6 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.evening.dailylife.R
 import com.evening.dailylife.core.designsystem.component.BarChart
 import com.evening.dailylife.feature.chart.ChartContentStatus
+import com.evening.dailylife.feature.chart.ChartEntry
 import com.evening.dailylife.feature.chart.ChartPeriod
 import com.evening.dailylife.feature.chart.ChartRangeOption
 import com.moriafly.salt.ui.ItemTitle
@@ -124,10 +124,11 @@ fun ChartOverviewSection(
     totalDescription: String,
     averageDescription: String,
     contentStatus: ChartContentStatus,
-    entries: List<com.evening.dailylife.feature.chart.ChartEntry>,
+    entries: List<ChartEntry>,
     averageValue: Double,
     valueFormatter: (Double) -> String,
     animationKey: Int,
+    labelFormatter: (String) -> String = { it },
     modifier: Modifier = Modifier
 ) {
     RoundedColumn(modifier = modifier.fillMaxWidth()) {
@@ -147,55 +148,71 @@ fun ChartOverviewSection(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
 
-        when (contentStatus) {
-            ChartContentStatus.Loading -> {
-                LinearProgressIndicator(
+        ChartOverviewContent(
+            status = contentStatus,
+            entries = entries,
+            averageValue = averageValue,
+            valueFormatter = valueFormatter,
+            animationKey = animationKey,
+            labelFormatter = labelFormatter
+        )
+    }
+}
+
+@Composable
+private fun ChartOverviewContent(
+    status: ChartContentStatus,
+    entries: List<ChartEntry>,
+    averageValue: Double,
+    valueFormatter: (Double) -> String,
+    animationKey: Int,
+    labelFormatter: (String) -> String
+) {
+    when (status) {
+        ChartContentStatus.Loading -> {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+            )
+        }
+
+        ChartContentStatus.Empty -> {
+            ChartOverviewEmptyState()
+        }
+
+        ChartContentStatus.Content -> {
+            if (entries.isEmpty()) {
+                ChartOverviewEmptyState()
+            } else {
+                BarChart(
+                    entries = entries,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    averageValue = averageValue.toFloat(),
+                    valueFormatter = { value -> valueFormatter(value.toDouble()) },
+                    labelFormatter = labelFormatter,
+                    animationKey = animationKey
                 )
             }
-            ChartContentStatus.Empty -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.chart_empty_data),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            ChartContentStatus.Content -> {
-                if (entries.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 140.dp)
-                            .padding(horizontal = 16.dp, vertical = 16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.chart_empty_data),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    BarChart(
-                        entries = entries,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 16.dp),
-                        averageValue = averageValue.toFloat(),
-                        valueFormatter = { value -> valueFormatter(value.toDouble()) },
-                        animationKey = animationKey
-                    )
-                }
-            }
         }
+    }
+}
+
+@Composable
+private fun ChartOverviewEmptyState() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 140.dp)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(id = R.string.chart_empty_data),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

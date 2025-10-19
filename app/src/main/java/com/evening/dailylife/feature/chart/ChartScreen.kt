@@ -75,6 +75,13 @@ fun ChartScreen(
     val formattedAverage = remember(uiState.averageAmount) {
         formatAmount(uiState.averageAmount)
     }
+    val overviewLabelFormatter = remember(selectedPeriod) {
+        if (selectedPeriod == ChartPeriod.Week) {
+            { label: String -> label.substringBefore(' ').ifBlank { label } }
+        } else {
+            { label: String -> label }
+        }
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -192,7 +199,7 @@ fun ChartScreen(
                         averageValue = uiState.averageAmount,
                         valueFormatter = formatAmount,
                         animationKey = barAnimationTrigger,
-                        modifier = Modifier.fillMaxWidth()
+                        labelFormatter = overviewLabelFormatter,
                     )
                 }
 
@@ -202,7 +209,7 @@ fun ChartScreen(
                         type = selectedType,
                         amountFormatter = formatAmount,
                         animationKey = barAnimationTrigger,
-                        contentStatus = contentStatus
+                        contentStatus = contentStatus,
                     )
                 }
 

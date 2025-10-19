@@ -61,21 +61,20 @@ fun BarChart(
     maxBarHeight: Dp = 140.dp,
     barWidth: Dp = 30.dp,
     spacing: Dp = 14.dp,
-    // 颜色与样式
     barColor: Color = MaterialTheme.colorScheme.primary,
-    // 辅助线颜色
     gridColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f),
     axisColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.85f),
     averageLineColor: Color = MaterialTheme.colorScheme.tertiary,
     averageLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelBgColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+    xLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yAxisOvershootTop: Dp = 10.dp,
-    // 辅助线粗细
     gridStrokeWidth: Dp = 0.5.dp,
     valueFormatter: (Float) -> String = { value ->
         if (value % 1f == 0f) value.toInt().toString() else String.format(Locale.CHINA, "%.1f", value)
     },
+    labelFormatter: (String) -> String = { it },
     barAnimationSpec: AnimationSpec<Float> = tween(durationMillis = 600, easing = FastOutSlowInEasing),
     animationKey: Any? = null,
 ) {
@@ -98,7 +97,6 @@ fun BarChart(
     val density = LocalDensity.current
     val context = LocalContext.current
 
-    // 计算最大值与刻度
     val rawMaxValue = remember(entries, averageValue) {
         val entryMax = entries.maxOfOrNull(ChartEntry::value) ?: 0f
         maxOf(entryMax, averageValue)
@@ -111,7 +109,6 @@ fun BarChart(
     val steps = 4
     val currentFormatter by rememberUpdatedState(valueFormatter)
 
-    // 从上到下（顶部到底部）固定刻度标签
     val yAxisLabels = remember(maxValue) {
         (0..steps).map { step ->
             val fraction = step / steps.toFloat()
@@ -124,24 +121,19 @@ fun BarChart(
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val maxWidthDp = this.maxWidth
-        val n = entries.size
-        val totalSpacing = spacing * (n - 1)
-        // 与柱子对应的“对称留白”，确保第一根柱左侧有空间（但整体布局仍铺满整宽，轴贴左 x=0）
+        val count = entries.size
+        val totalSpacing = spacing * (count - 1)
         val sidePadding = spacing / 2
 
-        // 铺满整宽：不为 Y 轴单独预留布局空白
         val availableChartWidth = maxWidthDp
-
-        // 宽度（决定是否滚动），包含左右留白
-        val desiredChartWidth = (sidePadding * 2 + barWidth * n + totalSpacing).coerceAtLeast(minChartWidth)
+        val desiredChartWidth = (sidePadding * 2 + barWidth * count + totalSpacing).coerceAtLeast(minChartWidth)
         val shouldScroll = desiredChartWidth > availableChartWidth
 
-        // 不滚动时自适应柱宽（扣除左右留白）
         val usedBarWidth: Dp = if (shouldScroll) {
             barWidth
         } else {
             val barsArea = (availableChartWidth - totalSpacing - sidePadding * 2).coerceAtLeast(0.dp)
-            (barsArea / n).coerceIn(8.dp, barWidth)
+            (barsArea / count).coerceIn(8.dp, barWidth)
         }
         val usedChartWidth: Dp = if (shouldScroll) desiredChartWidth else availableChartWidth
 
@@ -154,10 +146,10 @@ fun BarChart(
             val gridStrokePx: Float,
             val overshootTopPx: Float,
             val yLabelTextSizePx: Float,
-            val yLabelPadH: Float,
-            val yLabelPadV: Float,
-            val yLabelCorner: Float,
-            val yLabelInsideGap: Float,
+            val yLabelPadHPx: Float,
+            val yLabelPadVPx: Float,
+            val yLabelCornerPx: Float,
+            val yLabelInsideGapPx: Float,
             val avgTextSizePx: Float,
             val avgTextRightPadPx: Float,
             val avgTextTopPadPx: Float,
@@ -174,10 +166,10 @@ fun BarChart(
                     gridStrokePx = gridStrokeWidth.toPx(),
                     overshootTopPx = yAxisOvershootTop.toPx(),
                     yLabelTextSizePx = 10.sp.toPx(),
-                    yLabelPadH = 4.dp.toPx(),
-                    yLabelPadV = 2.dp.toPx(),
-                    yLabelCorner = 6.dp.toPx(),
-                    yLabelInsideGap = 4.dp.toPx(), // 文字离 Y 轴的水平间距
+                    yLabelPadHPx = 4.dp.toPx(),
+                    yLabelPadVPx = 2.dp.toPx(),
+                    yLabelCornerPx = 6.dp.toPx(),
+                    yLabelInsideGapPx = 4.dp.toPx(),
                     avgTextSizePx = 12.sp.toPx(),
                     avgTextRightPadPx = 4.dp.toPx(),
                     avgTextTopPadPx = 6.dp.toPx(),
@@ -205,7 +197,6 @@ fun BarChart(
             }
         }
 
-        // 虚线路径样式 和 柱状动画
         val dashEffect = remember { PathEffect.dashPathEffect(floatArrayOf(12f, 12f)) }
         val animationProgress = remember { Animatable(0f) }
 
@@ -215,13 +206,11 @@ fun BarChart(
         }
 
         Column {
-            // 图表区域（上：柱+网格+平均线，可滚动；上面覆盖层画轴与刻度数字，固定不动）
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(maxBarHeight)
             ) {
-                // 可滚动画布，宽度为 usedChartWidth
                 val chartCanvasModifier =
                     if (shouldScroll) Modifier
                         .horizontalScroll(scrollState)
@@ -235,7 +224,6 @@ fun BarChart(
                     val contentWidth = size.width
                     val contentHeight = size.height
 
-                    // 水平辅助线
                     val stepHeight = contentHeight / steps
                     for (i in 0..steps) {
                         val y = contentHeight - i * stepHeight
@@ -247,7 +235,6 @@ fun BarChart(
                         )
                     }
 
-                    // 柱形（整体右移 sidePadding，保证第一根柱前有留白；与下方标签完全同构）
                     entries.forEachIndexed { index, entry ->
                         val barHeightTarget = if (maxValue == 0f) 0f else (entry.value / maxValue) * contentHeight
                         val barHeight = barHeightTarget * animationProgress.value
@@ -268,7 +255,6 @@ fun BarChart(
                         drawPath(path = path, color = barColor)
                     }
 
-                    // 平均线（虚线）
                     if (averageValue > 0f && maxValue > 0f) {
                         val averageLabel = context.getString(
                             R.string.chart_average_label,
@@ -295,51 +281,47 @@ fun BarChart(
                     }
                 }
 
-                // 覆盖层：固定的轴线（原点对齐）与固定的 Y 轴刻度数字
                 Canvas(modifier = Modifier.matchParentSize()) {
                     val w = size.width
                     val h = size.height
 
-                    // 固定的 Y 轴刻度数字（在轴线右侧、图内）
                     for (i in 0..steps) {
                         val label = yAxisLabels[i]
                         val fractionTopToBottom = i / steps.toFloat()
                         val yCenter = h * fractionTopToBottom
 
                         val textWidth = yLabelPaint.measureText(label)
-                        val bgW = textWidth + 2 * px.yLabelPadH
-                        val bgH = yLabelTextHeight + 2 * px.yLabelPadV
+                        val bgW = textWidth + 2 * px.yLabelPadHPx
+                        val bgH = yLabelTextHeight + 2 * px.yLabelPadVPx
 
-                        val bgLeft = 0f + px.yLabelInsideGap
+                        val bgLeft = 0f + px.yLabelInsideGapPx
                         val bgTop = (yCenter - bgH / 2f).coerceIn(0f, h - bgH)
 
                         drawRoundRect(
                             color = yLabelBgColor,
                             topLeft = Offset(bgLeft, bgTop),
                             size = Size(bgW, bgH),
-                            cornerRadius = CornerRadius(px.yLabelCorner, px.yLabelCorner)
+                            cornerRadius = CornerRadius(px.yLabelCornerPx, px.yLabelCornerPx)
                         )
-                        val baselineY = bgTop + px.yLabelPadV - yLabelFontMetrics.ascent
+                        val baselineY = bgTop + px.yLabelPadVPx - yLabelFontMetrics.ascent
                         drawIntoCanvas { c ->
                             c.nativeCanvas.drawText(
                                 label,
-                                bgLeft + px.yLabelPadH,
+                                bgLeft + px.yLabelPadHPx,
                                 baselineY,
                                 yLabelPaint
                             )
                         }
                     }
 
-                    // Y 轴（固定，略高于柱子；x=0 贴左）
                     drawLine(
                         color = axisColor,
-                        start = Offset(0f, -px.overshootTopPx), // 顶部上挑
+                        start = Offset(0f, -px.overshootTopPx),
                         end = Offset(0f, h),
                         strokeWidth = px.axisStrokePx,
                         cap = StrokeCap.Butt
                     )
 
-                    // X 轴（固定），起点与 Y 轴重合（原点对齐）
                     drawLine(
                         color = axisColor,
                         start = Offset(0f, h),
@@ -350,7 +332,6 @@ fun BarChart(
                 }
             }
 
-            // X 轴标签（随内容滚动；与柱子几何完全一致：sidePadding、barWidth、spacing）
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -366,10 +347,9 @@ fun BarChart(
 
                 Row(
                     modifier = labelsRowModifier,
-                    horizontalArrangement = Arrangement.Start, // 不能用 spacedBy，否则会多出两段间距
+                    horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 左右与柱保持一致的对称留白
                     Spacer(modifier = Modifier.width(sidePadding))
                     entries.forEachIndexed { index, entry ->
                         Box(
@@ -377,9 +357,9 @@ fun BarChart(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = entry.label,
+                                text = labelFormatter(entry.label),
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = xLabelColor,
                                 textAlign = TextAlign.Center,
                                 maxLines = 1
                             )
