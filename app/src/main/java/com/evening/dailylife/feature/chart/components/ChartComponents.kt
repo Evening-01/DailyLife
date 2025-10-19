@@ -128,8 +128,8 @@ fun ChartOverviewSection(
     averageValue: Double,
     valueFormatter: (Double) -> String,
     animationKey: Int,
+    modifier: Modifier = Modifier,
     labelFormatter: (String) -> String = { it },
-    modifier: Modifier = Modifier
 ) {
     RoundedColumn(modifier = modifier.fillMaxWidth()) {
         ItemTitle(text = title)
@@ -187,9 +187,6 @@ private fun ChartOverviewContent(
             } else {
                 BarChart(
                     entries = entries,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
                     averageValue = averageValue.toFloat(),
                     valueFormatter = { value -> valueFormatter(value.toDouble()) },
                     labelFormatter = labelFormatter,

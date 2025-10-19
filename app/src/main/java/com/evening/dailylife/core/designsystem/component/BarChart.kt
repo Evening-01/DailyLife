@@ -59,7 +59,7 @@ fun BarChart(
     modifier: Modifier = Modifier,
     averageValue: Float = 0f,
     maxBarHeight: Dp = 140.dp,
-    barWidth: Dp = 30.dp,
+    barWidth: Dp = 28.dp,
     spacing: Dp = 14.dp,
     barColor: Color = MaterialTheme.colorScheme.primary,
     gridColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f),
@@ -119,7 +119,9 @@ fun BarChart(
     val minChartWidth = 240.dp
     val scrollState = rememberScrollState()
 
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 4.dp)
+    ) {
         val maxWidthDp = this.maxWidth
         val count = entries.size
         val totalSpacing = spacing * (count - 1)
@@ -162,7 +164,7 @@ fun BarChart(
                     spacingPx = spacing.toPx(),
                     sidePaddingPx = sidePadding.toPx(),
                     barCornerRadiusPx = 8.dp.toPx(),
-                    axisStrokePx = 2.dp.toPx(),
+                    axisStrokePx = 1.dp.toPx(),
                     gridStrokePx = gridStrokeWidth.toPx(),
                     overshootTopPx = yAxisOvershootTop.toPx(),
                     yLabelTextSizePx = 10.sp.toPx(),
@@ -314,21 +316,46 @@ fun BarChart(
                         }
                     }
 
-                    drawLine(
-                        color = axisColor,
-                        start = Offset(0f, -px.overshootTopPx),
-                        end = Offset(0f, h),
-                        strokeWidth = px.axisStrokePx,
-                        cap = StrokeCap.Butt
-                    )
+                    if (px.axisStrokePx > 0f && w > 0f && h > 0f) {
+                        val strokeHalf = px.axisStrokePx / 2f
+                        val leftX = strokeHalf
+                        val rightX = w - strokeHalf
+                        val topY = strokeHalf
+                        val bottomY = h - strokeHalf
 
-                    drawLine(
-                        color = axisColor,
-                        start = Offset(0f, h),
-                        end = Offset(w, h),
-                        strokeWidth = px.axisStrokePx,
-                        cap = StrokeCap.Butt
-                    )
+                        drawLine(
+                            color = axisColor,
+                            start = Offset(leftX, topY),
+                            end = Offset(leftX, bottomY),
+                            strokeWidth = px.axisStrokePx
+                        )
+                        drawLine(
+                            color = axisColor,
+                            start = Offset(leftX, bottomY),
+                            end = Offset(rightX, bottomY),
+                            strokeWidth = px.axisStrokePx
+                        )
+                        drawLine(
+                            color = axisColor,
+                            start = Offset(leftX, topY),
+                            end = Offset(rightX, topY),
+                            strokeWidth = px.axisStrokePx
+                        )
+
+                        val showRightAxis = if (!shouldScroll) {
+                            true
+                        } else {
+                            scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue
+                        }
+                        if (showRightAxis) {
+                            drawLine(
+                                color = axisColor,
+                                start = Offset(rightX, topY),
+                                end = Offset(rightX, bottomY),
+                                strokeWidth = px.axisStrokePx
+                            )
+                        }
+                    }
                 }
             }
 
