@@ -211,15 +211,19 @@ internal object ChartDataCalculator {
         rangeEnd: Calendar
     ): Range {
         val startDay = (rangeStart.clone() as Calendar).apply { setToStartOfDay() }
-        val dateFormat = SimpleDateFormat("MM-dd", Locale.CHINA)
+        val locale = Locale.getDefault()
+        val dateFormat = SimpleDateFormat("MM-dd", locale)
+        val weekDayFormat = SimpleDateFormat("E", locale)
         val buckets = (0 until DAYS_IN_WEEK).map { offset ->
             val dayStart = (startDay.clone() as Calendar).apply {
                 add(Calendar.DAY_OF_YEAR, offset)
                 setToStartOfDay()
             }
             val dayEnd = (dayStart.clone() as Calendar).apply { setToEndOfDay() }
+            val dateLabel = dateFormat.format(dayStart.time)
+            val weekLabel = weekDayFormat.format(dayStart.time)
             Bucket(
-                label = dateFormat.format(dayStart.time),
+                label = "$weekLabel $dateLabel",
                 start = dayStart.timeInMillis,
                 end = minOf(dayEnd.timeInMillis, rangeEnd.timeInMillis)
             )

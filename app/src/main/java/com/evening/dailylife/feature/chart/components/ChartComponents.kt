@@ -175,8 +175,15 @@ fun ChartOverviewSection(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 140.dp)
-                            .padding(horizontal = 16.dp, vertical = 16.dp)
-                    )
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.chart_empty_data),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 } else {
                     BarChart(
                         entries = entries,

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -76,31 +77,47 @@ internal fun CategoryRankingSection(
                 )
             }
             ChartContentStatus.Empty -> {
-                Text(
-                    text = stringResource(id = R.string.chart_rank_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                )
+                CategoryRankingEmptyState()
             }
             ChartContentStatus.Content -> {
-                ranks.forEachIndexed { index, rank ->
-                    CategoryRankingItem(
-                        rank = rank,
-                        amountFormatter = amountFormatter,
-                        percentFormatter = percentFormatter,
-                        animationKey = animationKey,
-                    )
-
-                    if (index != ranks.lastIndex) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                if (ranks.isEmpty()) {
+                    CategoryRankingEmptyState()
+                } else {
+                    ranks.forEachIndexed { index, rank ->
+                        CategoryRankingItem(
+                            rank = rank,
+                            amountFormatter = amountFormatter,
+                            percentFormatter = percentFormatter,
+                            animationKey = animationKey,
                         )
+
+                        if (index != ranks.lastIndex) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CategoryRankingEmptyState() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 140.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(id = R.string.chart_rank_empty),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
