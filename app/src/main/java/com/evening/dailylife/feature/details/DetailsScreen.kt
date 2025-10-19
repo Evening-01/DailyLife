@@ -85,10 +85,6 @@ fun DetailsScreen(
     val headerContainerColor = LocalExtendedColorScheme.current.headerContainer
     val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
 
-    LaunchedEffect(Unit) {
-        viewModel.filterByMonth(selectedDate)
-    }
-
     if (showDatePickerDialog) {
         CalendarPickerBottomSheet(
             showBottomSheet = true,
@@ -282,4 +278,3 @@ fun DetailsScreen(
         }
     }
 }
-

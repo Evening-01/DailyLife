@@ -6,14 +6,17 @@ import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import java.util.Calendar
+import java.util.Locale
 import kotlin.math.abs
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import java.util.Locale
 
 @HiltViewModel
 class DiscoverViewModel @Inject constructor(
@@ -25,27 +28,33 @@ class DiscoverViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            transactionRepository.getAllTransactions().collectLatest { transactions ->
-                val now = Calendar.getInstance(Locale.getDefault())
-                val monthStart = (now.clone() as Calendar).apply {
-                    set(Calendar.DAY_OF_MONTH, 1)
-                    setToStartOfDay()
-                }
-                val monthEnd = (monthStart.clone() as Calendar).apply {
-                    set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
-                    setToEndOfDay()
-                }
-                val monthTransactions = transactions.filter { entity ->
-                    entity.date in monthStart.timeInMillis..monthEnd.timeInMillis
-                }
+            transactionRepository
+                .getAllTransactions()
+                .mapLatest { transactions ->
+                    val now = Calendar.getInstance(Locale.getDefault())
+                    val monthStart = (now.clone() as Calendar).apply {
+                        set(Calendar.DAY_OF_MONTH, 1)
+                        setToStartOfDay()
+                    }
+                    val monthEnd = (monthStart.clone() as Calendar).apply {
+                        set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+                        setToEndOfDay()
+                    }
+                    val monthTransactions = transactions.filter { entity ->
+                        entity.date in monthStart.timeInMillis..monthEnd.timeInMillis
+                    }
 
-                _uiState.value = DiscoverUiState(
-                    typeProfile = buildTypeProfile(monthTransactions),
-                    isLoading = false,
-                    year = monthStart.get(Calendar.YEAR),
-                    month = monthStart.get(Calendar.MONTH) + 1
-                )
-            }
+                    DiscoverUiState(
+                        typeProfile = buildTypeProfile(monthTransactions),
+                        isLoading = false,
+                        year = monthStart.get(Calendar.YEAR),
+                        month = monthStart.get(Calendar.MONTH) + 1
+                    )
+                }
+                .flowOn(Dispatchers.Default)
+                .collectLatest { newState ->
+                    _uiState.value = newState
+                }
         }
     }
 
