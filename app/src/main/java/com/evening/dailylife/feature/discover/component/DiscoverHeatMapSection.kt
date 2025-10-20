@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +71,17 @@ fun DiscoverHeatMapSection(
         contributions.values.maxOfOrNull(DiscoverHeatMapEntry::transactionCount) ?: 0
     }
 
+    val contributionLevels = remember(contributions, maxCount) {
+        if (contributions.isEmpty()) emptyMap() else buildMap {
+            contributions.forEach { (date, entry) ->
+                put(date, ContributionLevel.fromCount(entry.transactionCount, maxCount))
+            }
+        }
+    }
+
+    val dateRange = remember(startDate, endDate) { startDate..endDate }
+    val placeholderColor = remember { EmptyContributionColor.copy(alpha = 0.55f) }
+
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
@@ -91,13 +103,16 @@ fun DiscoverHeatMapSection(
                     state = calendarState,
                     contentPadding = PaddingValues(end = 6.dp),
                     dayContent = { day, week ->
-                        val weekDates = week.days.map { it.date }
+                        val weekDates = remember(week.days) { week.days.map { it.date } }
                         ContributionDay(
                             day = day,
-                            startDate = startDate,
-                            endDate = endDate,
-                            entry = contributions[day.date],
-                            maxCount = maxCount,
+                            dateRange = dateRange,
+                            level = contributionLevels[day.date]
+                                ?: ContributionLevel.fromCount(
+                                    contributions[day.date]?.transactionCount ?: 0,
+                                    maxCount,
+                                ),
+                            placeholderColor = placeholderColor,
                             weekDates = weekDates,
                         )
                     },
@@ -150,19 +165,19 @@ private fun CalendarLegend(
 @Composable
 private fun ContributionDay(
     day: CalendarDay,
-    startDate: LocalDate,
-    endDate: LocalDate,
-    entry: DiscoverHeatMapEntry?,
-    maxCount: Int,
+    dateRange: ClosedRange<LocalDate>,
+    level: ContributionLevel,
+    placeholderColor: Color,
     weekDates: List<LocalDate>,
 ) {
-    if (day.date in startDate..endDate) {
-        val level = ContributionLevel.fromCount(entry?.transactionCount ?: 0, maxCount)
-        LegendBox(
-            color = level.color,
-        )
-    } else if (weekDates.contains(startDate)) {
-        LegendBox(color = Color.Transparent)
+    when {
+        day.date in dateRange -> {
+            LegendBox(color = level.color)
+        }
+
+        weekDates.contains(dateRange.start) -> {
+            LegendBox(color = placeholderColor)
+        }
     }
 }
 
@@ -259,7 +274,7 @@ private fun LegendBox(
 }
 
 private enum class ContributionLevel(val color: Color) {
-    Zero(Color(0xFFEBEDF0)),
+    Zero(EmptyContributionColor),
     One(Color(0xFF9BE9A8)),
     Two(Color(0xFF40C463)),
     Three(Color(0xFF30A14E)),
@@ -279,6 +294,7 @@ private enum class ContributionLevel(val color: Color) {
     }
 }
 
+private val EmptyContributionColor = Color(0xFFC5CCD7)
 private val DaySize = 15.dp
 
 @RequiresApi(Build.VERSION_CODES.O)

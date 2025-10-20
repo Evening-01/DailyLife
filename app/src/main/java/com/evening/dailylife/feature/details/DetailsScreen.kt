@@ -9,14 +9,17 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,9 +27,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,7 +60,6 @@ import com.evening.dailylife.feature.details.component.DetailsEmptyState
 import com.evening.dailylife.feature.details.component.DetailsSummaryHeader
 import com.evening.dailylife.feature.details.component.TransactionListItem
 import com.evening.dailylife.feature.details.model.DailyTransactions
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -166,9 +167,11 @@ private fun DetailsTransactionList(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val deleteWidthDp = 80.dp
-    val deleteWidthPx = with(density) { deleteWidthDp.toPx() }
-    val snapOpenThreshold = deleteWidthPx * (2f / 3f)
+    val deleteActionWidth = 96.dp
+    val deleteActionWidthPx = with(density) { deleteActionWidth.toPx() }
+    val maxSwipeOffset = -deleteActionWidthPx
+    val swipeThreshold = deleteActionWidthPx * 0.4f
+    var expandedTransactionId by remember { mutableStateOf<Int?>(null) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -188,85 +191,99 @@ private fun DetailsTransactionList(
                     exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(tween(200)),
                 ) {
                     Column {
-                        dailyData.transactions.forEachIndexed { index, transaction ->
-                            val offsetX = remember { Animatable(0f) }
-                            val isDeleting = remember { mutableStateOf(false) }
+                        dailyData.transactions.forEach { transaction ->
+                            key(transaction.id) {
+                                val offsetX = remember { Animatable(0f) }
 
-                            LaunchedEffect(transaction.id) {
-                                offsetX.snapTo(0f)
-                                isDeleting.value = false
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .pointerInput(transaction.id) {
-                                        detectHorizontalDragGestures(
-                                            onDragEnd = {
-                                                coroutineScope.launch {
-                                                    if (abs(offsetX.value) >= snapOpenThreshold) {
-                                                        offsetX.animateTo(
-                                                            targetValue = -deleteWidthPx,
-                                                            animationSpec = tween(200)
-                                                        )
-                                                    } else {
-                                                        offsetX.animateTo(
-                                                            targetValue = 0f,
-                                                            animationSpec = tween(200)
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        ) { _, dragAmount ->
-                                            coroutineScope.launch {
-                                                val newValue = (offsetX.value + dragAmount)
-                                                    .coerceIn(-deleteWidthPx, 0f)
-                                                offsetX.snapTo(newValue)
-                                            }
-                                        }
-                                    }
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            isDeleting.value = true
-                                            offsetX.animateTo(
-                                                targetValue = -density.run { 200.dp.toPx() },
-                                                animationSpec = tween(250),
-                                            )
-                                            delay(150)
-                                            onDeleteTransaction(transaction)
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                        .padding(end = 16.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.error,
-                                            shape = MaterialTheme.shapes.medium,
-                                        ),
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = stringResource(R.string.common_delete),
-                                        tint = Color.White,
-                                    )
+                                LaunchedEffect(transaction.id) {
+                                    offsetX.snapTo(0f)
                                 }
 
-                                TransactionListItem(
-                                    transaction = transaction,
-                                    onClick = { onTransactionClick(transaction.id) },
-                                    modifier = Modifier
-                                        .offset { IntOffset(offsetX.value.roundToInt(), 0) },
-                                )
-                            }
+                                LaunchedEffect(expandedTransactionId) {
+                                    val target = if (expandedTransactionId == transaction.id) {
+                                        maxSwipeOffset
+                                    } else {
+                                        0f
+                                    }
+                                    offsetX.animateTo(targetValue = target, animationSpec = tween(200))
+                                }
 
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(start = 72.dp)
-                            )
+                                fun settleSwipe(shouldExpand: Boolean) {
+                                    expandedTransactionId = if (shouldExpand) transaction.id else null
+                                    coroutineScope.launch {
+                                        val target = if (shouldExpand) maxSwipeOffset else 0f
+                                        offsetX.animateTo(targetValue = target, animationSpec = tween(200))
+                                    }
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .pointerInput(expandedTransactionId, transaction.id) {
+                                            detectHorizontalDragGestures(
+                                                onDragStart = {
+                                                    if (
+                                                        expandedTransactionId != null &&
+                                                        expandedTransactionId != transaction.id
+                                                    ) {
+                                                        expandedTransactionId = null
+                                                    }
+                                                },
+                                                onHorizontalDrag = { _, dragAmount ->
+                                                    coroutineScope.launch {
+                                                        val newValue = (offsetX.value + dragAmount)
+                                                            .coerceIn(maxSwipeOffset, 0f)
+                                                        offsetX.snapTo(newValue)
+                                                    }
+                                                },
+                                                onDragEnd = {
+                                                    val shouldExpand = abs(offsetX.value) > swipeThreshold
+                                                    settleSwipe(shouldExpand)
+                                                },
+                                                onDragCancel = {
+                                                    val shouldExpand = abs(offsetX.value) > swipeThreshold
+                                                    settleSwipe(shouldExpand)
+                                                },
+                                            )
+                                        },
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.CenterEnd)
+                                            .width(deleteActionWidth)
+                                            .fillMaxHeight()
+                                            .background(
+                                                color = MaterialTheme.colorScheme.error,
+                                                shape = MaterialTheme.shapes.medium,
+                                            )
+                                            .clickable {
+                                                settleSwipe(false)
+                                                onDeleteTransaction(transaction)
+                                            },
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = stringResource(R.string.common_delete),
+                                            tint = Color.White,
+                                        )
+                                    }
+
+                                    TransactionListItem(
+                                        transaction = transaction,
+                                        onClick = {
+                                            if (expandedTransactionId == transaction.id) {
+                                                settleSwipe(false)
+                                            } else {
+                                                onTransactionClick(transaction.id)
+                                            }
+                                        },
+                                        modifier = Modifier.offset {
+                                            IntOffset(offsetX.value.roundToInt(), 0)
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
