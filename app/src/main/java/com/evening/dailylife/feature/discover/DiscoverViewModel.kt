@@ -5,15 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import java.util.Calendar
 import java.util.Locale
+import javax.inject.Inject
 import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
@@ -25,37 +26,49 @@ class DiscoverViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(DiscoverUiState())
     val uiState: StateFlow<DiscoverUiState> = _uiState.asStateFlow()
+    private val transactionsState = transactionRepository.observeAllTransactions()
 
     init {
-        viewModelScope.launch {
-            transactionRepository
-                .getAllTransactions()
-                .mapLatest { transactions ->
-                    val now = Calendar.getInstance(Locale.getDefault())
-                    val monthStart = (now.clone() as Calendar).apply {
-                        set(Calendar.DAY_OF_MONTH, 1)
-                        setToStartOfDay()
-                    }
-                    val monthEnd = (monthStart.clone() as Calendar).apply {
-                        set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
-                        setToEndOfDay()
-                    }
-                    val monthTransactions = transactions.filter { entity ->
-                        entity.date in monthStart.timeInMillis..monthEnd.timeInMillis
-                    }
+        val cachedTransactions = transactionsState.value
+        if (cachedTransactions != null) {
+            _uiState.value = buildUiStateFromTransactions(cachedTransactions)
+        } else {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+        }
 
-                    DiscoverUiState(
-                        typeProfile = buildTypeProfile(monthTransactions),
-                        isLoading = false,
-                        year = monthStart.get(Calendar.YEAR),
-                        month = monthStart.get(Calendar.MONTH) + 1
-                    )
-                }
+        viewModelScope.launch {
+            transactionsState
+                .filterNotNull()
+                .mapLatest { buildUiStateFromTransactions(it) }
                 .flowOn(Dispatchers.Default)
                 .collectLatest { newState ->
                     _uiState.value = newState
                 }
         }
+    }
+
+    private fun buildUiStateFromTransactions(
+        transactions: List<TransactionEntity>
+    ): DiscoverUiState {
+        val now = Calendar.getInstance(Locale.getDefault())
+        val monthStart = (now.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            setToStartOfDay()
+        }
+        val monthEnd = (monthStart.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+            setToEndOfDay()
+        }
+        val monthTransactions = transactions.filter { entity ->
+            entity.date in monthStart.timeInMillis..monthEnd.timeInMillis
+        }
+
+        return DiscoverUiState(
+            typeProfile = buildTypeProfile(monthTransactions),
+            isLoading = false,
+            year = monthStart.get(Calendar.YEAR),
+            month = monthStart.get(Calendar.MONTH) + 1
+        )
     }
 
     private fun buildTypeProfile(

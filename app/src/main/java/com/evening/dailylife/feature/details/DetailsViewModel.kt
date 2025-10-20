@@ -32,6 +32,8 @@ class DetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DetailsUiState())
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
 
+    private val allTransactionsState = repository.observeAllTransactions()
+
     private var loadJob: Job? = null
     private var currentCalendar: Calendar = Calendar.getInstance()
 
@@ -57,28 +59,16 @@ class DetailsViewModel @Inject constructor(
 
     private fun loadTransactionsForMonth(calendar: Calendar) {
         loadJob?.cancel()
-        loadJob = viewModelScope.launch {
+        val (startMillis, endMillis) = calculateMonthBounds(calendar)
+
+        val cachedTransactions = allTransactionsState.value
+        if (cachedTransactions != null) {
+            _uiState.value = buildMonthSnapshot(calendar, cachedTransactions)
+        } else {
             _uiState.value = _uiState.value.copy(isLoading = true)
+        }
 
-            val startCalendar = (calendar.clone() as Calendar).apply {
-                set(Calendar.DAY_OF_MONTH, 1)
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-
-            val endCalendar = (calendar.clone() as Calendar).apply {
-                set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
-                set(Calendar.HOUR_OF_DAY, 23)
-                set(Calendar.MINUTE, 59)
-                set(Calendar.SECOND, 59)
-                set(Calendar.MILLISECOND, 999)
-            }
-
-            val startMillis = startCalendar.timeInMillis
-            val endMillis = endCalendar.timeInMillis
-
+        loadJob = viewModelScope.launch {
             repository.getTransactionsWithDayRange(startMillis, endMillis)
                 .combine(repository.getDailySummaries(startMillis, endMillis)) { transactions, summaries ->
                     val summaryByDay = summaries.associateBy { it.dayStartMillis }
@@ -135,6 +125,88 @@ class DetailsViewModel @Inject constructor(
         }
     }
 
+    private fun calculateMonthBounds(calendar: Calendar): Pair<Long, Long> {
+        val startCalendar = (calendar.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        val endCalendar = (calendar.clone() as Calendar).apply {
+            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
+
+        return startCalendar.timeInMillis to endCalendar.timeInMillis
+    }
+
+    private fun buildMonthSnapshot(
+        calendar: Calendar,
+        allTransactions: List<TransactionEntity>
+    ): DetailsUiState {
+        val (startMillis, endMillis) = calculateMonthBounds(calendar)
+        val monthTransactions = allTransactions.filter { transaction ->
+            transaction.date in startMillis..endMillis
+        }
+        if (monthTransactions.isEmpty()) {
+            return DetailsUiState(
+                transactions = emptyList(),
+                totalIncome = 0.0,
+                totalExpense = 0.0,
+                averageMood = null,
+                isLoading = false
+            )
+        }
+
+        val groupedByDay = monthTransactions.groupBy { dayStartMillis(it.date) }
+        val dailyTransactions = groupedByDay.entries
+            .sortedByDescending { it.key }
+            .map { (dayStartMillis, items) ->
+                val dailyIncome = items.filter { it.amount > 0 }.sumOf { it.amount }
+                val dailyExpense = items.filter { it.amount < 0 }.sumOf { it.amount }
+                val moodScoreSum = items.sumOf { it.mood ?: 0 }
+                val moodCount = items.count { it.mood != null }
+                val dailyMood = if (moodCount > 0) {
+                    MoodRepository.getMoodByScore(moodScoreSum)?.let { mood ->
+                        stringProvider.getString(mood.nameRes)
+                    } ?: ""
+                } else {
+                    ""
+                }
+
+                DailyTransactions(
+                    date = formatDate(dayStartMillis),
+                    transactions = items.sortedByDescending { it.date },
+                    dailyIncome = dailyIncome,
+                    dailyExpense = dailyExpense,
+                    dailyMood = dailyMood
+                )
+            }
+
+        val totalIncome = monthTransactions.filter { it.amount > 0 }.sumOf { it.amount }
+        val totalExpense = monthTransactions.filter { it.amount < 0 }.sumOf { it.amount }
+        val totalMoodScore = monthTransactions.sumOf { it.mood ?: 0 }
+        val totalMoodCount = monthTransactions.count { it.mood != null }
+        val averageMood = if (totalMoodCount > 0) totalMoodScore / totalMoodCount else null
+
+        return DetailsUiState(
+            transactions = dailyTransactions,
+            totalIncome = totalIncome,
+            totalExpense = totalExpense,
+            averageMood = averageMood,
+            isLoading = false
+        )
+    }
+
+    private fun dayStartMillis(timestamp: Long): Long {
+        return (timestamp / MILLIS_IN_DAY) * MILLIS_IN_DAY
+    }
+
     private fun formatDate(dateMillis: Long): String {
         val calendar = Calendar.getInstance()
         val today = Calendar.getInstance()
@@ -156,5 +228,6 @@ class DetailsViewModel @Inject constructor(
     companion object {
         private val SOFT_DELETE_RETENTION_MILLIS =
             TimeUnit.DAYS.toMillis(30)
+        private const val MILLIS_IN_DAY = 86_400_000L
     }
 }
