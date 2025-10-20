@@ -79,6 +79,11 @@
     <string name="theme_mode_light">亮色模式</string>
     <string name="theme_mode_dark">暗色模式</string>
 
+    <!-- Me heat map -->
+    <string name="me_heatmap_title">记账热力图</string>
+    <string name="me_heatmap_legend_less">较少</string>
+    <string name="me_heatmap_legend_more">较多</string>
+
     <!-- Details screen -->
     <string name="details_year_pattern">yyyy年</string>
     <string name="details_month_pattern">M月</string>

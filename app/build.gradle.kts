@@ -60,6 +60,9 @@ dependencies {
     implementation(com.google.android.material.material)
 
 
+    implementation(com.kizitonwose.calendar.compose)
+
+
     implementation(io.github.moriafly.salt.ui)
     implementation(com.google.code.gson.gson)
     implementation(androidx.core.core.splashscreen)

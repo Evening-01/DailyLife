@@ -9,13 +9,6 @@ repositories:
   maven-central:
   jit-pack:
   sonatype-oss-releases:
-  rovo89-xposed-api:
-    scope: LIBRARIES
-    url: https://api.xposed.info/
-    content:
-      include:
-        group:
-          de.robv.android.xposed
 
 
 plugins:
@@ -121,6 +114,10 @@ libraries:
       version: 2.57.1
     hilt-android-compiler:
       version: 2.57.1
+
+  com.kizitonwose.calendar:
+    compose:
+      version: 2.9.0
 
   androidx.hilt:
     hilt-navigation-compose:
