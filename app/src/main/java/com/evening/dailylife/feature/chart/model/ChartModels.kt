@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.chart
+package com.evening.dailylife.feature.chart.model
 
 import androidx.annotation.StringRes
 import com.evening.dailylife.R

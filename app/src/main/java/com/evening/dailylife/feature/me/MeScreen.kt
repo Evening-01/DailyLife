@@ -2,32 +2,39 @@ package com.evening.dailylife.feature.me
 
 import android.os.Build
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrightnessMedium
 import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -43,13 +50,11 @@ import com.moriafly.salt.ui.UnstableSaltApi
 import com.moriafly.salt.ui.popup.PopupMenuItem
 import com.moriafly.salt.ui.popup.rememberPopupState
 
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(UnstableSaltApi::class, ExperimentalMaterial3Api::class)
+@OptIn(UnstableSaltApi::class)
 @Composable
 fun MeScreen(
-    viewModel: MeViewModel = hiltViewModel()
+    viewModel: MeViewModel = hiltViewModel(),
 ) {
-    val heatMapUiState by viewModel.heatMapUiState.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
     val isDynamicColorEnabled by viewModel.dynamicColor.collectAsState()
     val themeModePopupMenuState = rememberPopupState()
@@ -61,50 +66,77 @@ fun MeScreen(
     val isDynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val dynamicColorUnsupportedMessage = stringResource(R.string.dynamic_color_unsupported)
 
-
-    Scaffold (
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.me),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                },
-
-            )
-        }
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
             contentPadding = PaddingValues(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
-                MeHeatMapSection(
-                    uiState = heatMapUiState,
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 4.dp)
-                )
+                        .padding(horizontal = 16.dp),
+                    color = headerContainerColor,
+                    contentColor = headerContentColor,
+                    shape = MaterialTheme.shapes.large,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(64.dp),
+                            shape = CircleShape,
+                            color = headerContentColor.copy(alpha = 0.08f),
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_user),
+                                contentDescription = stringResource(R.string.me_profile_avatar_content_description),
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.me_profile_display_name),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                text = stringResource(R.string.me_profile_id),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = headerContentColor.copy(alpha = 0.8f),
+                            )
+                            Text(
+                                text = stringResource(R.string.me_profile_signature),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = headerContentColor.copy(alpha = 0.7f),
+                            )
+                        }
+                    }
+                }
             }
 
             item {
                 RoundedColumn {
                     ItemTitle(text = stringResource(R.string.user_interface))
 
-                    // 动态颜色切换
                     Box {
-                        // ItemSwitcher 正常显示，并根据系统版本决定其可用状态
                         ItemSwitcher(
                             state = isDynamicColorEnabled,
                             onChange = { checked ->
                                 viewModel.setDynamicColor(checked)
                             },
-                            enabled = isDynamicColorSupported, // 根据系统版本决定开关是否可用
+                            enabled = isDynamicColorSupported,
                             text = stringResource(R.string.dynamic_color_switcher_text),
                             sub = stringResource(R.string.dynamic_color_switcher_sub),
                             iconPainter = rememberVectorPainter(image = Icons.Outlined.Palette),
@@ -112,7 +144,6 @@ fun MeScreen(
                             iconColor = SaltTheme.colors.text,
                         )
 
-                        // 覆盖一个透明的、可点击的遮罩层
                         if (!isDynamicColorSupported) {
                             Spacer(
                                 modifier = Modifier
@@ -120,17 +151,15 @@ fun MeScreen(
                                     .clickable(
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() },
-                                        onClick = {
-                                            Toast
-                                                .makeText(context, dynamicColorUnsupportedMessage, Toast.LENGTH_SHORT)
-                                                .show()
-                                        }
-                                    )
+                                    ) {
+                                        Toast
+                                            .makeText(context, dynamicColorUnsupportedMessage, Toast.LENGTH_SHORT)
+                                            .show()
+                                    },
                             )
                         }
                     }
 
-                    // 主题模式切换
                     ItemPopup(
                         state = themeModePopupMenuState,
                         iconPainter = rememberVectorPainter(image = Icons.Outlined.BrightnessMedium),
@@ -138,7 +167,7 @@ fun MeScreen(
                         iconColor = SaltTheme.colors.text,
                         text = stringResource(R.string.theme_mode_switcher_text),
                         selectedItem = stringResource(id = themeMode.resId),
-                        popupWidth = 140
+                        popupWidth = 140,
                     ) {
                         ThemeMode.entries.forEach { mode ->
                             PopupMenuItem(
@@ -154,5 +183,4 @@ fun MeScreen(
             }
         }
     }
-
 }

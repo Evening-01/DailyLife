@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.details
+package com.evening.dailylife.feature.details.model
 
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 
@@ -7,7 +7,7 @@ data class DailyTransactions(
     val transactions: List<TransactionEntity>,
     val dailyIncome: Double,
     val dailyExpense: Double,
-    val dailyMood: String
+    val dailyMood: String,
 )
 
 data class DetailsUiState(
@@ -15,5 +15,5 @@ data class DetailsUiState(
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,
     val averageMood: Int? = null,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
 )

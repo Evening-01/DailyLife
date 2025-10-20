@@ -34,9 +34,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.evening.dailylife.R
 import com.evening.dailylife.core.model.TransactionCategoryRepository
-import com.evening.dailylife.feature.chart.ChartContentStatus
-import com.evening.dailylife.feature.chart.ChartCategoryRank
-import com.evening.dailylife.feature.chart.ChartType
+import com.evening.dailylife.feature.chart.model.ChartCategoryRank
+import com.evening.dailylife.feature.chart.model.ChartContentStatus
+import com.evening.dailylife.feature.chart.model.ChartType
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
 import com.moriafly.salt.ui.UnstableSaltApi

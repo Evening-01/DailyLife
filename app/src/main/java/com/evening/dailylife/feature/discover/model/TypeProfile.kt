@@ -1,10 +1,10 @@
-package com.evening.dailylife.feature.discover
+package com.evening.dailylife.feature.discover.model
 
 data class TypeProfile(
     val expenseTotal: Double = 0.0,
     val incomeTotal: Double = 0.0,
     val expenseCount: Int = 0,
-    val incomeCount: Int = 0
+    val incomeCount: Int = 0,
 ) {
     val net: Double
         get() = incomeTotal - expenseTotal

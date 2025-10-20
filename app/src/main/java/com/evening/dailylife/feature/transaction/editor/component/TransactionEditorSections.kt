@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.transaction.editor
+package com.evening.dailylife.feature.transaction.editor.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

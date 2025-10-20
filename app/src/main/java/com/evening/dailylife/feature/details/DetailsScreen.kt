@@ -5,27 +5,26 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,12 +50,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
+import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomSheet
 import com.evening.dailylife.core.designsystem.component.CalendarPickerType
-import com.evening.dailylife.feature.details.components.DailyHeader
-import com.evening.dailylife.feature.details.components.DetailsEmptyState
-import com.evening.dailylife.feature.details.components.DetailsSummaryHeader
-import com.evening.dailylife.feature.details.components.TransactionListItem
+import com.evening.dailylife.feature.details.component.DailyHeader
+import com.evening.dailylife.feature.details.component.DetailsEmptyState
+import com.evening.dailylife.feature.details.component.DetailsSummaryHeader
+import com.evening.dailylife.feature.details.component.TransactionListItem
+import com.evening.dailylife.feature.details.model.DailyTransactions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -71,7 +72,7 @@ import kotlin.math.roundToInt
 fun DetailsScreen(
     onTransactionClick: (Int) -> Unit,
     onAddTransactionClick: () -> Unit,
-    viewModel: DetailsViewModel = hiltViewModel()
+    viewModel: DetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDatePickerDialog by remember { mutableStateOf(false) }
@@ -101,7 +102,7 @@ fun DetailsScreen(
                 selectedDate = newCalendar
                 viewModel.filterByMonth(newCalendar)
                 showDatePickerDialog = false
-            }
+            },
         )
     }
 
@@ -111,13 +112,13 @@ fun DetailsScreen(
                 title = {
                     Text(
                         stringResource(id = R.string.app_name),
-                        style = MaterialTheme.typography.headlineSmall
+                        style = MaterialTheme.typography.headlineSmall,
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = headerContainerColor,
-                    titleContentColor = headerContentColor
-                )
+                    titleContentColor = headerContentColor,
+                ),
             )
         },
         floatingActionButton = {
@@ -126,12 +127,12 @@ fun DetailsScreen(
                 icon = {
                     Icon(
                         Icons.Default.Add,
-                        contentDescription = stringResource(R.string.details_add_transaction_content_description)
+                        contentDescription = stringResource(R.string.details_add_transaction_content_description),
                     )
                 },
-                text = { Text(stringResource(R.string.details_add_transaction_label)) }
+                text = { Text(stringResource(R.string.details_add_transaction_label)) },
             )
-        }
+        },
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             DetailsSummaryHeader(
@@ -141,139 +142,141 @@ fun DetailsScreen(
                 expense = "%.2f".format(abs(uiState.totalExpense)),
                 onDateClick = { showDatePickerDialog = true },
                 containerColor = headerContainerColor,
-                contentColor = headerContentColor
+                contentColor = headerContentColor,
             )
 
-            if (uiState.isLoading) {
-                // 你可以在这里添加一个加载指示器
-            } else if (uiState.transactions.isEmpty()) {
-                DetailsEmptyState()
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    uiState.transactions.forEach { dailyData ->
-                        item {
-                            DailyHeader(
-                                date = dailyData.date,
-                                income = dailyData.dailyIncome,
-                                expense = dailyData.dailyExpense,
-                                mood = dailyData.dailyMood
-                            )
-                        }
-                        items(dailyData.transactions, key = { it.id }) { transaction ->
-                            val animationDuration = 300
-                            var visible by remember { mutableStateOf(true) }
+            when {
+                uiState.isLoading -> Unit
+                uiState.transactions.isEmpty() -> DetailsEmptyState()
+                else -> DetailsTransactionList(
+                    transactions = uiState.transactions,
+                    onTransactionClick = onTransactionClick,
+                    onDeleteTransaction = viewModel::deleteTransaction,
+                )
+            }
+        }
+    }
+}
 
-                            // 当 visible 状态变为 false 时，此效应会启动
-                            LaunchedEffect(visible) {
-                                if (!visible) {
-                                    // 等待动画播放完毕
-                                    delay(animationDuration.toLong())
-                                    // 动画结束后，再真正删除数据
-                                    viewModel.deleteTransaction(transaction)
-                                }
+@Composable
+private fun DetailsTransactionList(
+    transactions: List<DailyTransactions>,
+    onTransactionClick: (Int) -> Unit,
+    onDeleteTransaction: (TransactionEntity) -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val deleteWidthDp = 80.dp
+    val deleteWidthPx = with(density) { deleteWidthDp.toPx() }
+    val snapOpenThreshold = deleteWidthPx * (2f / 3f)
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        transactions.forEach { dailyData ->
+            item {
+                DailyHeader(
+                    date = dailyData.date,
+                    income = dailyData.dailyIncome,
+                    expense = dailyData.dailyExpense,
+                    mood = dailyData.dailyMood,
+                )
+
+                AnimatedVisibility(
+                    visible = dailyData.transactions.isNotEmpty(),
+                    enter = expandVertically(expandFrom = Alignment.Top),
+                    exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(tween(200)),
+                ) {
+                    Column {
+                        dailyData.transactions.forEachIndexed { index, transaction ->
+                            val offsetX = remember { Animatable(0f) }
+                            val isDeleting = remember { mutableStateOf(false) }
+
+                            LaunchedEffect(transaction.id) {
+                                offsetX.snapTo(0f)
+                                isDeleting.value = false
                             }
 
-                            AnimatedVisibility(
-                                visible = visible,
-                                exit = shrinkVertically(animationSpec = tween(durationMillis = animationDuration)) +
-                                        fadeOut(animationSpec = tween(durationMillis = animationDuration)),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                val coroutineScope = rememberCoroutineScope()
-                                val deleteButtonWidth = 80.dp
-                                val deleteButtonWidthPx =
-                                    with(LocalDensity.current) { deleteButtonWidth.toPx() }
-                                val offsetX = remember { Animatable(0f) }
-
-                                Box {
-                                    Box(
-                                        modifier = Modifier
-                                            .matchParentSize()
-                                            .background(MaterialTheme.colorScheme.error)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.CenterEnd)
-                                                .fillMaxHeight()
-                                                .width(deleteButtonWidth),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            IconButton(
-                                                onClick = {
-                                                    coroutineScope.launch { offsetX.snapTo(0f) }
-                                                    // 触发动画，而不是直接删除
-                                                    visible = false
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .pointerInput(transaction.id) {
+                                        detectHorizontalDragGestures(
+                                            onDragEnd = {
+                                                coroutineScope.launch {
+                                                    if (abs(offsetX.value) >= snapOpenThreshold) {
+                                                        offsetX.animateTo(
+                                                            targetValue = -deleteWidthPx,
+                                                            animationSpec = tween(200)
+                                                        )
+                                                    } else {
+                                                        offsetX.animateTo(
+                                                            targetValue = 0f,
+                                                            animationSpec = tween(200)
+                                                        )
+                                                    }
                                                 }
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Delete,
-                                                    contentDescription = stringResource(R.string.common_delete),
-                                                    tint = Color.White
-                                                )
+                                            }
+                                        ) { _, dragAmount ->
+                                            coroutineScope.launch {
+                                                val newValue = (offsetX.value + dragAmount)
+                                                    .coerceIn(-deleteWidthPx, 0f)
+                                                offsetX.snapTo(newValue)
                                             }
                                         }
                                     }
-
-                                    Box(
-                                        modifier = Modifier
-                                            .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                                            .pointerInput(Unit) {
-                                                detectHorizontalDragGestures(
-                                                    onDragEnd = {
-                                                        coroutineScope.launch {
-                                                            val threshold = -deleteButtonWidthPx * 0.6f
-                                                            if (offsetX.value < threshold) {
-                                                                offsetX.animateTo(
-                                                                    targetValue = -deleteButtonWidthPx,
-                                                                    animationSpec = tween(durationMillis = 200)
-                                                                )
-                                                            } else {
-                                                                offsetX.animateTo(
-                                                                    targetValue = 0f,
-                                                                    animationSpec = tween(durationMillis = 200)
-                                                                )
-                                                            }
-                                                        }
-                                                    },
-                                                    onHorizontalDrag = { change, dragAmount ->
-                                                        change.consume()
-                                                        coroutineScope.launch {
-                                                            val newOffset =
-                                                                offsetX.value + dragAmount
-                                                            offsetX.snapTo(
-                                                                newOffset.coerceIn(
-                                                                    -deleteButtonWidthPx,
-                                                                    0f
-                                                                )
-                                                            )
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                    ) {
-                                    TransactionListItem(
-                                            transaction = transaction,
-                                            onClick = {
-                                                if (offsetX.value == 0f) {
-                                                    onTransactionClick(transaction.id)
-                                                }
-                                            }
-                                        )
-                                    }
-
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                        modifier = Modifier
-                                            .align(Alignment.BottomCenter)
-                                            .padding(start = 72.dp)
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            isDeleting.value = true
+                                            offsetX.animateTo(
+                                                targetValue = -density.run { 200.dp.toPx() },
+                                                animationSpec = tween(250),
+                                            )
+                                            delay(150)
+                                            onDeleteTransaction(transaction)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .padding(end = 16.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.error,
+                                            shape = MaterialTheme.shapes.medium,
+                                        ),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = stringResource(R.string.common_delete),
+                                        tint = Color.White,
                                     )
                                 }
+
+                                TransactionListItem(
+                                    transaction = transaction,
+                                    onClick = { onTransactionClick(transaction.id) },
+                                    modifier = Modifier
+                                        .offset { IntOffset(offsetX.value.roundToInt(), 0) },
+                                )
                             }
+
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(start = 72.dp)
+                            )
                         }
                     }
                 }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .background(Color.Transparent),
+                )
             }
         }
     }

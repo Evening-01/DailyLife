@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.evening.dailylife.R
 import com.evening.dailylife.feature.chart.ChartDataCalculator
-import com.evening.dailylife.feature.chart.ChartEntry
+import com.evening.dailylife.feature.chart.model.ChartEntry
 import java.util.Locale
 import kotlin.math.min
 

@@ -42,9 +42,11 @@ import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.designsystem.component.CategoryRankingSection
 import com.evening.dailylife.core.designsystem.component.MoodLineChart
-import com.evening.dailylife.feature.chart.components.ChartOverviewSection
-import com.evening.dailylife.feature.chart.components.ChartPeriodSelector
-import com.evening.dailylife.feature.chart.components.ChartRangeTabRow
+import com.evening.dailylife.feature.chart.component.ChartOverviewSection
+import com.evening.dailylife.feature.chart.component.ChartPeriodSelector
+import com.evening.dailylife.feature.chart.component.ChartRangeTabRow
+import com.evening.dailylife.feature.chart.model.ChartPeriod
+import com.evening.dailylife.feature.chart.model.ChartType
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
 import java.util.Locale
@@ -52,7 +54,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChartScreen(
-    viewModel: ChartViewModel = hiltViewModel()
+    viewModel: ChartViewModel = hiltViewModel(),
 ) {
     val headerContainerColor = LocalExtendedColorScheme.current.headerContainer
     val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
@@ -109,15 +111,15 @@ fun ChartScreen(
                             modifier = Modifier
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
+                                    indication = null,
                                 ) { typeMenuExpanded = true }
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             Text(
                                 text = totalLabel,
-                                color = headerContentColor
+                                color = headerContentColor,
                             )
                             Icon(
                                 imageVector = Icons.Outlined.ArrowDropDown,
@@ -128,7 +130,7 @@ fun ChartScreen(
 
                         DropdownMenu(
                             expanded = typeMenuExpanded,
-                            onDismissRequest = { typeMenuExpanded = false }
+                            onDismissRequest = { typeMenuExpanded = false },
                         ) {
                             val chartTypes = ChartType.entries.toTypedArray()
                             chartTypes.forEach { type ->
@@ -139,7 +141,7 @@ fun ChartScreen(
                                     onClick = {
                                         viewModel.onTypeSelected(type)
                                         typeMenuExpanded = false
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -147,28 +149,28 @@ fun ChartScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = headerContainerColor,
-                    titleContentColor = headerContentColor
-                )
+                    titleContentColor = headerContentColor,
+                ),
             )
-        }
+        },
     ) { innerPadding ->
         val rangeTabs = uiState.rangeTabs
 
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
+                .fillMaxSize(),
         ) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = headerContainerColor
+                color = headerContainerColor,
             ) {
                 ChartPeriodSelector(
                     selectedPeriod = selectedPeriod,
                     onPeriodSelected = viewModel::onPeriodSelected,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
 
@@ -179,7 +181,7 @@ fun ChartScreen(
                     onRangeSelected = viewModel::onRangeOptionSelected,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
 
@@ -187,13 +189,18 @@ fun ChartScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f, fill = true),
-
-                ) {
+            ) {
                 item {
                     ChartOverviewSection(
                         title = stringResource(id = R.string.chart_overview_title),
-                        totalDescription = stringResource(id = R.string.chart_total_label, totalLabel) + "：" + formattedTotal,
-                        averageDescription = stringResource(id = R.string.chart_average_label, formattedAverage),
+                        totalDescription = stringResource(
+                            id = R.string.chart_total_label,
+                            totalLabel
+                        ) + "：" + formattedTotal,
+                        averageDescription = stringResource(
+                            id = R.string.chart_average_label,
+                            formattedAverage
+                        ),
                         contentStatus = contentStatus,
                         entries = chartEntries,
                         averageValue = uiState.averageAmount,
@@ -219,10 +226,6 @@ fun ChartScreen(
                         MoodLineChart(
                             entries = uiState.moodEntries,
                             period = selectedPeriod,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            animationKey = barAnimationTrigger
                         )
                     }
                 }

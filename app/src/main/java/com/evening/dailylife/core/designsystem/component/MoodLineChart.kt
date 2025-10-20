@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.evening.dailylife.feature.chart.ChartDataCalculator
-import com.evening.dailylife.feature.chart.ChartPeriod
-import com.evening.dailylife.feature.chart.MoodChartEntry
+import com.evening.dailylife.feature.chart.model.ChartPeriod
+import com.evening.dailylife.feature.chart.model.MoodChartEntry
 import java.util.Locale
 import kotlin.math.abs
 

@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.transaction.details.components
+package com.evening.dailylife.feature.transaction.details.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,51 +39,45 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * 交易详情主内容区域。
- */
 @Composable
 fun TransactionDetailsContent(
     transaction: TransactionEntity,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
-    iconVector: ImageVector
+    iconVector: ImageVector,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         TransactionSummaryCard(
             transaction = transaction,
-            iconVector = iconVector
+            iconVector = iconVector,
         )
         Spacer(modifier = Modifier.height(24.dp))
         TransactionDetailsList(transaction)
         Spacer(modifier = Modifier.weight(1f))
         ActionButtons(
             onDelete = onDelete,
-            onEdit = onEdit
+            onEdit = onEdit,
         )
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
-/**
- * 顶部卡片展示分类图标与金额。
- */
 @Composable
 fun TransactionSummaryCard(
     transaction: TransactionEntity,
-    iconVector: ImageVector
+    iconVector: ImageVector,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
+            contentColor = MaterialTheme.colorScheme.onPrimary,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
@@ -91,20 +85,20 @@ fun TransactionSummaryCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 32.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
                     text = transaction.category,
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
                     text = String.format(Locale.CHINA, "%+.2f", transaction.amount),
                     style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             }
 
@@ -112,13 +106,13 @@ fun TransactionSummaryCard(
                 modifier = Modifier
                     .size(100.dp)
                     .offset(x = 20.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 val glassReflectionBrush = Brush.linearGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
-                        Color.White.copy(alpha = 0.5f)
-                    )
+                        Color.White.copy(alpha = 0.5f),
+                    ),
                 )
 
                 Icon(
@@ -132,19 +126,16 @@ fun TransactionSummaryCard(
                                 drawContent()
                                 drawRect(
                                     brush = glassReflectionBrush,
-                                    blendMode = BlendMode.SrcIn
+                                    blendMode = BlendMode.SrcIn,
                                 )
                             }
-                        }
+                        },
                 )
             }
         }
     }
 }
 
-/**
- * 详细信息条目列表。
- */
 @Composable
 fun TransactionDetailsList(transaction: TransactionEntity) {
     val datePattern = stringResource(R.string.transaction_details_date_pattern)
@@ -154,19 +145,19 @@ fun TransactionDetailsList(transaction: TransactionEntity) {
     Column(modifier = Modifier.fillMaxWidth()) {
         DetailItem(
             label = stringResource(R.string.transaction_detail_category),
-            value = transaction.category
+            value = transaction.category,
         )
         Divider()
         DetailItem(
             label = stringResource(R.string.transaction_detail_time),
-            value = dateString
+            value = dateString,
         )
         Divider()
         DetailItem(
             label = stringResource(R.string.transaction_detail_source),
             value = transaction.source.ifBlank {
                 stringResource(R.string.transaction_detail_source_default)
-            }
+            },
         )
         Divider()
 
@@ -181,9 +172,9 @@ fun TransactionDetailsList(transaction: TransactionEntity) {
                             imageVector = mood.icon,
                             contentDescription = moodName,
                             modifier = Modifier.size(24.dp),
-                            tint = mood.color
+                            tint = mood.color,
                         )
-                    }
+                    },
                 )
                 Divider()
             }
@@ -193,84 +184,83 @@ fun TransactionDetailsList(transaction: TransactionEntity) {
             label = stringResource(R.string.transaction_detail_note),
             value = transaction.description.ifBlank {
                 stringResource(R.string.transaction_detail_note_empty)
-            }
+            },
         )
     }
 }
 
 @Composable
-private fun Divider() {
-    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
-}
-
-@Composable
-fun MoodDetailItem(label: String, mood: String, icon: @Composable () -> Unit) {
-    Row(
+private fun DetailItem(label: String, value: String) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 12.dp, horizontal = 8.dp),
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(80.dp)
         )
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = mood,
+            text = value,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium
         )
-        Spacer(modifier = Modifier.width(8.dp))
+    }
+}
+
+@Composable
+private fun MoodDetailItem(
+    label: String,
+    mood: String,
+    icon: @Composable () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = mood,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
         icon()
     }
 }
 
 @Composable
-fun DetailItem(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(80.dp)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium
-        )
-    }
+private fun Divider() {
+    HorizontalDivider(
+        modifier = Modifier.fillMaxWidth(),
+        thickness = 1.dp,
+        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
+    )
 }
 
 @Composable
-fun ActionButtons(
+private fun ActionButtons(
     onDelete: () -> Unit,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        OutlinedButton(
-            onClick = onDelete,
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(stringResource(R.string.common_delete))
+        OutlinedButton(onClick = onDelete) {
+            Text(text = stringResource(R.string.common_delete))
         }
-        OutlinedButton(
-            onClick = onEdit,
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(stringResource(R.string.common_edit))
+        OutlinedButton(onClick = onEdit) {
+            Text(text = stringResource(R.string.common_edit))
         }
     }
 }

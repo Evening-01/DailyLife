@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.chart
+package com.evening.dailylife.feature.chart.model
 
 data class ChartUiState(
     val selectedType: ChartType = ChartType.Expense,

@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.details.components
+package com.evening.dailylife.feature.details.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,9 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,15 +30,12 @@ import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.model.TransactionCategoryRepository
 import kotlin.math.abs
 
-/**
- * 每日列表头部，展示日期与日累计。
- */
 @Composable
 fun DailyHeader(
     date: String,
     income: Double,
     expense: Double,
-    mood: String
+    mood: String,
 ) {
     val context = LocalContext.current
     val todayLabel = stringResource(R.string.label_today)
@@ -50,7 +48,7 @@ fun DailyHeader(
             R.string.details_month_day_with_weekday,
             dateParts[0],
             dateParts[1],
-            parts.getOrNull(1).orEmpty()
+            parts.getOrNull(1).orEmpty(),
         )
     }
 
@@ -63,7 +61,7 @@ fun DailyHeader(
         Text(
             text = formattedDate,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(modifier = Modifier.weight(1f))
 
@@ -72,7 +70,7 @@ fun DailyHeader(
                 imageVector = MoodRepository.getIcon(context, mood),
                 contentDescription = stringResource(R.string.details_mood_content_description),
                 modifier = Modifier.size(20.dp),
-                tint = MoodRepository.getColor(context, mood)
+                tint = MoodRepository.getColor(context, mood),
             )
         }
         Row {
@@ -80,89 +78,99 @@ fun DailyHeader(
                 Text(
                     text = stringResource(
                         R.string.details_income_amount,
-                        "%.2f".format(income)
+                        "%.2f".format(income),
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
             if (expense < 0) {
                 Text(
                     text = stringResource(
                         R.string.details_expense_amount,
-                        "%.2f".format(abs(expense))
+                        "%.2f".format(abs(expense)),
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
         }
     }
 }
 
-/**
- * 单条交易项。
- */
 @Composable
 fun TransactionListItem(
     transaction: TransactionEntity,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    Row(
-        modifier = Modifier
+    Column(
+        modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .background(MaterialTheme.colorScheme.surface),
     ) {
-        Box(
+        Row(
             modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = TransactionCategoryRepository.getIcon(context, transaction.category),
-                contentDescription = transaction.category,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(16.dp))
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = TransactionCategoryRepository.getIcon(context, transaction.category),
+                    contentDescription = transaction.category,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
 
-        Box(modifier = Modifier.weight(1f)) {
-            if (transaction.description.isNotBlank()) {
-                Column {
+            Box(modifier = Modifier.weight(1f)) {
+                if (transaction.description.isNotBlank()) {
+                    Column {
+                        Text(
+                            text = transaction.category,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                        )
+                        Text(
+                            text = transaction.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                } else {
                     Text(
                         text = transaction.category,
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = transaction.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        fontWeight = FontWeight.Medium,
                     )
                 }
-            } else {
-                Text(
-                    text = transaction.category,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
             }
+
+            Text(
+                text = "%.2f".format(transaction.amount),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = if (transaction.amount > 0) SuccessGreen else MaterialTheme.colorScheme.error,
+            )
         }
 
-        Text(
-            text = "%.2f".format(transaction.amount),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = if (transaction.amount > 0) SuccessGreen else MaterialTheme.colorScheme.error
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 72.dp),
         )
     }
 }

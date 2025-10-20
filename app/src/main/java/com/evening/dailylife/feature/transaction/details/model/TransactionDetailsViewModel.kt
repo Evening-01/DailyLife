@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.transaction.details
+package com.evening.dailylife.feature.transaction.details.model
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

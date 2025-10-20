@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.transaction.editor
+package com.evening.dailylife.feature.transaction.editor.model
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -133,7 +133,9 @@ class TransactionEditorViewModel @Inject constructor(
 
             _uiState.update { it.copy(isSaving = true, error = null) }
 
-            val transactionAmount = if (currentState.isExpense) -abs(amountValue) else abs(amountValue)
+            val transactionAmount = if (currentState.isExpense) -abs(amountValue) else abs(
+                amountValue
+            )
 
             // 将心情名称转换为分数，如果未选择心情，则为 null
             val moodScore = currentState.mood.takeIf { it.isNotEmpty() }?.let {
@@ -191,9 +193,4 @@ class TransactionEditorViewModel @Inject constructor(
             }
         }
     }
-}
-
-sealed interface TransactionEditorEvent {
-    data class ShowMessage(val message: String) : TransactionEditorEvent
-    data object SaveSuccess : TransactionEditorEvent
 }

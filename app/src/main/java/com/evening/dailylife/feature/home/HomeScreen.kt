@@ -34,7 +34,7 @@ import com.evening.dailylife.feature.me.MeScreen
 @Composable
 fun HomeScreen(
     onAddTransactionClick: () -> Unit,
-    appNavController: NavHostController
+    appNavController: NavHostController,
 ) {
     val homeNavController = rememberNavController()
     val navBackStackEntry by homeNavController.currentBackStackEntryAsState()
@@ -45,33 +45,38 @@ fun HomeScreen(
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
-                items.forEach { screen ->
-                    val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                items.forEach { item ->
+                    val isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true
                     NavigationBarItem(
-                        icon = {
-                            AnimatedBottomBarIcon(
-                                screen = screen,
-                                isSelected = isSelected
-                            )
-                        },
-                        label = { Text(stringResource(id = screen.labelResId)) },
                         selected = isSelected,
                         onClick = {
-                            homeNavController.navigate(screen.route) {
+                            homeNavController.navigate(item.route) {
                                 popUpTo(homeNavController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        }
+                        },
+                        icon = {
+                            AnimatedBottomBarIcon(
+                                screen = item,
+                                isSelected = isSelected,
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = stringResource(id = item.labelResId),
+                                style = MaterialTheme.typography.labelMedium,
+                            )
+                        },
                     )
                 }
             }
-        }
+        },
     ) { innerPadding ->
         HomeNavHost(
-            homeNavController = homeNavController,
+            navController = homeNavController,
             appNavController = appNavController,
             onAddTransactionClick = onAddTransactionClick,
             modifier = Modifier.padding(PaddingValues(bottom = innerPadding.calculateBottomPadding()))
@@ -82,23 +87,24 @@ fun HomeScreen(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun HomeNavHost(
-    homeNavController: NavHostController,
+    navController: NavHostController,
     appNavController: NavHostController,
     onAddTransactionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
-        navController = homeNavController,
+        navController = navController,
         startDestination = Route.DETAILS,
         modifier = modifier
     ) {
         composable(Route.DETAILS) {
             DetailsScreen(
                 onTransactionClick = { transactionId ->
-                    // 使用主 appNavController 来执行跨页面的跳转
-                    appNavController.navigate(Route.transactionDetails(transactionId))
+                    appNavController.navigate(
+                        Route.TRANSACTION_DETAILS.replace("{transactionId}", transactionId.toString()),
+                    )
                 },
-                onAddTransactionClick = onAddTransactionClick
+                onAddTransactionClick = onAddTransactionClick,
             )
         }
         composable(Route.CHART) {

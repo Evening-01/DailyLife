@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.chart
+package com.evening.dailylife.feature.chart.model
 
 data class ChartRangeOption(
     val id: String,

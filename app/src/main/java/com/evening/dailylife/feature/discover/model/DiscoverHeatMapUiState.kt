@@ -1,19 +1,19 @@
-package com.evening.dailylife.feature.me
+package com.evening.dailylife.feature.discover.model
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
-data class MeHeatMapUiState(
+data class DiscoverHeatMapUiState(
     val startDate: LocalDate,
     val endDate: LocalDate,
-    val contributions: Map<LocalDate, MeHeatMapEntry> = emptyMap(),
+    val contributions: Map<LocalDate, DiscoverHeatMapEntry> = emptyMap(),
     val isLoading: Boolean = true,
 )
 
 @RequiresApi(Build.VERSION_CODES.O)
-data class MeHeatMapEntry(
+data class DiscoverHeatMapEntry(
     val transactionCount: Int,
     val totalIncome: Double,
     val totalExpense: Double,

@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.discover
+package com.evening.dailylife.feature.discover.component
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -34,15 +34,15 @@ import com.evening.dailylife.R
  */
 @Composable
 fun DiscoverAiSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val gradient = Brush.linearGradient(
         colors = listOf(
             MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
             MaterialTheme.colorScheme.tertiary.copy(alpha = 0.85f),
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.70f)
-        )
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.70f),
+        ),
     )
     val onClick = {
         Toast
@@ -58,67 +58,67 @@ fun DiscoverAiSection(
             .clip(shape)
             .background(
                 brush = gradient,
-                shape = shape
+                shape = shape,
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 22.dp)
+            .padding(horizontal = 20.dp, vertical = 22.dp),
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.AutoAwesome,
                     contentDescription = null,
-                    tint = Color.White
+                    tint = Color.White,
                 )
                 Column {
                     Text(
                         text = stringResource(id = R.string.discover_ai_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        color = Color.White,
                     )
                     Text(
                         text = stringResource(id = R.string.discover_ai_subtitle),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.85f)
+                        color = Color.White.copy(alpha = 0.85f),
                     )
                 }
             }
 
             Surface(
                 color = Color.White.copy(alpha = 0.12f),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
                         text = stringResource(id = R.string.discover_ai_card_title),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = Color.White
+                        color = Color.White,
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         AiFeatureChip(
-                            text = stringResource(id = R.string.discover_ai_chip_insight)
+                            text = stringResource(id = R.string.discover_ai_chip_insight),
                         )
                         AiFeatureChip(
-                            text = stringResource(id = R.string.discover_ai_chip_plan)
+                            text = stringResource(id = R.string.discover_ai_chip_plan),
                         )
                         AiFeatureChip(
-                            text = stringResource(id = R.string.discover_ai_chip_alert)
+                            text = stringResource(id = R.string.discover_ai_chip_alert),
                         )
                     }
                 }
@@ -130,7 +130,7 @@ fun DiscoverAiSection(
 @Composable
 private fun AiFeatureChip(
     text: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier,
@@ -143,7 +143,7 @@ private fun AiFeatureChip(
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Medium,
             color = Color.White,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
         )
     }
 }

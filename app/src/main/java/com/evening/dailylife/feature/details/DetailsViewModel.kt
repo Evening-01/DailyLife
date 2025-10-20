@@ -7,6 +7,8 @@ import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.core.model.MoodRepository
 import com.evening.dailylife.core.util.StringProvider
+import com.evening.dailylife.feature.details.model.DailyTransactions
+import com.evening.dailylife.feature.details.model.DetailsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers

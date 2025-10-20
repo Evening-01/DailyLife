@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.chart.components
+package com.evening.dailylife.feature.chart.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,10 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.evening.dailylife.R
 import com.evening.dailylife.core.designsystem.component.BarChart
-import com.evening.dailylife.feature.chart.ChartContentStatus
-import com.evening.dailylife.feature.chart.ChartEntry
-import com.evening.dailylife.feature.chart.ChartPeriod
-import com.evening.dailylife.feature.chart.ChartRangeOption
+import com.evening.dailylife.feature.chart.model.ChartContentStatus
+import com.evening.dailylife.feature.chart.model.ChartEntry
+import com.evening.dailylife.feature.chart.model.ChartPeriod
+import com.evening.dailylife.feature.chart.model.ChartRangeOption
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
 
@@ -35,11 +35,11 @@ import com.moriafly.salt.ui.RoundedColumn
 fun ChartPeriodSelector(
     selectedPeriod: ChartPeriod,
     onPeriodSelected: (ChartPeriod) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val periods = ChartPeriod.entries.toTypedArray()
     SingleChoiceSegmentedButtonRow(
-        modifier = modifier
+        modifier = modifier,
     ) {
         periods.forEachIndexed { index, period ->
             SegmentedButton(
@@ -52,15 +52,15 @@ fun ChartPeriodSelector(
                     inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f),
                     inactiveContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     activeBorderColor = Color.Black,
-                    inactiveBorderColor = Color.Black
+                    inactiveBorderColor = Color.Black,
                 ),
                 icon = {},
                 label = {
                     Text(
                         text = stringResource(id = period.labelRes),
-                        style = MaterialTheme.typography.labelLarge
+                        style = MaterialTheme.typography.labelLarge,
                     )
-                }
+                },
             )
         }
     }
@@ -71,7 +71,7 @@ fun ChartRangeTabRow(
     rangeTabs: List<ChartRangeOption>,
     selectedOptionId: String?,
     onRangeSelected: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val selectedIndex = rangeTabs.indexOfFirst { it.id == selectedOptionId }.takeIf { it >= 0 } ?: 0
 
@@ -85,9 +85,9 @@ fun ChartRangeTabRow(
             TabRowDefaults.SecondaryIndicator(
                 modifier = Modifier.tabIndicatorOffset(selectedIndex),
                 color = MaterialTheme.colorScheme.primary,
-                height = 2.dp
+                height = 2.dp,
             )
-        }
+        },
     ) {
         rangeTabs.forEachIndexed { index, option ->
             val interactionSource = remember { MutableInteractionSource() }
@@ -98,10 +98,10 @@ fun ChartRangeTabRow(
                     .heightIn(min = 30.dp)
                     .clickable(
                         interactionSource = interactionSource,
-                        indication = null
+                        indication = null,
                     ) { onRangeSelected(option.id) }
                     .padding(horizontal = 12.dp, vertical = 6.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = option.label,
@@ -111,7 +111,7 @@ fun ChartRangeTabRow(
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
-                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                 )
             }
         }
@@ -138,14 +138,14 @@ fun ChartOverviewSection(
             text = totalDescription,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         )
 
         Text(
             text = averageDescription,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         )
 
         ChartOverviewContent(
@@ -154,7 +154,7 @@ fun ChartOverviewSection(
             averageValue = averageValue,
             valueFormatter = valueFormatter,
             animationKey = animationKey,
-            labelFormatter = labelFormatter
+            labelFormatter = labelFormatter,
         )
     }
 }
@@ -166,14 +166,14 @@ private fun ChartOverviewContent(
     averageValue: Double,
     valueFormatter: (Double) -> String,
     animationKey: Int,
-    labelFormatter: (String) -> String
+    labelFormatter: (String) -> String,
 ) {
     when (status) {
         ChartContentStatus.Loading -> {
             LinearProgressIndicator(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
             )
         }
 
@@ -190,7 +190,7 @@ private fun ChartOverviewContent(
                     averageValue = averageValue.toFloat(),
                     valueFormatter = { value -> valueFormatter(value.toDouble()) },
                     labelFormatter = labelFormatter,
-                    animationKey = animationKey
+                    animationKey = animationKey,
                 )
             }
         }
@@ -202,14 +202,13 @@ private fun ChartOverviewEmptyState() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 140.dp)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        contentAlignment = Alignment.Center
+            .heightIn(min = 160.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = stringResource(id = R.string.chart_empty_data),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

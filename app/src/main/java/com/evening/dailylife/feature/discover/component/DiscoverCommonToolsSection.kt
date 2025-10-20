@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.discover
+package com.evening.dailylife.feature.discover.component
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -41,7 +41,7 @@ import com.moriafly.salt.ui.RoundedColumn
  */
 @Composable
 fun DiscoverCommonToolsSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val toastComingSoon = {
@@ -53,19 +53,19 @@ fun DiscoverCommonToolsSection(
         Icons.Outlined.Calculate to stringResource(id = R.string.discover_common_tool_mortgage_title),
         Icons.Outlined.SwapHoriz to stringResource(id = R.string.discover_common_tool_fx_title),
         Icons.Outlined.Inventory2 to stringResource(id = R.string.discover_common_tool_check_title),
-        Icons.Outlined.AccountBalance to stringResource(id = R.string.discover_common_tool_budget_title)
+        Icons.Outlined.AccountBalance to stringResource(id = R.string.discover_common_tool_budget_title),
     )
     RoundedColumn(modifier = modifier) {
         ItemTitle(text = stringResource(id = R.string.discover_common_tools_title))
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             tools.forEach { (icon, title) ->
                 DiscoverCommonToolCard(
                     title = title,
                     icon = icon,
                     onClick = toastComingSoon,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -77,7 +77,7 @@ private fun DiscoverCommonToolCard(
     title: String,
     icon: ImageVector,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
@@ -86,18 +86,18 @@ private fun DiscoverCommonToolCard(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick
+                onClick = onClick,
             )
             .padding(horizontal = 12.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
             modifier = Modifier
                 .size(44.dp)
                 .clip(RoundedCornerShape(14.dp))
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
@@ -110,7 +110,7 @@ private fun DiscoverCommonToolCard(
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
     }
 }

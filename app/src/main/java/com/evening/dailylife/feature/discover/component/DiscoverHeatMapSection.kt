@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.me
+package com.evening.dailylife.feature.discover.component
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.evening.dailylife.R
+import com.evening.dailylife.feature.discover.model.DiscoverHeatMapEntry
+import com.evening.dailylife.feature.discover.model.DiscoverHeatMapUiState
 import com.kizitonwose.calendar.compose.CalendarLayoutInfo
 import com.kizitonwose.calendar.compose.HeatMapCalendar
 import com.kizitonwose.calendar.compose.heatmapcalendar.HeatMapCalendarState
@@ -49,8 +51,8 @@ import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MeHeatMapSection(
-    uiState: MeHeatMapUiState,
+fun DiscoverHeatMapSection(
+    uiState: DiscoverHeatMapUiState,
     modifier: Modifier = Modifier,
 ) {
     val startDate = uiState.startDate
@@ -65,7 +67,7 @@ fun MeHeatMapSection(
     )
 
     val maxCount = remember(contributions) {
-        contributions.values.maxOfOrNull(MeHeatMapEntry::transactionCount) ?: 0
+        contributions.values.maxOfOrNull(DiscoverHeatMapEntry::transactionCount) ?: 0
     }
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -109,8 +111,8 @@ fun MeHeatMapSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 12.dp),
-            lessLabel = stringResource(R.string.me_heatmap_legend_less),
-            moreLabel = stringResource(R.string.me_heatmap_legend_more),
+            lessLabel = stringResource(R.string.discover_heatmap_legend_less),
+            moreLabel = stringResource(R.string.discover_heatmap_legend_more),
         )
     }
 }
@@ -150,7 +152,7 @@ private fun ContributionDay(
     day: CalendarDay,
     startDate: LocalDate,
     endDate: LocalDate,
-    entry: MeHeatMapEntry?,
+    entry: DiscoverHeatMapEntry?,
     maxCount: Int,
     weekDates: List<LocalDate>,
 ) {

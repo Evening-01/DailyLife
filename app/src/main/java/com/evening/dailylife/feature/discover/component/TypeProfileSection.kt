@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.discover
+package com.evening.dailylife.feature.discover.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,24 +26,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.SuccessGreen
+import com.evening.dailylife.feature.discover.model.TypeProfile
 import java.text.DecimalFormat
 
 @Composable
 fun TypeProfileSection(
     profile: TypeProfile,
     numberFormatter: DecimalFormat,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val total = profile.total
     if (total <= 0.0) {
         Box(
             modifier = modifier.heightIn(min = 132.dp),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = stringResource(id = R.string.chart_type_profile_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         return
@@ -54,17 +55,17 @@ fun TypeProfileSection(
     val incomeAmountText = numberFormatter.format(profile.incomeTotal)
     val expenseCountText = stringResource(
         id = R.string.chart_type_profile_transactions,
-        profile.expenseCount
+        profile.expenseCount,
     )
     val incomeCountText = stringResource(
         id = R.string.chart_type_profile_transactions,
-        profile.incomeCount
+        profile.incomeCount,
     )
     val expenseRatioText = percentFormatter.format(profile.expenseRatio.toDouble())
     val incomeRatioText = percentFormatter.format(profile.incomeRatio.toDouble())
     val balanceText = stringResource(
         id = R.string.chart_type_profile_balance,
-        numberFormatter.format(profile.net)
+        numberFormatter.format(profile.net),
     )
 
     val expenseColor = MaterialTheme.colorScheme.error
@@ -74,21 +75,21 @@ fun TypeProfileSection(
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             TypeProfileStatCard(
                 label = stringResource(id = R.string.chart_type_profile_expense),
                 amountText = expenseAmountText,
                 countText = expenseCountText,
                 color = expenseColor,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             TypeProfileStatCard(
                 label = stringResource(id = R.string.chart_type_profile_income),
                 amountText = incomeAmountText,
                 countText = incomeCountText,
                 color = incomeColor,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
 
@@ -98,18 +99,18 @@ fun TypeProfileSection(
             expenseRatio = profile.expenseRatio,
             modifier = Modifier.fillMaxWidth(),
             expenseColor = expenseColor,
-            incomeColor = incomeColor
+            incomeColor = incomeColor,
         )
 
         Text(
             text = stringResource(
                 id = R.string.chart_type_profile_ratio,
                 expenseRatioText,
-                incomeRatioText
+                incomeRatioText,
             ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 8.dp),
         )
 
         Text(
@@ -121,7 +122,7 @@ fun TypeProfileSection(
                 profile.net < 0.0 -> expenseColor
                 else -> neutralBalanceColor
             },
-            modifier = Modifier.padding(top = 12.dp)
+            modifier = Modifier.padding(top = 12.dp),
         )
     }
 }
@@ -131,7 +132,7 @@ private fun TypeProfileRatioBar(
     expenseRatio: Float,
     modifier: Modifier = Modifier,
     expenseColor: Color,
-    incomeColor: Color
+    incomeColor: Color,
 ) {
     val clampedExpenseRatio = expenseRatio.coerceIn(0f, 1f)
     val incomeRatio = 1f - clampedExpenseRatio
@@ -142,14 +143,14 @@ private fun TypeProfileRatioBar(
     Row(
         modifier = modifier
             .height(8.dp)
-            .clip(trackShape)
+            .clip(trackShape),
     ) {
         if (hasExpense) {
             Box(
                 modifier = Modifier
                     .weight(clampedExpenseRatio)
                     .fillMaxHeight()
-                    .background(expenseColor)
+                    .background(expenseColor),
             )
         }
         if (hasIncome) {
@@ -157,7 +158,7 @@ private fun TypeProfileRatioBar(
                 modifier = Modifier
                     .weight(incomeRatio)
                     .fillMaxHeight()
-                    .background(incomeColor)
+                    .background(incomeColor),
             )
         }
     }
@@ -169,33 +170,35 @@ private fun TypeProfileStatCard(
     amountText: String,
     countText: String,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        color = color.copy(alpha = 0.08f)
+        shape = RoundedCornerShape(20.dp),
+        tonalElevation = 2.dp,
+        shadowElevation = 0.dp,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = color
+                style = MaterialTheme.typography.titleSmall,
+                color = color,
+                fontWeight = FontWeight.Medium,
             )
             Text(
                 text = amountText,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 8.dp)
             )
             Text(
                 text = countText,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 6.dp)
             )
         }
     }

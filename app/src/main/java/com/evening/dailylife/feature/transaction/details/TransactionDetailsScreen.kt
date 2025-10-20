@@ -26,13 +26,14 @@ import androidx.navigation.NavController
 import com.evening.dailylife.R
 import com.evening.dailylife.app.navigation.Route
 import com.evening.dailylife.core.model.TransactionCategoryRepository
-import com.evening.dailylife.feature.transaction.details.components.TransactionDetailsContent
+import com.evening.dailylife.feature.transaction.details.component.TransactionDetailsContent
+import com.evening.dailylife.feature.transaction.details.model.TransactionDetailsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionDetailsScreen(
     navController: NavController,
-    viewModel: TransactionDetailsViewModel = hiltViewModel()
+    viewModel: TransactionDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -44,27 +45,29 @@ fun TransactionDetailsScreen(
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
+                            contentDescription = stringResource(R.string.back),
                         )
                     }
                 },
             )
         },
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surface,
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             when {
                 uiState.isLoading -> {
                     CircularProgressIndicator()
                 }
+
                 uiState.error != null -> {
                     Text(text = uiState.error ?: stringResource(R.string.error_load_failed))
                 }
+
                 uiState.transaction != null -> {
                     val transaction = uiState.transaction!!
                     val context = LocalContext.current
@@ -80,15 +83,13 @@ fun TransactionDetailsScreen(
                         },
                         onEdit = {
                             navController.navigate(
-                                Route.addEditTransactionWithId(transaction.id)
+                                Route.addEditTransactionWithId(transaction.id),
                             )
                         },
-                        iconVector = iconVector
+                        iconVector = iconVector,
                     )
                 }
             }
         }
     }
 }
-
-

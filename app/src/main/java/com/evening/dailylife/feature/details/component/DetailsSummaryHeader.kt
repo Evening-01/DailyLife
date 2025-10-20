@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.details.components
+package com.evening.dailylife.feature.details.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,9 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.evening.dailylife.R
 
-/**
- * 账单汇总头部区域，包含月份选择与收支统计。
- */
 @Composable
 fun DetailsSummaryHeader(
     year: String,
@@ -40,33 +37,33 @@ fun DetailsSummaryHeader(
     expense: String,
     onDateClick: () -> Unit,
     containerColor: Color,
-    contentColor: Color
+    contentColor: Color,
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(containerColor)
-            .padding(top = 4.dp, bottom = 16.dp)
+            .padding(top = 4.dp, bottom = 16.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             DatePickerModule(
                 year = year,
                 month = month,
                 onClick = onDateClick,
                 contentColor = contentColor,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             VerticalDivider(contentColor)
             IncomeExpenseGroup(
                 income = income,
                 expense = expense,
                 contentColor = contentColor,
-                modifier = Modifier.weight(3f)
+                modifier = Modifier.weight(3f),
             )
         }
     }
@@ -78,18 +75,18 @@ private fun DatePickerModule(
     month: String,
     onClick: () -> Unit,
     contentColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         horizontalAlignment = Alignment.Start,
         modifier = modifier
             .clip(MaterialTheme.shapes.medium)
             .clickable(onClick = onClick)
-            .padding(vertical = 4.dp, horizontal = 16.dp)
+            .padding(vertical = 4.dp, horizontal = 16.dp),
     ) {
         Text(
             text = year,
-            color = contentColor.copy(alpha = 0.8f)
+            color = contentColor.copy(alpha = 0.8f),
         )
         Spacer(modifier = Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -97,12 +94,12 @@ private fun DatePickerModule(
                 text = month,
                 color = contentColor,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
                 contentDescription = stringResource(R.string.details_select_month),
-                tint = contentColor
+                tint = contentColor,
             )
         }
     }
@@ -113,22 +110,22 @@ private fun IncomeExpenseGroup(
     income: String,
     expense: String,
     contentColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         SummaryItem(
             title = stringResource(R.string.chart_type_income),
             amount = income,
-            contentColor = contentColor
+            contentColor = contentColor,
         )
         SummaryItem(
             title = stringResource(R.string.chart_type_expense),
             amount = expense,
-            contentColor = contentColor
+            contentColor = contentColor,
         )
     }
 }
@@ -139,25 +136,25 @@ private fun VerticalDivider(color: Color) {
         modifier = Modifier
             .fillMaxHeight(0.6f)
             .width(1.dp)
-            .background(color.copy(alpha = 0.3f))
+            .background(color.copy(alpha = 0.3f)),
     )
 }
 
 @Composable
 private fun SummaryItem(title: String, amount: String, contentColor: Color) {
     Column(
-        horizontalAlignment = Alignment.Start
+        horizontalAlignment = Alignment.Start,
     ) {
         Text(
             text = title,
-            color = contentColor.copy(alpha = 0.8f)
+            color = contentColor.copy(alpha = 0.8f),
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = amount,
             color = contentColor,
             fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }
