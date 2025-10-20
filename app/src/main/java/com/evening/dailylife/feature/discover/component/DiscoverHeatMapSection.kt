@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,10 +36,8 @@ import com.evening.dailylife.feature.discover.model.DiscoverHeatMapUiState
 import com.kizitonwose.calendar.compose.CalendarLayoutInfo
 import com.kizitonwose.calendar.compose.HeatMapCalendar
 import com.kizitonwose.calendar.compose.heatmapcalendar.HeatMapCalendarState
-import com.kizitonwose.calendar.compose.heatmapcalendar.rememberHeatMapCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
 import com.kizitonwose.calendar.core.CalendarMonth
-import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.core.yearMonth
 import com.moriafly.salt.ui.SaltTheme
 import java.time.DayOfWeek
@@ -54,18 +51,12 @@ import java.util.Locale
 @Composable
 fun DiscoverHeatMapSection(
     uiState: DiscoverHeatMapUiState,
+    calendarState: HeatMapCalendarState,
     modifier: Modifier = Modifier,
 ) {
     val startDate = uiState.startDate
     val endDate = uiState.endDate
     val contributions = uiState.contributions
-
-    val calendarState = rememberHeatMapCalendarState(
-        startMonth = startDate.yearMonth,
-        endMonth = endDate.yearMonth,
-        firstVisibleMonth = endDate.yearMonth,
-        firstDayOfWeek = firstDayOfWeekFromLocale(),
-    )
 
     val maxCount = remember(contributions) {
         contributions.values.maxOfOrNull(DiscoverHeatMapEntry::transactionCount) ?: 0

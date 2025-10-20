@@ -2,12 +2,15 @@ package com.evening.dailylife.feature.discover
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,6 +36,9 @@ import com.evening.dailylife.feature.discover.model.DiscoverHeatMapUiState
 import com.evening.dailylife.feature.discover.model.DiscoverTypeProfileUiState
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
+import com.kizitonwose.calendar.compose.heatmapcalendar.rememberHeatMapCalendarState
+import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
+import com.kizitonwose.calendar.core.yearMonth
 import java.text.DecimalFormat
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -80,40 +86,48 @@ private fun DiscoverContent(
     typeProfileState: DiscoverTypeProfileUiState,
     numberFormatter: DecimalFormat,
 ) {
-    LazyColumn(
+    val scrollState = rememberScrollState()
+    val startMonth = heatMapState.startDate.yearMonth
+    val endMonth = heatMapState.endDate.yearMonth
+    val calendarState = rememberHeatMapCalendarState(
+        startMonth = startMonth,
+        endMonth = endMonth,
+        firstVisibleMonth = endMonth,
+        firstDayOfWeek = firstDayOfWeekFromLocale(),
+    )
+    val sectionSpacing = 12.dp
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding),
-        contentPadding = PaddingValues(vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(innerPadding)
+            .verticalScroll(scrollState),
     ) {
-        item {
-            RoundedColumn(modifier = Modifier.fillMaxWidth()) {
-                ItemTitle(text = stringResource(id = R.string.discover_heatmap_title))
-                DiscoverHeatMapSection(
-                    uiState = heatMapState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                )
-            }
-        }
-        item {
-            RoundedColumn(modifier = Modifier.fillMaxWidth()) {
-                ItemTitle(text = stringResource(id = R.string.chart_type_profile_title))
-                DiscoverTypeProfileContent(typeProfileState, numberFormatter)
-            }
-        }
-        item {
-            DiscoverAiSection(
+        Spacer(modifier = Modifier.height(16.dp))
+        RoundedColumn(modifier = Modifier.fillMaxWidth()) {
+            ItemTitle(text = stringResource(id = R.string.discover_heatmap_title))
+            DiscoverHeatMapSection(
+                uiState = heatMapState,
+                calendarState = calendarState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp),
+                    .padding(horizontal = 8.dp),
             )
         }
-        item {
-            DiscoverCommonToolsSection()
+        Spacer(modifier = Modifier.height(sectionSpacing))
+        RoundedColumn(modifier = Modifier.fillMaxWidth()) {
+            ItemTitle(text = stringResource(id = R.string.chart_type_profile_title))
+            DiscoverTypeProfileContent(typeProfileState, numberFormatter)
         }
+        Spacer(modifier = Modifier.height(sectionSpacing))
+        DiscoverAiSection(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 2.dp),
+        )
+        Spacer(modifier = Modifier.height(sectionSpacing))
+        DiscoverCommonToolsSection()
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
