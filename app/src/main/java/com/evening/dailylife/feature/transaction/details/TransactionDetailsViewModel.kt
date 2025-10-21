@@ -1,10 +1,11 @@
-package com.evening.dailylife.feature.transaction.details.model
+package com.evening.dailylife.feature.transaction.details
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
+import com.evening.dailylife.feature.transaction.details.model.TransactionDetailsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

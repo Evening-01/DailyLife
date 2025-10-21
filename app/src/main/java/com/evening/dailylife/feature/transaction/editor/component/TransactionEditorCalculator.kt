@@ -1,4 +1,4 @@
-package com.evening.dailylife.feature.transaction.editor
+package com.evening.dailylife.feature.transaction.editor.component
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import com.evening.dailylife.R
 import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomSheet
 import com.evening.dailylife.core.designsystem.component.CalendarPickerType
+import com.evening.dailylife.feature.transaction.editor.MAX_AMOUNT
+import com.evening.dailylife.feature.transaction.editor.MAX_INTEGER_LENGTH
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar

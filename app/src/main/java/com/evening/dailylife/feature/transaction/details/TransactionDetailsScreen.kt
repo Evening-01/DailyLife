@@ -27,7 +27,6 @@ import com.evening.dailylife.R
 import com.evening.dailylife.app.navigation.Route
 import com.evening.dailylife.core.model.TransactionCategoryRepository
 import com.evening.dailylife.feature.transaction.details.component.TransactionDetailsContent
-import com.evening.dailylife.feature.transaction.details.model.TransactionDetailsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
