@@ -20,7 +20,7 @@ val OnMutedSage = Color(0xFF00382E)
 val MutedSageContainer = Color(0xFFC1F5E9)
 val OnMutedSageContainer = Color(0xFF00201A)
 
-val ParchmentWhite = Color(0xFFFDF3E4)
+val ParchmentWhite = Color(0xFFFEFBF5)
 val WarmSand = Color(0xFFF6E4CB)
 val SurfaceVariantLight = Color(0xFFE7D4BA)
 val OnSurfaceVariantLight = Color(0xFF4F4334)

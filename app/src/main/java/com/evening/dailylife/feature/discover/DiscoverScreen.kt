@@ -2,12 +2,11 @@ package com.evening.dailylife.feature.discover
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -34,11 +33,11 @@ import com.evening.dailylife.feature.discover.component.DiscoverHeatMapSection
 import com.evening.dailylife.feature.discover.component.TypeProfileSection
 import com.evening.dailylife.feature.discover.model.DiscoverHeatMapUiState
 import com.evening.dailylife.feature.discover.model.DiscoverTypeProfileUiState
-import com.moriafly.salt.ui.ItemTitle
-import com.moriafly.salt.ui.RoundedColumn
 import com.kizitonwose.calendar.compose.heatmapcalendar.rememberHeatMapCalendarState
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.core.yearMonth
+import com.moriafly.salt.ui.ItemTitle
+import com.moriafly.salt.ui.RoundedColumn
 import java.text.DecimalFormat
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -95,16 +94,17 @@ private fun DiscoverContent(
         firstVisibleMonth = endMonth,
         firstDayOfWeek = firstDayOfWeekFromLocale(),
     )
-    val sectionSpacing = 12.dp
+    val sectionSpacing = 8.dp
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
+            .padding(vertical = 16.dp)
             .verticalScroll(scrollState),
+        verticalArrangement = Arrangement.spacedBy(sectionSpacing),
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        RoundedColumn(modifier = Modifier.fillMaxWidth()) {
+        RoundedColumn {
             ItemTitle(text = stringResource(id = R.string.discover_heatmap_title))
             DiscoverHeatMapSection(
                 uiState = heatMapState,
@@ -114,20 +114,16 @@ private fun DiscoverContent(
                     .padding(horizontal = 8.dp),
             )
         }
-        Spacer(modifier = Modifier.height(sectionSpacing))
-        RoundedColumn(modifier = Modifier.fillMaxWidth()) {
+        RoundedColumn {
             ItemTitle(text = stringResource(id = R.string.chart_type_profile_title))
             DiscoverTypeProfileContent(typeProfileState, numberFormatter)
         }
-        Spacer(modifier = Modifier.height(sectionSpacing))
         DiscoverAiSection(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 2.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         )
-        Spacer(modifier = Modifier.height(sectionSpacing))
         DiscoverCommonToolsSection()
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 

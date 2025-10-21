@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -43,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -167,7 +170,8 @@ private fun DetailsTransactionList(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val deleteActionWidth = 96.dp
+    val deleteButtonSize = 48.dp
+    val deleteActionWidth = deleteButtonSize + 24.dp
     val deleteActionWidthPx = with(density) { deleteActionWidth.toPx() }
     val maxSwipeOffset = -deleteActionWidthPx
     val swipeThreshold = deleteActionWidthPx * 0.4f
@@ -247,15 +251,18 @@ private fun DetailsTransactionList(
                                             )
                                         },
                                 ) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .width(deleteActionWidth)
+                                        .fillMaxHeight(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
                                     Box(
                                         modifier = Modifier
-                                            .align(Alignment.CenterEnd)
-                                            .width(deleteActionWidth)
-                                            .fillMaxHeight()
-                                            .background(
-                                                color = MaterialTheme.colorScheme.error,
-                                                shape = MaterialTheme.shapes.medium,
-                                            )
+                                            .size(deleteButtonSize)
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .background(MaterialTheme.colorScheme.error)
                                             .clickable {
                                                 settleSwipe(false)
                                                 onDeleteTransaction(transaction)
@@ -268,6 +275,7 @@ private fun DetailsTransactionList(
                                             tint = Color.White,
                                         )
                                     }
+                                }
 
                                     TransactionListItem(
                                         transaction = transaction,
