@@ -19,8 +19,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,10 +33,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.evening.dailylife.core.model.TransactionCategory
 
 /**
@@ -44,11 +46,11 @@ import com.evening.dailylife.core.model.TransactionCategory
 fun TransactionTypeTabs(
     isExpense: Boolean,
     expenseLabel: String,
-    incomeLabel: String,
+    incomeLabel:String,
     onTransactionTypeChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    PrimaryTabRow(
+    SecondaryTabRow (
         modifier = modifier,
         selectedTabIndex = if (isExpense) 0 else 1
     ) {
@@ -79,8 +81,8 @@ fun TransactionCategoryGrid(
     onCategorySelected: (TransactionCategory) -> Unit,
     onManageCategory: () -> Unit,
     manageLabel: String,
+    modifier: Modifier = Modifier,
     manageIcon: ImageVector = Icons.Filled.Settings,
-    modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
@@ -153,9 +155,9 @@ fun RemarkAmountCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
-                    textStyle = TextStyle(
-                        fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-                        color = MaterialTheme.colorScheme.onSurface
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = 16.sp,
+                        color = LocalContentColor.current
                     ),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { innerField ->

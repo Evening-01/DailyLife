@@ -100,8 +100,8 @@ private fun DiscoverContent(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
-            .padding(vertical = 16.dp)
-            .verticalScroll(scrollState),
+            .verticalScroll(scrollState)
+            .padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(sectionSpacing),
     ) {
         RoundedColumn {

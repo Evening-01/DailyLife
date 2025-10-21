@@ -10,6 +10,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +51,11 @@ fun MoodLineChart(
     yLabelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     yLabelBgColor: Color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
     yLabelFormatter: (Float) -> String = { value ->
-        if (value % 1f == 0f) value.toInt().toString() else String.format(Locale.CHINA, "%.1f", value)
+        if (value % 1f == 0f) value.toInt().toString() else String.format(
+            Locale.CHINA,
+            "%.1f",
+            value
+        )
     },
     animationSpec: AnimationSpec<Float> = tween(durationMillis = 600, easing = FastOutSlowInEasing),
     animationKey: Any? = null,
@@ -72,13 +77,18 @@ fun MoodLineChart(
         animationProgress.animateTo(1f, animationSpec = animationSpec)
     }
 
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+    ) {
         val chartMaxWidth = this.maxWidth
         val pointCount = entries.size
         val interpolatedCount = (pointCount - 1).coerceAtLeast(1)
         val leftPadding = 8.dp
         val rightPadding = 8.dp
-        val shouldScroll = pointCount > 1 && (leftPadding + rightPadding + stepSpacing * interpolatedCount) > chartMaxWidth
+        val shouldScroll =
+            pointCount > 1 && (leftPadding + rightPadding + stepSpacing * interpolatedCount) > chartMaxWidth
         val usedSpacing = when {
             pointCount <= 1 -> 0.dp
             shouldScroll -> stepSpacing

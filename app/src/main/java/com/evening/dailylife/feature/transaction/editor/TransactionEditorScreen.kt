@@ -52,7 +52,6 @@ import com.evening.dailylife.feature.transaction.editor.component.TransactionCat
 import com.evening.dailylife.feature.transaction.editor.component.TransactionTypeTabs
 import com.evening.dailylife.feature.transaction.editor.model.TransactionEditorEvent
 import com.evening.dailylife.feature.transaction.editor.model.TransactionEditorUiState
-import com.evening.dailylife.feature.transaction.editor.TransactionEditorViewModel
 import com.moriafly.salt.ui.UnstableSaltApi
 import java.util.Calendar
 
@@ -180,9 +179,6 @@ fun TransactionEditorContent(
                 expenseLabel = stringResource(R.string.editor_tab_expense),
                 incomeLabel = stringResource(R.string.editor_tab_income),
                 onTransactionTypeChange = onTransactionTypeChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
             )
 
             TransactionCategoryGrid(
