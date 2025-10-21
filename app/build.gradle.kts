@@ -58,6 +58,7 @@ dependencies {
     implementation(androidx.compose.ui.ui.tooling.preview)
     implementation(androidx.compose.material3.material3)
     implementation(com.google.android.material.material)
+    implementation(com.materialkolor.material.kolor)
 
 
     implementation(com.kizitonwose.calendar.compose)

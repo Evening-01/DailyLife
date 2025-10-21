@@ -119,6 +119,10 @@ libraries:
     compose:
       version: 2.9.0
 
+  com.materialkolor:
+    material-kolor:
+      version: 3.0.1
+
   androidx.hilt:
     hilt-navigation-compose:
       version: 1.3.0
