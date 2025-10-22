@@ -89,6 +89,9 @@
     <string name="me_profile_id">ID：dailylife_001</string>
     <string name="me_profile_signature">少年没有乌托邦，心向远方自明朗。</string>
     <string name="me_profile_avatar_content_description">用户头像</string>
+    <string name="me_profile_stat_streak">已连续打卡</string>
+    <string name="me_profile_stat_total_days">记账总天数</string>
+    <string name="me_profile_stat_total_transactions">记账总笔数</string>
 
     <!-- Details screen -->
     <string name="details_year_pattern">yyyy年</string>

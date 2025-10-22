@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -59,6 +60,7 @@ fun MeScreen(
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
     val isDynamicColorEnabled by viewModel.dynamicColor.collectAsState()
+    val profileStatsState by viewModel.profileStatsState.collectAsState()
     val themeModePopupMenuState = rememberPopupState()
 
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -84,43 +86,53 @@ fun MeScreen(
                         .fillMaxWidth()
                         .background(primaryColor),
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .statusBarsPadding()
                             .padding(horizontal = 20.dp, vertical = 24.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalArrangement = Arrangement.spacedBy(24.dp),
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(CircleShape)
-                                .background(onPrimaryColor.copy(alpha = 0.12f)),
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_user),
-                                contentDescription = stringResource(R.string.me_profile_avatar_content_description),
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize(),
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                                    .background(onPrimaryColor.copy(alpha = 0.12f)),
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_user),
+                                    contentDescription = stringResource(R.string.me_profile_avatar_content_description),
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.me_profile_display_name),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = onPrimaryColor,
+                                )
+                                Text(
+                                    text = stringResource(R.string.me_profile_signature),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = onPrimaryColor.copy(alpha = 0.7f),
+                                )
+                            }
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.me_profile_display_name),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = onPrimaryColor,
-                            )
-                            Text(
-                                text = stringResource(R.string.me_profile_signature),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = onPrimaryColor.copy(alpha = 0.7f),
-                            )
-                        }
+                        MeProfileStatsRow(
+                            stats = profileStatsState,
+                            contentColor = onPrimaryColor,
+                        )
                     }
                 }
             }
@@ -181,5 +193,65 @@ fun MeScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun MeProfileStatsRow(
+    stats: MeProfileStatsUiState,
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    val consecutiveDaysText = if (stats.isLoading) "--" else stats.consecutiveCheckInDays.toString()
+    val totalDaysText = if (stats.isLoading) "--" else stats.totalActiveDays.toString()
+    val totalTransactionsText = if (stats.isLoading) "--" else stats.totalTransactions.toString()
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        MeProfileStatItem(
+            value = consecutiveDaysText,
+            label = stringResource(R.string.me_profile_stat_streak),
+            contentColor = contentColor,
+            modifier = Modifier.weight(1f),
+        )
+        MeProfileStatItem(
+            value = totalDaysText,
+            label = stringResource(R.string.me_profile_stat_total_days),
+            contentColor = contentColor,
+            modifier = Modifier.weight(1f),
+        )
+        MeProfileStatItem(
+            value = totalTransactionsText,
+            label = stringResource(R.string.me_profile_stat_total_transactions),
+            contentColor = contentColor,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun MeProfileStatItem(
+    value: String,
+    label: String,
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            color = contentColor,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = contentColor.copy(alpha = 0.7f),
+        )
     }
 }
