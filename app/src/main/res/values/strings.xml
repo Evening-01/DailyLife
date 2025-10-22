@@ -85,9 +85,9 @@
     <string name="discover_heatmap_legend_more">较多</string>
 
     <!-- Me profile -->
-    <string name="me_profile_display_name">暮色</string>
+    <string name="me_profile_display_name">Evening</string>
     <string name="me_profile_id">ID：dailylife_001</string>
-    <string name="me_profile_signature">记录生活的点滴。</string>
+    <string name="me_profile_signature">少年没有乌托邦，心向远方自明朗。</string>
     <string name="me_profile_avatar_content_description">用户头像</string>
 
     <!-- Details screen -->

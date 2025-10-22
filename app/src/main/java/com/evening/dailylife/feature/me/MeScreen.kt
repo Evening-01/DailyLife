@@ -112,11 +112,6 @@ fun MeScreen(
                                 style = MaterialTheme.typography.titleMedium,
                             )
                             Text(
-                                text = stringResource(R.string.me_profile_id),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = headerContentColor.copy(alpha = 0.8f),
-                            )
-                            Text(
                                 text = stringResource(R.string.me_profile_signature),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = headerContentColor.copy(alpha = 0.7f),

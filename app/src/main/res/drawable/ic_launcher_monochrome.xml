@@ -17,7 +17,7 @@
             android:translateY="176.8">
 
             <path
-                android:fillColor="#FF000000"
+                android:fillColor="#FFFFFF"
                 android:fillType="evenOdd"
                 android:pathData="M758.827,530.261 C739.627,461.184,698.411,407.979,633.941,371.627
   C626.474,367.446,618.752,364.032,611.029,360.235
