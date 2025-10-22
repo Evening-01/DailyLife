@@ -70,14 +70,18 @@
     <string name="discover_common_tool_budget_title">资产规划</string>
 
     <!-- Preferences -->
-    <string name="user_interface">用户界面</string>
+    <string name="user_interface">主题与设置</string>
     <string name="dynamic_color_switcher_text">动态颜色</string>
     <string name="dynamic_color_switcher_sub">应用来自于手机壁纸的主题色</string>
     <string name="theme_mode_switcher_text">主题模式</string>
+    <string name="general_settings">通用设置</string>
     <string name="dynamic_color_unsupported">动态颜色仅适用于 Android 12 及以上版本</string>
     <string name="theme_mode_system">跟随系统</string>
     <string name="theme_mode_light">亮色模式</string>
     <string name="theme_mode_dark">暗色模式</string>
+    <string name="data_and_security">数据与安全</string>
+    <string name="fingerprint_security">指纹安全</string>
+    <string name="data_management">数据管理</string>
 
     <!-- Discover heat map -->
     <string name="discover_heatmap_title">记账热力图</string>

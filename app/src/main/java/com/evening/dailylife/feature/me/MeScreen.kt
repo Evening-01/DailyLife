@@ -23,7 +23,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrightnessMedium
+import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,6 +48,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.R
 import com.evening.dailylife.core.data.preferences.ThemeMode
 import com.evening.dailylife.core.designsystem.component.ItemPopup
+import com.moriafly.salt.ui.Item
 import com.moriafly.salt.ui.ItemSwitcher
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
@@ -123,7 +127,7 @@ fun MeScreen(
                                 )
                                 Text(
                                     text = stringResource(R.string.me_profile_signature),
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = onPrimaryColor.copy(alpha = 0.7f),
                                 )
                             }
@@ -190,11 +194,47 @@ fun MeScreen(
                             )
                         }
                     }
+
+                    Item(
+                        text = stringResource(R.string.general_settings),
+                        iconPainter = rememberVectorPainter(image = Icons.Outlined.Tune),
+                        iconColor = SaltTheme.colors.text,
+                        iconPaddingValues = PaddingValues(all = 1.8.dp),
+                        onClick = {
+                            // TODO: 在这里处理点击事件，比如跳转到通用设置页面
+                        },
+                    )
+                }
+            }
+
+            item {
+                RoundedColumn {
+                    ItemTitle(text = stringResource(R.string.data_and_security))
+
+                    Item(
+                        text = stringResource(R.string.fingerprint_security),
+                        iconPainter = rememberVectorPainter(image = Icons.Outlined.Fingerprint),
+                        iconColor = SaltTheme.colors.text,
+                        iconPaddingValues = PaddingValues(all = 1.8.dp),
+                        onClick = {
+                        },
+                    )
+
+                    Item(
+                        text = stringResource(R.string.data_management),
+                        iconPainter = rememberVectorPainter(image = Icons.Outlined.Dns),
+                        iconColor = SaltTheme.colors.text,
+                        iconPaddingValues = PaddingValues(all = 1.8.dp),
+                        onClick = {
+                        },
+                    )
+
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun MeProfileStatsRow(
