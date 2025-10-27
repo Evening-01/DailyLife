@@ -64,11 +64,7 @@ class DetailsViewModel @Inject constructor(
         val (startMillis, endMillis) = calculateMonthBounds(calendar)
 
         val cachedTransactions = allTransactionsState.value
-        if (cachedTransactions != null) {
-            _uiState.value = buildMonthSnapshot(calendar, cachedTransactions)
-        } else {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-        }
+        _uiState.value = buildMonthSnapshot(calendar, cachedTransactions)
 
         loadJob = viewModelScope.launch {
             repository.getTransactionsWithDayRange(startMillis, endMillis)

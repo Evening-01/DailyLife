@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
@@ -49,35 +48,15 @@ class ChartViewModel @Inject constructor(
     private val selectedRangeId = MutableStateFlow<String?>(null)
 
     private val transactionsSource = transactionRepository.observeAllTransactions()
-    private val initialTransactionsState: TransactionsState =
-        transactionsSource.value?.let { TransactionsState.Loaded(it) } ?: TransactionsState.Loading
-    private val initialUiState: ChartUiState = when (val initial = initialTransactionsState) {
-        TransactionsState.Loading -> ChartUiState()
-        is TransactionsState.Loaded -> buildUiState(
-            type = selectedType.value,
-            period = selectedPeriod.value,
-            preferredRangeId = selectedRangeId.value,
-            allTransactions = initial.items
-        )
-    }
-
-    private val transactionsState: StateFlow<TransactionsState> =
-        transactionsSource
-            .map<List<TransactionEntity>?, TransactionsState> { entities ->
-                if (entities == null) {
-                    TransactionsState.Loading
-                } else {
-                    TransactionsState.Loaded(entities)
-                }
-            }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = initialTransactionsState
-            )
+    private val initialUiState: ChartUiState = buildUiState(
+        type = selectedType.value,
+        period = selectedPeriod.value,
+        preferredRangeId = selectedRangeId.value,
+        allTransactions = transactionsSource.value,
+    )
 
     private val selectionState = combine(
-        transactionsState,
+        transactionsSource,
         selectedType,
         selectedPeriod,
         selectedRangeId
@@ -93,21 +72,13 @@ class ChartViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<ChartUiState> = selectionState
         .mapLatest { selection ->
-            when (val transactions = selection.transactions) {
-                TransactionsState.Loading -> ChartUiState(
-                    selectedType = selection.type,
-                    selectedPeriod = selection.period,
-                    contentStatus = ChartContentStatus.Loading
+            withContext(Dispatchers.Default) {
+                buildUiState(
+                    type = selection.type,
+                    period = selection.period,
+                    preferredRangeId = selection.preferredRangeId,
+                    allTransactions = selection.transactions
                 )
-
-                is TransactionsState.Loaded -> withContext(Dispatchers.Default) {
-                    buildUiState(
-                        type = selection.type,
-                        period = selection.period,
-                        preferredRangeId = selection.preferredRangeId,
-                        allTransactions = transactions.items
-                    )
-                }
             }
         }
         .stateIn(
@@ -517,14 +488,9 @@ class ChartViewModel @Inject constructor(
     )
 
     private data class SelectionState(
-        val transactions: TransactionsState,
+        val transactions: List<TransactionEntity>,
         val type: ChartType,
         val period: ChartPeriod,
         val preferredRangeId: String?
     )
-
-    private sealed interface TransactionsState {
-        data object Loading : TransactionsState
-        data class Loaded(val items: List<TransactionEntity>) : TransactionsState
-    }
 }

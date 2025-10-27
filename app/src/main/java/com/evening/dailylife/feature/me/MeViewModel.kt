@@ -34,8 +34,8 @@ class MeViewModel @Inject constructor(
     val profileStatsState = transactionRepository
         .observeAllTransactions()
         .mapLatest { transactions ->
-            if (transactions == null) {
-                MeProfileStatsUiState()
+            if (transactions.isEmpty()) {
+                MeProfileStatsUiState(isLoading = false)
             } else {
                 val transactionDates = transactions
                     .map { Instant.ofEpochMilli(it.date).atZone(zoneId).toLocalDate() }

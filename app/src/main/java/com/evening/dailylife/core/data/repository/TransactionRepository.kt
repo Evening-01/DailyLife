@@ -5,30 +5,40 @@ import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.local.model.DailyTransactionSummary
 import com.evening.dailylife.core.data.local.model.TransactionWithDay
 import com.evening.dailylife.core.di.ApplicationScope
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 class TransactionRepository @Inject constructor(
     private val transactionDao: TransactionDao,
     @ApplicationScope private val applicationScope: CoroutineScope
 ) {
 
-    private val allTransactionsState: StateFlow<List<TransactionEntity>?> =
-        transactionDao.getAllTransactions()
-            .map { entities -> entities.sortedBy(TransactionEntity::date) }
-            .stateIn(
-                scope = applicationScope,
-                started = SharingStarted.Eagerly,
-                initialValue = null
-            )
+    private val allTransactionsState = MutableStateFlow(emptyList<TransactionEntity>())
 
-    fun observeAllTransactions(): StateFlow<List<TransactionEntity>?> {
-        return allTransactionsState
+    init {
+        applicationScope.launch(Dispatchers.IO) {
+            val snapshot = transactionDao.getAllTransactionsSnapshot()
+                .sortedBy(TransactionEntity::date)
+            allTransactionsState.value = snapshot
+
+            transactionDao.getAllTransactions()
+                .map { entities -> entities.sortedBy(TransactionEntity::date) }
+                .collect { entities ->
+                    allTransactionsState.value = entities
+                }
+        }
+    }
+
+    fun observeAllTransactions(): StateFlow<List<TransactionEntity>> {
+        return allTransactionsState.asStateFlow()
     }
 
     fun getAllTransactions(): Flow<List<TransactionEntity>> {
@@ -55,6 +65,11 @@ class TransactionRepository @Inject constructor(
 
     fun getTransactionById(id: Int): Flow<TransactionEntity?> {
         return transactionDao.getTransactionById(id)
+    }
+
+    suspend fun getTransactionsSnapshot(): List<TransactionEntity> {
+        return transactionDao.getAllTransactionsSnapshot()
+            .sortedBy(TransactionEntity::date)
     }
 
     suspend fun insertTransaction(transaction: TransactionEntity) {

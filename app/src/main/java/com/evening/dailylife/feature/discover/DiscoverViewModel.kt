@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,18 +55,25 @@ class DiscoverViewModel @Inject constructor(
     private val transactionsState = transactionRepository.observeAllTransactions()
 
     init {
-        val cachedTransactions = transactionsState.value
-        if (cachedTransactions != null) {
-            _typeProfileState.value = buildTypeProfileState(cachedTransactions)
-            _heatMapState.value = buildHeatMapState(cachedTransactions)
-        } else {
-            _typeProfileState.value = _typeProfileState.value.copy(isLoading = true)
-            _heatMapState.value = _heatMapState.value.copy(isLoading = true)
+        val initialTransactions = transactionsState.value
+        _typeProfileState.value = buildTypeProfileState(initialTransactions)
+        _heatMapState.value = buildHeatMapState(initialTransactions)
+
+        viewModelScope.launch {
+            val snapshot = withContext(Dispatchers.IO) {
+                transactionRepository.getTransactionsSnapshot()
+            }
+
+            val (typeProfile, heatMap) = withContext(Dispatchers.Default) {
+                buildTypeProfileState(snapshot) to buildHeatMapState(snapshot)
+            }
+
+            _typeProfileState.value = typeProfile
+            _heatMapState.value = heatMap
         }
 
         viewModelScope.launch {
             transactionsState
-                .filterNotNull()
                 .mapLatest { transactions ->
                     withContext(Dispatchers.Default) {
                         buildTypeProfileState(transactions) to buildHeatMapState(transactions)
