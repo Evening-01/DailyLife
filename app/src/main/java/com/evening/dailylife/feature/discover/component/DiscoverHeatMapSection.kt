@@ -17,7 +17,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.evening.dailylife.R
 import com.evening.dailylife.feature.discover.model.DiscoverHeatMapEntry
-import com.evening.dailylife.feature.discover.model.DiscoverHeatMapUiState
 import com.kizitonwose.calendar.compose.CalendarLayoutInfo
 import com.kizitonwose.calendar.compose.HeatMapCalendar
 import com.kizitonwose.calendar.compose.heatmapcalendar.HeatMapCalendarState
@@ -50,36 +48,19 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DiscoverHeatMapSection(
-    uiState: DiscoverHeatMapUiState,
+    isLoading: Boolean,
+    contributions: Map<LocalDate, DiscoverHeatMapEntry>,
     calendarState: HeatMapCalendarState,
+    dateRange: ClosedRange<LocalDate>,
     modifier: Modifier = Modifier,
 ) {
-    val startDate = uiState.startDate
-    val endDate = uiState.endDate
-    val contributions = uiState.contributions
-
-    val maxCount = remember(contributions) {
-        contributions.values.maxOfOrNull(DiscoverHeatMapEntry::transactionCount) ?: 0
-    }
-
-    val contributionLevels = remember(contributions, maxCount) {
-        if (contributions.isEmpty()) emptyMap() else buildMap {
-            contributions.forEach { (date, entry) ->
-                put(date, ContributionLevel.fromCount(entry.transactionCount, maxCount))
-            }
-        }
-    }
-
-    val dateRange = remember(startDate, endDate) { startDate..endDate }
-    val placeholderColor = remember { EmptyContributionColor.copy(alpha = 0.55f) }
-
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 12.dp),
         ) {
-            if (uiState.isLoading) {
+            if (isLoading) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -93,22 +74,17 @@ fun DiscoverHeatMapSection(
                     modifier = Modifier.fillMaxWidth(),
                     state = calendarState,
                     contentPadding = PaddingValues(end = 6.dp),
-                    dayContent = { day, week ->
-                        val weekDates = remember(week.days) { week.days.map { it.date } }
+                    dayContent = { day, _ ->
+                        val entry = contributions[day.date]
+                        val intensity = entry?.intensity ?: 0
                         ContributionDay(
                             day = day,
                             dateRange = dateRange,
-                            level = contributionLevels[day.date]
-                                ?: ContributionLevel.fromCount(
-                                    contributions[day.date]?.transactionCount ?: 0,
-                                    maxCount,
-                                ),
-                            placeholderColor = placeholderColor,
-                            weekDates = weekDates,
+                            level = ContributionLevel.fromIntensity(intensity),
                         )
                     },
                     weekHeader = { WeekHeader(it) },
-                    monthHeader = { MonthHeader(it, endDate, calendarState) },
+                    monthHeader = { MonthHeader(it, dateRange.endInclusive, calendarState) },
                 )
             }
         }
@@ -158,18 +134,9 @@ private fun ContributionDay(
     day: CalendarDay,
     dateRange: ClosedRange<LocalDate>,
     level: ContributionLevel,
-    placeholderColor: Color,
-    weekDates: List<LocalDate>,
 ) {
-    when {
-        day.date in dateRange -> {
-            LegendBox(color = level.color)
-        }
-
-        weekDates.contains(dateRange.start) -> {
-            LegendBox(color = placeholderColor)
-        }
-    }
+    val color = if (day.date in dateRange) level.color else Color.Transparent
+    LegendBox(color = color)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -201,12 +168,10 @@ private fun MonthHeader(
     state: HeatMapCalendarState,
 ) {
     val density = LocalDensity.current
-    val firstFullyVisibleMonth by remember {
-        derivedStateOf { getMonthWithYear(state.layoutInfo, DaySize, density) }
-    }
+    val firstFullyVisibleMonth = remember { derivedStateOf { getMonthWithYear(state.layoutInfo, DaySize, density) } }
     if (calendarMonth.weekDays.first().first().date <= endDate) {
         val month = calendarMonth.yearMonth
-        val title = if (month == firstFullyVisibleMonth) {
+        val title = if (month == firstFullyVisibleMonth.value) {
             formatMonthYear(month)
         } else {
             formatMonth(month)
@@ -272,15 +237,12 @@ private enum class ContributionLevel(val color: Color) {
     Four(Color(0xFF216E3A));
 
     companion object {
-        fun fromCount(count: Int, maxCount: Int): ContributionLevel {
-            if (count <= 0 || maxCount <= 0) return Zero
-            val ratio = count.toDouble() / maxCount
-            return when {
-                ratio >= 0.75 -> Four
-                ratio >= 0.5 -> Three
-                ratio >= 0.25 -> Two
-                else -> One
-            }
+        fun fromIntensity(intensity: Int): ContributionLevel = when (intensity) {
+            4 -> Four
+            3 -> Three
+            2 -> Two
+            1 -> One
+            else -> Zero
         }
     }
 }

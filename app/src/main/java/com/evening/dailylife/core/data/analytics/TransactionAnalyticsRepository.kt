@@ -70,6 +70,7 @@ class TransactionAnalyticsRepository @Inject constructor(
                 initialValue = ChartAnalyticsCache.EMPTY
             )
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private val discoverCacheFlow: StateFlow<DiscoverAnalyticsCache> =
         sortedTransactions
             .map { transactions -> buildDiscoverCache(transactions) }
@@ -79,6 +80,7 @@ class TransactionAnalyticsRepository @Inject constructor(
                 initialValue = DiscoverAnalyticsCache.EMPTY
             )
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private val profileStatsFlow: StateFlow<MeProfileStatsData> =
         sortedTransactions
             .map { transactions -> buildProfileStats(transactions) }
@@ -106,8 +108,10 @@ class TransactionAnalyticsRepository @Inject constructor(
 
     fun chartCache(): StateFlow<ChartAnalyticsCache> = chartCacheFlow
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun discoverCache(): StateFlow<DiscoverAnalyticsCache> = discoverCacheFlow
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun profileStats(): StateFlow<MeProfileStatsData> = profileStatsFlow
 
     private fun buildMonthlySnapshots(
@@ -187,7 +191,7 @@ class TransactionAnalyticsRepository @Inject constructor(
                 ChartPeriod.Month -> buildMonthOptions(transactions)
                 ChartPeriod.Year -> buildYearOptions(transactions)
             }
-            if (options.isNotEmpty()) options else listOf(buildFallbackOption(period))
+            options.ifEmpty { listOf(buildFallbackOption(period)) }
         }
 
         val summaries = mutableMapOf<ChartSummaryKey, ChartSummarySnapshot>()
@@ -296,6 +300,21 @@ class TransactionAnalyticsRepository @Inject constructor(
             cursor = cursor.plusDays(1)
         }
 
+        val maxDailyCount = contributions.values.maxOfOrNull { it.transactionCount } ?: 0
+        val contributionsWithIntensity =
+            if (maxDailyCount <= 0) {
+                contributions
+            } else {
+                contributions.mapValuesTo(LinkedHashMap(contributions.size)) { (_, entry) ->
+                    entry.copy(
+                        intensity = intensityFromCount(
+                            count = entry.transactionCount,
+                            maxCount = maxDailyCount
+                        )
+                    )
+                }
+            }
+
         val now = Calendar.getInstance(Locale.getDefault())
         val monthStart = (now.clone() as Calendar).apply {
             set(Calendar.DAY_OF_MONTH, 1)
@@ -314,7 +333,7 @@ class TransactionAnalyticsRepository @Inject constructor(
             heatMapSnapshot = DiscoverHeatMapSnapshot(
                 startDate = heatMapRange.startDate,
                 endDate = heatMapRange.endDate,
-                contributions = contributions
+                contributions = contributionsWithIntensity
             ),
             typeProfile = TypeProfileSnapshot(
                 year = monthStart.get(Calendar.YEAR),
@@ -805,5 +824,19 @@ class TransactionAnalyticsRepository @Inject constructor(
         private const val MILLIS_IN_DAY = 86_400_000L
         private const val DAYS_IN_WEEK = 7
         private const val MONTHS_IN_YEAR = 12
+
+        private fun intensityFromCount(
+            count: Int,
+            maxCount: Int
+        ): Int {
+            if (count <= 0 || maxCount <= 0) return 0
+            val ratio = count.toDouble() / maxCount
+            return when {
+                ratio >= 0.75 -> 4
+                ratio >= 0.5 -> 3
+                ratio >= 0.25 -> 2
+                else -> 1
+            }
+        }
     }
 }

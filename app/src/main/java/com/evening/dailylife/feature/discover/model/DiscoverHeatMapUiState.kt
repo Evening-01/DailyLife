@@ -19,4 +19,5 @@ data class DiscoverHeatMapEntry(
     val totalExpense: Double,
     val moodScoreSum: Int,
     val moodCount: Int,
+    val intensity: Int = 0,
 )

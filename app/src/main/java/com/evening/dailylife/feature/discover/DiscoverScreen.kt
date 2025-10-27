@@ -94,6 +94,10 @@ private fun DiscoverContent(
         firstVisibleMonth = endMonth,
         firstDayOfWeek = firstDayOfWeekFromLocale(),
     )
+    val contributions = remember(heatMapState.contributions) { heatMapState.contributions }
+    val dateRange = remember(heatMapState.startDate, heatMapState.endDate) {
+        heatMapState.startDate..heatMapState.endDate
+    }
     val sectionSpacing = 8.dp
 
     Column(
@@ -107,8 +111,10 @@ private fun DiscoverContent(
         RoundedColumn {
             ItemTitle(text = stringResource(id = R.string.discover_heatmap_title))
             DiscoverHeatMapSection(
-                uiState = heatMapState,
+                isLoading = heatMapState.isLoading,
+                contributions = contributions,
                 calendarState = calendarState,
+                dateRange = dateRange,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp),
