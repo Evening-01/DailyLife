@@ -63,6 +63,7 @@ fun TypeProfileSection(
     val expenseColor = MaterialTheme.colorScheme.error
     val incomeColor = SuccessGreen
     val neutralBalanceColor = MaterialTheme.colorScheme.onSurface
+    val progressColor = MaterialTheme.colorScheme.primary
 
     val animatedExpenseRatio by animateFloatAsState(
         targetValue = expenseRatio,
@@ -75,21 +76,20 @@ fun TypeProfileSection(
 
     Row(
         modifier = modifier
-            .heightIn(min = 132.dp)
-            .padding(vertical = 12.dp),
+            .heightIn(min = 132.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         TypeProfileExpenseProgress(
             progress = animatedExpenseRatio,
             ratioText = expenseRatioText,
-            expenseColor = expenseColor,
-            modifier = Modifier.size(120.dp),
+            progressColor = progressColor,
+            modifier = Modifier.size(140.dp),
         )
 
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             TypeProfileBalanceRow(
                 balanceLabel = stringResource(id = R.string.discover_type_profile_balance_label),
@@ -102,8 +102,8 @@ fun TypeProfileSection(
             )
 
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                thickness = 0.8.dp,
             )
 
             TypeProfileDetailRow(
@@ -124,10 +124,10 @@ fun TypeProfileSection(
 private fun TypeProfileExpenseProgress(
     progress: Float,
     ratioText: String,
-    expenseColor: Color,
+    progressColor: Color,
     modifier: Modifier = Modifier,
 ) {
-    val trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+    val trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
 
     Surface(
         modifier = modifier,
@@ -142,7 +142,7 @@ private fun TypeProfileExpenseProgress(
         ) {
             CircularProgressIndicator(
                 progress = { progress },
-                color = expenseColor,
+                color = progressColor,
                 trackColor = trackColor,
                 strokeWidth = 10.dp,
                 modifier = Modifier.fillMaxSize(),
@@ -181,8 +181,7 @@ private fun TypeProfileBalanceRow(
     ) {
         Text(
             text = balanceLabel,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
