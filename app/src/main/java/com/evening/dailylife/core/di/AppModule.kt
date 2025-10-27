@@ -1,9 +1,11 @@
 package com.evening.dailylife.core.di
 
 import android.content.Context
+import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository
 import com.evening.dailylife.core.data.local.dao.TransactionDao
 import com.evening.dailylife.core.data.local.database.AppDatabase
 import com.evening.dailylife.core.data.repository.TransactionRepository
+import com.evening.dailylife.core.util.StringProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -44,5 +46,19 @@ object AppModule {
         @ApplicationScope applicationScope: CoroutineScope
     ): TransactionRepository {
         return TransactionRepository(transactionDao, applicationScope)
+    }
+
+    @Singleton
+    @Provides
+    fun provideTransactionAnalyticsRepository(
+        transactionRepository: TransactionRepository,
+        stringProvider: StringProvider,
+        @ApplicationScope applicationScope: CoroutineScope
+    ): TransactionAnalyticsRepository {
+        return TransactionAnalyticsRepository(
+            transactionRepository = transactionRepository,
+            stringProvider = stringProvider,
+            applicationScope = applicationScope
+        )
     }
 }

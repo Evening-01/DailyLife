@@ -2,17 +2,14 @@ package com.evening.dailylife.feature.details
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -38,7 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -49,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -168,7 +166,6 @@ private fun DetailsTransactionList(
     onTransactionClick: (Int) -> Unit,
     onDeleteTransaction: (TransactionEntity) -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
     val deleteButtonSize = 48.dp
     val deleteActionWidth = deleteButtonSize + 24.dp
@@ -181,128 +178,147 @@ private fun DetailsTransactionList(
         modifier = Modifier.fillMaxSize(),
     ) {
         transactions.forEach { dailyData ->
-            item {
+            item(key = "header-${dailyData.date}") {
                 DailyHeader(
                     date = dailyData.date,
                     income = dailyData.dailyIncome,
                     expense = dailyData.dailyExpense,
                     mood = dailyData.dailyMood,
                 )
+            }
 
-                AnimatedVisibility(
-                    visible = dailyData.transactions.isNotEmpty(),
-                    enter = expandVertically(expandFrom = Alignment.Top),
-                    exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(tween(200)),
-                ) {
-                    Column {
-                        dailyData.transactions.forEach { transaction ->
-                            key(transaction.id) {
-                                val offsetX = remember { Animatable(0f) }
-
-                                LaunchedEffect(transaction.id) {
-                                    offsetX.snapTo(0f)
-                                }
-
-                                LaunchedEffect(expandedTransactionId) {
-                                    val target = if (expandedTransactionId == transaction.id) {
-                                        maxSwipeOffset
-                                    } else {
-                                        0f
-                                    }
-                                    offsetX.animateTo(targetValue = target, animationSpec = tween(200))
-                                }
-
-                                fun settleSwipe(shouldExpand: Boolean) {
-                                    expandedTransactionId = if (shouldExpand) transaction.id else null
-                                    coroutineScope.launch {
-                                        val target = if (shouldExpand) maxSwipeOffset else 0f
-                                        offsetX.animateTo(targetValue = target, animationSpec = tween(200))
-                                    }
-                                }
-
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .pointerInput(expandedTransactionId, transaction.id) {
-                                            detectHorizontalDragGestures(
-                                                onDragStart = {
-                                                    if (
-                                                        expandedTransactionId != null &&
-                                                        expandedTransactionId != transaction.id
-                                                    ) {
-                                                        expandedTransactionId = null
-                                                    }
-                                                },
-                                                onHorizontalDrag = { _, dragAmount ->
-                                                    coroutineScope.launch {
-                                                        val newValue = (offsetX.value + dragAmount)
-                                                            .coerceIn(maxSwipeOffset, 0f)
-                                                        offsetX.snapTo(newValue)
-                                                    }
-                                                },
-                                                onDragEnd = {
-                                                    val shouldExpand = abs(offsetX.value) > swipeThreshold
-                                                    settleSwipe(shouldExpand)
-                                                },
-                                                onDragCancel = {
-                                                    val shouldExpand = abs(offsetX.value) > swipeThreshold
-                                                    settleSwipe(shouldExpand)
-                                                },
-                                            )
-                                        },
-                                ) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                        .width(deleteActionWidth)
-                                        .fillMaxHeight(),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(deleteButtonSize)
-                                            .clip(RoundedCornerShape(14.dp))
-                                            .background(MaterialTheme.colorScheme.error)
-                                            .clickable {
-                                                settleSwipe(false)
-                                                onDeleteTransaction(transaction)
-                                            },
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = stringResource(R.string.common_delete),
-                                            tint = Color.White,
-                                        )
-                                    }
-                                }
-
-                                    TransactionListItem(
-                                        transaction = transaction,
-                                        onClick = {
-                                            if (expandedTransactionId == transaction.id) {
-                                                settleSwipe(false)
-                                            } else {
-                                                onTransactionClick(transaction.id)
-                                            }
-                                        },
-                                        modifier = Modifier.offset {
-                                            IntOffset(offsetX.value.roundToInt(), 0)
-                                        },
-                                    )
-                                }
+            if (dailyData.transactions.isNotEmpty()) {
+                items(
+                    items = dailyData.transactions,
+                    key = { it.id },
+                ) { transaction ->
+                    SwipeableTransactionRow(
+                        transaction = transaction,
+                        isExpanded = expandedTransactionId == transaction.id,
+                        onExpandedChange = { shouldExpand ->
+                            expandedTransactionId = if (shouldExpand) transaction.id else null
+                        },
+                        onCollapseOthers = {
+                            if (expandedTransactionId != null && expandedTransactionId != transaction.id) {
+                                expandedTransactionId = null
                             }
-                        }
-                    }
+                        },
+                        maxSwipeOffset = maxSwipeOffset,
+                        swipeThreshold = swipeThreshold,
+                        deleteActionWidth = deleteActionWidth,
+                        deleteButtonSize = deleteButtonSize,
+                        onTransactionClick = onTransactionClick,
+                        onDeleteTransaction = onDeleteTransaction,
+                    )
                 }
+            }
 
-                Box(
+            item(key = "spacer-${dailyData.date}") {
+                Spacer(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)
-                        .background(Color.Transparent),
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SwipeableTransactionRow(
+    transaction: TransactionEntity,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    onCollapseOthers: () -> Unit,
+    maxSwipeOffset: Float,
+    swipeThreshold: Float,
+    deleteActionWidth: Dp,
+    deleteButtonSize: Dp,
+    onTransactionClick: (Int) -> Unit,
+    onDeleteTransaction: (TransactionEntity) -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val offsetX = remember { Animatable(0f) }
+
+    LaunchedEffect(transaction.id) {
+        offsetX.snapTo(0f)
+    }
+
+    LaunchedEffect(isExpanded) {
+        val target = if (isExpanded) maxSwipeOffset else 0f
+        offsetX.animateTo(targetValue = target, animationSpec = tween(200))
+    }
+
+    fun settleSwipe(shouldExpand: Boolean) {
+        onExpandedChange(shouldExpand)
+        coroutineScope.launch {
+            val target = if (shouldExpand) maxSwipeOffset else 0f
+            offsetX.animateTo(targetValue = target, animationSpec = tween(200))
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .pointerInput(isExpanded, transaction.id) {
+                detectHorizontalDragGestures(
+                    onDragStart = { onCollapseOthers() },
+                    onHorizontalDrag = { _, dragAmount ->
+                        coroutineScope.launch {
+                            val newValue = (offsetX.value + dragAmount)
+                                .coerceIn(maxSwipeOffset, 0f)
+                            offsetX.snapTo(newValue)
+                        }
+                    },
+                    onDragEnd = {
+                        val shouldExpand = abs(offsetX.value) > swipeThreshold
+                        settleSwipe(shouldExpand)
+                    },
+                    onDragCancel = {
+                        val shouldExpand = abs(offsetX.value) > swipeThreshold
+                        settleSwipe(shouldExpand)
+                    },
+                )
+            },
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .width(deleteActionWidth)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(deleteButtonSize)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.error)
+                    .clickable {
+                        settleSwipe(false)
+                        onDeleteTransaction(transaction)
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.common_delete),
+                    tint = Color.White,
+                )
+            }
+        }
+
+        TransactionListItem(
+            transaction = transaction,
+            onClick = {
+                if (isExpanded) {
+                    settleSwipe(false)
+                } else {
+                    onTransactionClick(transaction.id)
+                }
+            },
+            modifier = Modifier.offset {
+                IntOffset(offsetX.value.roundToInt(), 0)
+            },
+        )
     }
 }

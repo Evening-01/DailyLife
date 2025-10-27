@@ -2,20 +2,17 @@ package com.evening.dailylife.feature.chart
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.evening.dailylife.R
-import com.evening.dailylife.core.data.local.entity.TransactionEntity
-import com.evening.dailylife.core.data.repository.TransactionRepository
-import com.evening.dailylife.core.util.StringProvider
-import com.evening.dailylife.feature.chart.model.ChartCategoryRank
+import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository
+import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository.ChartAnalyticsCache
+import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository.ChartSummaryKey
+import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository.ChartSummarySnapshot
 import com.evening.dailylife.feature.chart.model.ChartContentStatus
-import com.evening.dailylife.feature.chart.model.ChartEntry
 import com.evening.dailylife.feature.chart.model.ChartPeriod
 import com.evening.dailylife.feature.chart.model.ChartRangeOption
 import com.evening.dailylife.feature.chart.model.ChartType
 import com.evening.dailylife.feature.chart.model.ChartUiState
-import com.evening.dailylife.feature.chart.model.MoodChartEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,46 +20,33 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.withContext
-import java.util.Calendar
-import java.util.GregorianCalendar
-import java.util.Locale
-import javax.inject.Inject
-import kotlin.math.max
 
 @HiltViewModel
 class ChartViewModel @Inject constructor(
-    transactionRepository: TransactionRepository,
-    private val stringProvider: StringProvider
+    analyticsRepository: TransactionAnalyticsRepository
 ) : ViewModel() {
 
-    companion object {
-        private const val DEFAULT_TOP_RANK_LIMIT = 5
-        private const val MILLIS_IN_DAY = 24L * 60L * 60L * 1000L
-        private const val DAYS_IN_WEEK = 7
-        private const val MONTHS_IN_YEAR = 12
-    }
+    private val chartCacheFlow = analyticsRepository.chartCache()
 
     private val selectedType = MutableStateFlow(ChartType.Expense)
     private val selectedPeriod = MutableStateFlow(ChartPeriod.Week)
     private val selectedRangeId = MutableStateFlow<String?>(null)
 
-    private val transactionsSource = transactionRepository.observeAllTransactions()
     private val initialUiState: ChartUiState = buildUiState(
+        cache = chartCacheFlow.value,
         type = selectedType.value,
         period = selectedPeriod.value,
-        preferredRangeId = selectedRangeId.value,
-        allTransactions = transactionsSource.value,
+        preferredRangeId = selectedRangeId.value
     )
 
     private val selectionState = combine(
-        transactionsSource,
+        chartCacheFlow,
         selectedType,
         selectedPeriod,
         selectedRangeId
-    ) { transactions, type, period, preferredRangeId ->
+    ) { cache, type, period, preferredRangeId ->
         SelectionState(
-            transactions = transactions,
+            cache = cache,
             type = type,
             period = period,
             preferredRangeId = preferredRangeId
@@ -72,20 +56,18 @@ class ChartViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<ChartUiState> = selectionState
         .mapLatest { selection ->
-            withContext(Dispatchers.Default) {
-                buildUiState(
-                    type = selection.type,
-                    period = selection.period,
-                    preferredRangeId = selection.preferredRangeId,
-                    allTransactions = selection.transactions
-                )
-            }
+            buildUiState(
+                cache = selection.cache,
+                type = selection.type,
+                period = selection.period,
+                preferredRangeId = selection.preferredRangeId
+            )
         }
         .stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = initialUiState
-    )
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = initialUiState
+        )
 
     fun onTypeSelected(type: ChartType) {
         if (selectedType.value == type) return
@@ -105,55 +87,21 @@ class ChartViewModel @Inject constructor(
     }
 
     private fun buildUiState(
+        cache: ChartAnalyticsCache,
         type: ChartType,
         period: ChartPeriod,
-        preferredRangeId: String?,
-        allTransactions: List<TransactionEntity>
+        preferredRangeId: String?
     ): ChartUiState {
-        val typedTransactions = filterTransactionsByType(allTransactions, type)
-        val rangeOptions = ensureRangeOptions(
-            period = period,
-            transactions = typedTransactions
-        )
-        val selectedOption = selectRangeOption(rangeOptions, preferredRangeId)
-        val range = selectedOption?.let {
-            ChartDataCalculator.buildRange(
-                period = period,
-                startMillis = it.startInclusive,
-                endMillis = it.endInclusive,
-                stringProvider = stringProvider
-            )
-        }
+        val options = cache.optionsByPeriod[period].orEmpty()
+        val selectedOption = selectRangeOption(options, preferredRangeId)
 
-        val summary = if (range != null) {
-            val rangeTransactions = transactionsInRange(
-                transactions = typedTransactions,
-                start = range.start,
-                end = range.end
-            )
-            ChartDataCalculator.summarize(
-                transactions = rangeTransactions,
-                type = type,
-                range = range,
-                topLimit = DEFAULT_TOP_RANK_LIMIT
-            )
-        } else {
-            ChartDataCalculator.Summary(
-                entries = emptyList(),
-                total = 0.0,
-                average = 0.0,
-                categoryRanks = emptyList()
-            )
-        }
+        val summary = selectedOption
+            ?.let { cache.summariesByKey[ChartSummaryKey(type, it.id)] }
+            ?: DEFAULT_SUMMARY
 
-        val moodEntries = if (range != null) {
-            ChartDataCalculator.buildMoodEntries(
-                transactions = allTransactions,
-                range = range
-            )
-        } else {
-            emptyList()
-        }
+        val moodEntries = selectedOption
+            ?.let { cache.moodEntriesByRangeId[it.id] }
+            .orEmpty()
 
         val contentStatus = if (summary.entries.isEmpty()) {
             ChartContentStatus.Empty
@@ -164,7 +112,7 @@ class ChartViewModel @Inject constructor(
         return ChartUiState(
             selectedType = type,
             selectedPeriod = period,
-            rangeTabs = rangeOptions,
+            rangeTabs = options,
             selectedRangeOption = selectedOption,
             entries = summary.entries,
             categoryRanks = summary.categoryRanks,
@@ -184,313 +132,19 @@ class ChartViewModel @Inject constructor(
         return options.firstOrNull { it.id == preferredId } ?: options.first()
     }
 
-    private fun filterTransactionsByType(
-        transactions: List<TransactionEntity>,
-        type: ChartType
-    ): List<TransactionEntity> {
-        return when (type) {
-            ChartType.Expense -> transactions.filter { it.amount < 0 }
-            ChartType.Income -> transactions.filter { it.amount > 0 }
-        }
-    }
-
-    private fun ensureRangeOptions(
-        period: ChartPeriod,
-        transactions: List<TransactionEntity>
-    ): List<ChartRangeOption> {
-        val options = buildRangeOptions(period, transactions)
-        if (options.isNotEmpty()) return options
-
-        val fallbackOption = when (period) {
-            ChartPeriod.Week -> buildCurrentWeekOption()
-            ChartPeriod.Month -> buildCurrentMonthOption()
-            ChartPeriod.Year -> buildCurrentYearOption()
-        }
-        return listOf(fallbackOption)
-    }
-
-    private fun buildRangeOptions(
-        period: ChartPeriod,
-        transactions: List<TransactionEntity>
-    ): List<ChartRangeOption> {
-        return when (period) {
-            ChartPeriod.Week -> buildWeekOptions(transactions)
-            ChartPeriod.Month -> buildMonthOptions(transactions)
-            ChartPeriod.Year -> buildYearOptions(transactions)
-        }
-    }
-
-    private fun transactionsInRange(
-        transactions: List<TransactionEntity>,
-        start: Long,
-        end: Long
-    ): List<TransactionEntity> {
-        if (transactions.isEmpty()) return emptyList()
-        val result = ArrayList<TransactionEntity>()
-        for (entity in transactions) {
-            if (entity.date < start) continue
-            if (entity.date > end) break
-            result.add(entity)
-        }
-        return result
-    }
-
-    private fun buildWeekOptions(
-        transactions: List<TransactionEntity>
-    ): List<ChartRangeOption> {
-        if (transactions.isEmpty()) return emptyList()
-
-        val now = isoCalendar().apply { timeInMillis = System.currentTimeMillis() }
-        val nowWeekStart = now.weekStartMillis()
-
-        val grouped = transactions.groupBy { transaction ->
-            val cal = isoCalendar().apply {
-                timeInMillis = transaction.date
-            }
-            cal.weekStartMillis()
-        }
-
-        return grouped.map { (startMillis, _) ->
-            val startCal = isoCalendar().apply { timeInMillis = startMillis }
-            val weekOfYear = startCal.get(Calendar.WEEK_OF_YEAR)
-            val weekYear = startCal.isoWeekYear()
-            val endMillis = (startCal.clone() as Calendar).apply {
-                add(Calendar.DAY_OF_YEAR, DAYS_IN_WEEK - 1)
-                setToEndOfDay()
-            }.timeInMillis
-
-            val diffWeeks = max(0, ((nowWeekStart - startMillis) / MILLIS_IN_DAY / DAYS_IN_WEEK).toInt())
-            val label = when {
-                diffWeeks == 0 -> stringProvider.getString(R.string.chart_tab_week_this)
-                diffWeeks == 1 -> stringProvider.getString(R.string.chart_tab_week_last)
-                weekYear == now.isoWeekYear() -> stringProvider.getString(
-                    R.string.chart_tab_week_number,
-                    weekOfYear
-                )
-                else -> stringProvider.getString(
-                    R.string.chart_tab_week_with_year,
-                    weekYear,
-                    weekOfYear
-                )
-            }
-
-            ChartRangeOption(
-                id = "week-$weekYear-$weekOfYear",
-                period = ChartPeriod.Week,
-                label = label,
-                startInclusive = startMillis,
-                endInclusive = endMillis
-            )
-        }.sortedByDescending { it.startInclusive }
-    }
-
-    private fun buildCurrentWeekOption(): ChartRangeOption {
-        val calendar = isoCalendar().apply {
-            timeInMillis = System.currentTimeMillis()
-        }
-        val startMillis = calendar.weekStartMillis()
-        val endMillis = (calendar.clone() as Calendar).apply {
-            timeInMillis = startMillis
-            add(Calendar.DAY_OF_YEAR, DAYS_IN_WEEK - 1)
-            setToEndOfDay()
-        }.timeInMillis
-
-        return ChartRangeOption(
-            id = "week-current",
-            period = ChartPeriod.Week,
-            label = stringProvider.getString(R.string.chart_tab_week_this),
-            startInclusive = startMillis,
-            endInclusive = endMillis
-        )
-    }
-
-    private fun buildCurrentMonthOption(): ChartRangeOption {
-        val now = Calendar.getInstance(Locale.getDefault())
-        val startCal = (now.clone() as Calendar).apply {
-            set(Calendar.DAY_OF_MONTH, 1)
-            setToStartOfDay()
-        }
-        val endCal = (startCal.clone() as Calendar).apply {
-            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
-            setToEndOfDay()
-        }
-
-        return ChartRangeOption(
-            id = "month-current",
-            period = ChartPeriod.Month,
-            label = stringProvider.getString(R.string.chart_tab_month_this),
-            startInclusive = startCal.timeInMillis,
-            endInclusive = endCal.timeInMillis
-        )
-    }
-
-    private fun buildCurrentYearOption(): ChartRangeOption {
-        val now = Calendar.getInstance(Locale.getDefault())
-        val startCal = (now.clone() as Calendar).apply {
-            set(Calendar.MONTH, Calendar.JANUARY)
-            set(Calendar.DAY_OF_MONTH, 1)
-            setToStartOfDay()
-        }
-        val endCal = (startCal.clone() as Calendar).apply {
-            set(Calendar.MONTH, Calendar.DECEMBER)
-            set(Calendar.DAY_OF_MONTH, 31)
-            setToEndOfDay()
-        }
-
-        return ChartRangeOption(
-            id = "year-current",
-            period = ChartPeriod.Year,
-            label = stringProvider.getString(R.string.chart_tab_year_this),
-            startInclusive = startCal.timeInMillis,
-            endInclusive = endCal.timeInMillis
-        )
-    }
-
-    private fun buildMonthOptions(
-        transactions: List<TransactionEntity>
-    ): List<ChartRangeOption> {
-        if (transactions.isEmpty()) return emptyList()
-
-        val grouped = transactions.groupBy { transaction ->
-            val cal = Calendar.getInstance(Locale.getDefault()).apply {
-                timeInMillis = transaction.date
-            }
-            MonthKey(
-                year = cal.get(Calendar.YEAR),
-                month = cal.get(Calendar.MONTH)
-            )
-        }
-        val now = Calendar.getInstance(Locale.getDefault())
-
-        return grouped.map { (key, _) ->
-            val startCal = Calendar.getInstance(Locale.getDefault()).apply {
-                set(Calendar.YEAR, key.year)
-                set(Calendar.MONTH, key.month)
-                set(Calendar.DAY_OF_MONTH, 1)
-                setToStartOfDay()
-            }
-            val endCal = (startCal.clone() as Calendar).apply {
-                set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
-                setToEndOfDay()
-            }
-
-            val diffMonths =
-                (now.get(Calendar.YEAR) - key.year) * MONTHS_IN_YEAR + (now.get(Calendar.MONTH) - key.month)
-            val label = when {
-                diffMonths == 0 -> stringProvider.getString(R.string.chart_tab_month_this)
-                diffMonths == 1 -> stringProvider.getString(R.string.chart_tab_month_last)
-                key.year == now.get(Calendar.YEAR) -> stringProvider.getString(
-                    R.string.chart_tab_month_number,
-                    key.month + 1
-                )
-                else -> stringProvider.getString(
-                    R.string.chart_tab_month_with_year,
-                    key.year,
-                    key.month + 1
-                )
-            }
-
-            ChartRangeOption(
-                id = "month-${key.year}-${key.month}",
-                period = ChartPeriod.Month,
-                label = label,
-                startInclusive = startCal.timeInMillis,
-                endInclusive = endCal.timeInMillis
-            )
-        }.sortedByDescending { it.startInclusive }
-    }
-
-    private fun buildYearOptions(
-        transactions: List<TransactionEntity>
-    ): List<ChartRangeOption> {
-        if (transactions.isEmpty()) return emptyList()
-
-        val grouped = transactions.groupBy { transaction ->
-            val cal = Calendar.getInstance(Locale.getDefault()).apply {
-                timeInMillis = transaction.date
-            }
-            cal.get(Calendar.YEAR)
-        }
-        val nowYear = Calendar.getInstance(Locale.getDefault()).get(Calendar.YEAR)
-
-        return grouped.map { (year, _) ->
-            val startCal = Calendar.getInstance(Locale.getDefault()).apply {
-                set(Calendar.YEAR, year)
-                set(Calendar.MONTH, Calendar.JANUARY)
-                set(Calendar.DAY_OF_MONTH, 1)
-                setToStartOfDay()
-            }
-            val endCal = (startCal.clone() as Calendar).apply {
-                set(Calendar.MONTH, Calendar.DECEMBER)
-                set(Calendar.DAY_OF_MONTH, 31)
-                setToEndOfDay()
-            }
-
-            val label = when (nowYear - year) {
-                0 -> stringProvider.getString(R.string.chart_tab_year_this)
-                1 -> stringProvider.getString(R.string.chart_tab_year_last)
-                else -> stringProvider.getString(R.string.chart_tab_year_value, year)
-            }
-
-            ChartRangeOption(
-                id = "year-$year",
-                period = ChartPeriod.Year,
-                label = label,
-                startInclusive = startCal.timeInMillis,
-                endInclusive = endCal.timeInMillis
-            )
-        }.sortedByDescending { it.startInclusive }
-    }
-
-    private fun isoCalendar(): Calendar {
-        return GregorianCalendar.getInstance(Locale.getDefault()).apply {
-            firstDayOfWeek = Calendar.MONDAY
-            minimalDaysInFirstWeek = 4
-        }
-    }
-
-    private fun Calendar.setToStartOfDay() {
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-    }
-
-    private fun Calendar.setToEndOfDay() {
-        set(Calendar.HOUR_OF_DAY, 23)
-        set(Calendar.MINUTE, 59)
-        set(Calendar.SECOND, 59)
-        set(Calendar.MILLISECOND, 999)
-    }
-
-    private fun Calendar.weekStartMillis(): Long {
-        val copy = (clone() as Calendar)
-        val diff = (copy.get(Calendar.DAY_OF_WEEK) - firstDayOfWeek + DAYS_IN_WEEK) % DAYS_IN_WEEK
-        copy.add(Calendar.DAY_OF_YEAR, -diff)
-        copy.setToStartOfDay()
-        return copy.timeInMillis
-    }
-
-    private fun Calendar.isoWeekYear(): Int {
-        val weekOfYear = get(Calendar.WEEK_OF_YEAR)
-        val year = get(Calendar.YEAR)
-        val month = get(Calendar.MONTH)
-        return when {
-            weekOfYear == 1 && month == Calendar.DECEMBER -> year + 1
-            weekOfYear >= 52 && month == Calendar.JANUARY -> year - 1
-            else -> year
-        }
-    }
-
-    private data class MonthKey(
-        val year: Int,
-        val month: Int
-    )
-
     private data class SelectionState(
-        val transactions: List<TransactionEntity>,
+        val cache: ChartAnalyticsCache,
         val type: ChartType,
         val period: ChartPeriod,
         val preferredRangeId: String?
     )
+
+    companion object {
+        private val DEFAULT_SUMMARY = ChartSummarySnapshot(
+            entries = emptyList(),
+            total = 0.0,
+            average = 0.0,
+            categoryRanks = emptyList()
+        )
+    }
 }
