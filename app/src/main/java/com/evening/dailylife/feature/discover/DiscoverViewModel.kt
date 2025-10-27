@@ -5,34 +5,29 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
-import com.evening.dailylife.core.data.local.model.DailyTransactionSummary
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.feature.discover.model.DiscoverHeatMapEntry
 import com.evening.dailylife.feature.discover.model.DiscoverHeatMapUiState
 import com.evening.dailylife.feature.discover.model.DiscoverTypeProfileUiState
 import com.evening.dailylife.feature.discover.model.TypeProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.util.Calendar
-import java.util.LinkedHashMap
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.abs
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
@@ -53,17 +48,8 @@ class DiscoverViewModel @Inject constructor(
         isLoading = true,
     )
 
-    val heatMapUiState: StateFlow<DiscoverHeatMapUiState> = transactionRepository
-        .getDailySummaries(
-            startDate = heatMapRange.startMillis,
-            endDate = heatMapRange.endMillis,
-        )
-        .map { summaries -> buildHeatMapState(summaries) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = initialHeatMapState,
-        )
+    private val _heatMapState = MutableStateFlow(initialHeatMapState)
+    val heatMapUiState: StateFlow<DiscoverHeatMapUiState> = _heatMapState.asStateFlow()
 
     private val _typeProfileState = MutableStateFlow(DiscoverTypeProfileUiState())
     val typeProfileState: StateFlow<DiscoverTypeProfileUiState> = _typeProfileState.asStateFlow()
@@ -73,17 +59,23 @@ class DiscoverViewModel @Inject constructor(
         val cachedTransactions = transactionsState.value
         if (cachedTransactions != null) {
             _typeProfileState.value = buildTypeProfileState(cachedTransactions)
+            _heatMapState.value = buildHeatMapState(cachedTransactions)
         } else {
             _typeProfileState.value = _typeProfileState.value.copy(isLoading = true)
+            _heatMapState.value = _heatMapState.value.copy(isLoading = true)
         }
 
         viewModelScope.launch {
             transactionsState
                 .filterNotNull()
-                .mapLatest { buildTypeProfileState(it) }
-                .flowOn(Dispatchers.Default)
-                .collectLatest { newState ->
-                    _typeProfileState.value = newState
+                .mapLatest { transactions ->
+                    withContext(Dispatchers.Default) {
+                        buildTypeProfileState(transactions) to buildHeatMapState(transactions)
+                    }
+                }
+                .collectLatest { (typeProfile, heatMap) ->
+                    _typeProfileState.value = typeProfile
+                    _heatMapState.value = heatMap
                 }
         }
     }
@@ -143,34 +135,61 @@ class DiscoverViewModel @Inject constructor(
         )
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun buildHeatMapState(
-        summaries: List<DailyTransactionSummary>,
+        transactions: List<TransactionEntity>,
     ): DiscoverHeatMapUiState {
-        val contributions = LinkedHashMap<LocalDate, DiscoverHeatMapEntry>()
-        val summaryByDate = summaries.associateBy { summary ->
-            Instant.ofEpochMilli(summary.dayStartMillis)
-                .atZone(zoneId)
-                .toLocalDate()
-        }
+        val transactionsByDate = transactions
+            .asSequence()
+            .filter { entity ->
+                entity.date in heatMapRange.startMillis..heatMapRange.endMillis
+            }
+            .groupBy { entity ->
+                Instant.ofEpochMilli(entity.date)
+                    .atZone(zoneId)
+                    .toLocalDate()
+            }
 
+        val contributions = LinkedHashMap<LocalDate, DiscoverHeatMapEntry>()
         var currentDate = heatMapRange.startDate
         while (!currentDate.isAfter(heatMapRange.endDate)) {
-            val summary = summaryByDate[currentDate]
-            contributions[currentDate] = summary?.let {
+            val dayTransactions = transactionsByDate[currentDate]
+            val entry = if (dayTransactions != null && dayTransactions.isNotEmpty()) {
+                var totalIncome = 0.0
+                var totalExpense = 0.0
+                var moodScoreSum = 0
+                var moodCount = 0
+
+                dayTransactions.forEach { entity ->
+                    val amount = entity.amount
+                    if (amount > 0) {
+                        totalIncome += amount
+                    } else if (amount < 0) {
+                        totalExpense += amount
+                    }
+                    entity.mood?.let { mood ->
+                        moodScoreSum += mood
+                        moodCount++
+                    }
+                }
+
                 DiscoverHeatMapEntry(
-                    transactionCount = it.transactionCount,
-                    totalIncome = it.totalIncome,
-                    totalExpense = it.totalExpense,
-                    moodScoreSum = it.moodScoreSum,
-                    moodCount = it.moodCount,
+                    transactionCount = dayTransactions.size,
+                    totalIncome = totalIncome,
+                    totalExpense = totalExpense,
+                    moodScoreSum = moodScoreSum,
+                    moodCount = moodCount,
                 )
-            } ?: DiscoverHeatMapEntry(
-                transactionCount = 0,
-                totalIncome = 0.0,
-                totalExpense = 0.0,
-                moodScoreSum = 0,
-                moodCount = 0,
-            )
+            } else {
+                DiscoverHeatMapEntry(
+                    transactionCount = 0,
+                    totalIncome = 0.0,
+                    totalExpense = 0.0,
+                    moodScoreSum = 0,
+                    moodCount = 0,
+                )
+            }
+            contributions[currentDate] = entry
             currentDate = currentDate.plusDays(1)
         }
 
