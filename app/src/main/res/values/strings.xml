@@ -95,11 +95,6 @@
     <string name="fingerprint_auth_failed_exit">未通过指纹验证</string>
     <string name="data_management">数据管理</string>
 
-    <!-- Discover heat map -->
-    <string name="discover_heatmap_title">记账热力图</string>
-    <string name="discover_heatmap_legend_less">较少</string>
-    <string name="discover_heatmap_legend_more">较多</string>
-
     <!-- Me profile -->
     <string name="me_profile_display_name">Evening</string>
     <string name="me_profile_id">ID：dailylife_001</string>

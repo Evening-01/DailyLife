@@ -14,7 +14,6 @@ import com.evening.dailylife.feature.chart.model.ChartPeriod
 import com.evening.dailylife.feature.chart.model.ChartRangeOption
 import com.evening.dailylife.feature.chart.model.ChartType
 import com.evening.dailylife.feature.chart.model.MoodChartEntry
-import com.evening.dailylife.feature.discover.model.DiscoverHeatMapEntry
 import com.evening.dailylife.feature.discover.model.TypeProfile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -250,71 +249,6 @@ class TransactionAnalyticsRepository @Inject constructor(
     ): DiscoverAnalyticsCache {
         if (transactions.isEmpty()) return DiscoverAnalyticsCache.EMPTY
 
-        val zoneId = ZoneId.systemDefault()
-        val heatMapRange = HeatMapRange.create(zoneId)
-        val contributions = LinkedHashMap<LocalDate, DiscoverHeatMapEntry>()
-
-        val transactionsByDate = transactions
-            .asSequence()
-            .filter { entity ->
-                entity.date in heatMapRange.startMillis..heatMapRange.endMillis
-            }
-            .groupBy { entity ->
-                Instant.ofEpochMilli(entity.date).atZone(zoneId).toLocalDate()
-            }
-
-        var cursor = heatMapRange.startDate
-        while (!cursor.isAfter(heatMapRange.endDate)) {
-            val dayTransactions = transactionsByDate[cursor].orEmpty()
-            if (dayTransactions.isEmpty()) {
-                contributions[cursor] = DiscoverHeatMapEntry(
-                    transactionCount = 0,
-                    totalIncome = 0.0,
-                    totalExpense = 0.0,
-                    moodScoreSum = 0,
-                    moodCount = 0
-                )
-            } else {
-                var income = 0.0
-                var expense = 0.0
-                var moodScoreSum = 0
-                var moodCount = 0
-                dayTransactions.forEach { entity ->
-                    when {
-                        entity.amount > 0 -> income += entity.amount
-                        entity.amount < 0 -> expense += entity.amount
-                    }
-                    entity.mood?.let {
-                        moodScoreSum += it
-                        moodCount++
-                    }
-                }
-                contributions[cursor] = DiscoverHeatMapEntry(
-                    transactionCount = dayTransactions.size,
-                    totalIncome = income,
-                    totalExpense = expense,
-                    moodScoreSum = moodScoreSum,
-                    moodCount = moodCount
-                )
-            }
-            cursor = cursor.plusDays(1)
-        }
-
-        val maxDailyCount = contributions.values.maxOfOrNull { it.transactionCount } ?: 0
-        val contributionsWithIntensity =
-            if (maxDailyCount <= 0) {
-                contributions
-            } else {
-                contributions.mapValuesTo(LinkedHashMap(contributions.size)) { (_, entry) ->
-                    entry.copy(
-                        intensity = intensityFromCount(
-                            count = entry.transactionCount,
-                            maxCount = maxDailyCount
-                        )
-                    )
-                }
-            }
-
         val now = Calendar.getInstance(Locale.getDefault())
         val monthStart = (now.clone() as Calendar).apply {
             set(Calendar.DAY_OF_MONTH, 1)
@@ -330,11 +264,6 @@ class TransactionAnalyticsRepository @Inject constructor(
         val typeProfile = buildTypeProfile(monthTransactions)
 
         return DiscoverAnalyticsCache(
-            heatMapSnapshot = DiscoverHeatMapSnapshot(
-                startDate = heatMapRange.startDate,
-                endDate = heatMapRange.endDate,
-                contributions = contributionsWithIntensity
-            ),
             typeProfile = TypeProfileSnapshot(
                 year = monthStart.get(Calendar.YEAR),
                 month = monthStart.get(Calendar.MONTH) + 1,
@@ -751,12 +680,6 @@ class TransactionAnalyticsRepository @Inject constructor(
         }
     }
 
-    data class DiscoverHeatMapSnapshot(
-        val startDate: LocalDate,
-        val endDate: LocalDate,
-        val contributions: Map<LocalDate, DiscoverHeatMapEntry>
-    )
-
     data class TypeProfileSnapshot(
         val year: Int,
         val month: Int,
@@ -764,16 +687,10 @@ class TransactionAnalyticsRepository @Inject constructor(
     )
 
     data class DiscoverAnalyticsCache(
-        val heatMapSnapshot: DiscoverHeatMapSnapshot,
         val typeProfile: TypeProfileSnapshot
     ) {
         companion object {
             val EMPTY = DiscoverAnalyticsCache(
-                heatMapSnapshot = DiscoverHeatMapSnapshot(
-                    startDate = LocalDate.now(),
-                    endDate = LocalDate.now(),
-                    contributions = emptyMap()
-                ),
                 typeProfile = TypeProfileSnapshot(
                     year = Calendar.getInstance().get(Calendar.YEAR),
                     month = Calendar.getInstance().get(Calendar.MONTH) + 1,
@@ -790,53 +707,11 @@ class TransactionAnalyticsRepository @Inject constructor(
         val isLoading: Boolean = true
     )
 
-    data class HeatMapRange(
-        val startDate: LocalDate,
-        val endDate: LocalDate,
-        val startMillis: Long,
-        val endMillis: Long
-    ) {
-        companion object {
-            private const val MONTH_SPAN = 12L
-
-            @RequiresApi(Build.VERSION_CODES.O)
-            fun create(zoneId: ZoneId): HeatMapRange {
-                val today = LocalDate.now(zoneId)
-                val endDate = today
-                val startDate = today.minusMonths(MONTH_SPAN - 1).withDayOfMonth(1)
-                val startMillis = startDate
-                    .atStartOfDay(zoneId)
-                    .toInstant()
-                    .toEpochMilli()
-                val endMillis = endDate
-                    .plusDays(1)
-                    .atStartOfDay(zoneId)
-                    .minusNanos(1)
-                    .toInstant()
-                    .toEpochMilli()
-                return HeatMapRange(startDate, endDate, startMillis, endMillis)
-            }
-        }
-    }
-
     companion object {
         private const val DEFAULT_TOP_RANK_LIMIT = 5
         private const val MILLIS_IN_DAY = 86_400_000L
         private const val DAYS_IN_WEEK = 7
         private const val MONTHS_IN_YEAR = 12
 
-        private fun intensityFromCount(
-            count: Int,
-            maxCount: Int
-        ): Int {
-            if (count <= 0 || maxCount <= 0) return 0
-            val ratio = count.toDouble() / maxCount
-            return when {
-                ratio >= 0.75 -> 4
-                ratio >= 0.5 -> 3
-                ratio >= 0.25 -> 2
-                else -> 1
-            }
-        }
     }
 }

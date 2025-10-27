@@ -13,8 +13,14 @@ data class TypeProfile(
         get() = expenseTotal + incomeTotal
 
     val expenseRatio: Float
-        get() = if (total <= 0.0) 0f else (expenseTotal / total).toFloat()
+        get() = when {
+            incomeTotal <= 0.0 -> 0f
+            else -> (expenseTotal / incomeTotal).toFloat()
+        }
 
     val incomeRatio: Float
-        get() = if (total <= 0.0) 0f else (incomeTotal / total).toFloat()
+        get() = when {
+            incomeTotal <= 0.0 -> 0f
+            else -> (net / incomeTotal).coerceIn(0.0, 1.0).toFloat()
+        }
 }

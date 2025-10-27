@@ -58,11 +58,12 @@ fun TypeProfileSection(
     val incomeAmountText = numberFormatter.format(profile.incomeTotal)
     val balanceAmountText = numberFormatter.format(profile.net)
     val expenseRatio = profile.expenseRatio.coerceIn(0f, 1f)
-    val expenseRatioText = percentFormatter.format(profile.expenseRatio.toDouble())
+    val expenseRatioText = percentFormatter.format(expenseRatio.toDouble())
 
     val expenseColor = MaterialTheme.colorScheme.error
     val incomeColor = SuccessGreen
     val neutralBalanceColor = MaterialTheme.colorScheme.onSurface
+    val defaultValueColor = MaterialTheme.colorScheme.onSurface
     val progressColor = MaterialTheme.colorScheme.primary
 
     val animatedExpenseRatio by animateFloatAsState(
@@ -109,12 +110,12 @@ fun TypeProfileSection(
             TypeProfileDetailRow(
                 label = stringResource(id = R.string.discover_type_profile_month_expense),
                 value = expenseAmountText,
-                valueColor = expenseColor,
+                valueColor = defaultValueColor,
             )
             TypeProfileDetailRow(
                 label = stringResource(id = R.string.discover_type_profile_month_income),
                 value = incomeAmountText,
-                valueColor = incomeColor,
+                valueColor = defaultValueColor,
             )
         }
     }

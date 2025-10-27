@@ -29,13 +29,8 @@ import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.feature.discover.component.DiscoverAiSection
 import com.evening.dailylife.feature.discover.component.DiscoverCommonToolsSection
-import com.evening.dailylife.feature.discover.component.DiscoverHeatMapSection
 import com.evening.dailylife.feature.discover.component.TypeProfileSection
-import com.evening.dailylife.feature.discover.model.DiscoverHeatMapUiState
 import com.evening.dailylife.feature.discover.model.DiscoverTypeProfileUiState
-import com.kizitonwose.calendar.compose.heatmapcalendar.rememberHeatMapCalendarState
-import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
-import com.kizitonwose.calendar.core.yearMonth
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
 import java.text.DecimalFormat
@@ -47,7 +42,6 @@ fun DiscoverScreen(
     viewModel: DiscoverViewModel = hiltViewModel(),
 ) {
     val typeProfileState by viewModel.typeProfileState.collectAsState()
-    val heatMapUiState by viewModel.heatMapUiState.collectAsState()
     val headerContainerColor = LocalExtendedColorScheme.current.headerContainer
     val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
     val numberFormatter = remember { DecimalFormat("#,##0.00") }
@@ -70,7 +64,6 @@ fun DiscoverScreen(
     ) { innerPadding ->
         DiscoverContent(
             innerPadding = innerPadding,
-            heatMapState = heatMapUiState,
             typeProfileState = typeProfileState,
             numberFormatter = numberFormatter,
         )
@@ -81,23 +74,10 @@ fun DiscoverScreen(
 @Composable
 private fun DiscoverContent(
     innerPadding: PaddingValues,
-    heatMapState: DiscoverHeatMapUiState,
     typeProfileState: DiscoverTypeProfileUiState,
     numberFormatter: DecimalFormat,
 ) {
     val scrollState = rememberScrollState()
-    val startMonth = heatMapState.startDate.yearMonth
-    val endMonth = heatMapState.endDate.yearMonth
-    val calendarState = rememberHeatMapCalendarState(
-        startMonth = startMonth,
-        endMonth = endMonth,
-        firstVisibleMonth = endMonth,
-        firstDayOfWeek = firstDayOfWeekFromLocale(),
-    )
-    val contributions = remember(heatMapState.contributions) { heatMapState.contributions }
-    val dateRange = remember(heatMapState.startDate, heatMapState.endDate) {
-        heatMapState.startDate..heatMapState.endDate
-    }
     val sectionSpacing = 8.dp
 
     Column(
@@ -108,18 +88,6 @@ private fun DiscoverContent(
             .padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(sectionSpacing),
     ) {
-        RoundedColumn {
-            ItemTitle(text = stringResource(id = R.string.discover_heatmap_title))
-            DiscoverHeatMapSection(
-                isLoading = heatMapState.isLoading,
-                contributions = contributions,
-                calendarState = calendarState,
-                dateRange = dateRange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-            )
-        }
         RoundedColumn {
             val profileTitle = typeProfileState.month?.let { month ->
                 stringResource(id = R.string.discover_type_profile_title_month, month)

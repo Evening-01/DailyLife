@@ -120,10 +120,6 @@ libraries:
     hilt-android-compiler:
       version: 2.57.1
 
-  com.kizitonwose.calendar:
-    compose:
-      version: 2.9.0
-
   com.materialkolor:
     material-kolor:
       version: 3.0.1

@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository
 import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository.DiscoverAnalyticsCache
-import com.evening.dailylife.feature.discover.model.DiscoverHeatMapUiState
 import com.evening.dailylife.feature.discover.model.DiscoverTypeProfileUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -23,14 +22,6 @@ class DiscoverViewModel @Inject constructor(
 
     private val discoverCacheFlow = analyticsRepository.discoverCache()
 
-    val heatMapUiState: StateFlow<DiscoverHeatMapUiState> = discoverCacheFlow
-        .map { cache -> cache.toHeatMapUiState() }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = discoverCacheFlow.value.toHeatMapUiState(isLoading = true)
-        )
-
     val typeProfileState: StateFlow<DiscoverTypeProfileUiState> = discoverCacheFlow
         .map { cache -> cache.toTypeProfileUiState() }
         .stateIn(
@@ -38,17 +29,6 @@ class DiscoverViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = discoverCacheFlow.value.toTypeProfileUiState(isLoading = true)
         )
-
-    private fun DiscoverAnalyticsCache.toHeatMapUiState(
-        isLoading: Boolean = false
-    ): DiscoverHeatMapUiState {
-        return DiscoverHeatMapUiState(
-            startDate = heatMapSnapshot.startDate,
-            endDate = heatMapSnapshot.endDate,
-            contributions = heatMapSnapshot.contributions,
-            isLoading = isLoading
-        )
-    }
 
     private fun DiscoverAnalyticsCache.toTypeProfileUiState(
         isLoading: Boolean = false
