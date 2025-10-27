@@ -54,8 +54,13 @@
     <string name="chart_type_profile_balance">结余：%1$s</string>
     <string name="chart_type_profile_ratio">支出占比 %1$s · 收入占比 %2$s</string>
     <string name="chart_type_profile_empty">该时间段暂无记录</string>
+    <string name="discover_type_profile_title_month">%1$d月画像</string>
+    <string name="discover_type_profile_balance_label">结余：</string>
     <string name="discover_type_profile_month_label">%1$d年%2$d月</string>
     <string name="discover_type_profile_subtitle">本月记录概览</string>
+    <string name="discover_type_profile_month_expense">本月支出</string>
+    <string name="discover_type_profile_month_income">本月收入</string>
+    <string name="discover_type_profile_expense_ratio_label">支出占比</string>
     <string name="discover_ai_title">AI 理财助手</string>
     <string name="discover_ai_subtitle">洞察消费趋势、规划预算、智能提醒即将上线</string>
     <string name="discover_ai_card_title">即将支持的智能功能</string>

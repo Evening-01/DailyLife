@@ -121,7 +121,10 @@ private fun DiscoverContent(
             )
         }
         RoundedColumn {
-            ItemTitle(text = stringResource(id = R.string.chart_type_profile_title))
+            val profileTitle = typeProfileState.month?.let { month ->
+                stringResource(id = R.string.discover_type_profile_title_month, month)
+            } ?: stringResource(id = R.string.chart_type_profile_title)
+            ItemTitle(text = profileTitle)
             DiscoverTypeProfileContent(typeProfileState, numberFormatter)
         }
         DiscoverAiSection(
@@ -138,32 +141,6 @@ private fun DiscoverTypeProfileContent(
     state: DiscoverTypeProfileUiState,
     numberFormatter: DecimalFormat,
 ) {
-    val year = state.year
-    val month = state.month
-    if (year != null && month != null) {
-        Text(
-            text = stringResource(
-                id = R.string.discover_type_profile_month_label,
-                year,
-                month,
-            ),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-        )
-        if (!state.isLoading) {
-            Text(
-                text = stringResource(id = R.string.discover_type_profile_subtitle),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp),
-            )
-        }
-    }
     if (state.isLoading) {
         LinearProgressIndicator(
             modifier = Modifier
