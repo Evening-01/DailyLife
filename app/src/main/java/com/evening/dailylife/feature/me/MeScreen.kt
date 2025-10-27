@@ -1,7 +1,12 @@
 package com.evening.dailylife.feature.me
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,6 +49,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.R
 import com.evening.dailylife.core.data.preferences.ThemeMode
@@ -57,6 +64,7 @@ import com.moriafly.salt.ui.UnstableSaltApi
 import com.moriafly.salt.ui.popup.PopupMenuItem
 import com.moriafly.salt.ui.popup.rememberPopupState
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableSaltApi::class)
 @Composable
 fun MeScreen(
@@ -65,6 +73,7 @@ fun MeScreen(
     val themeMode by viewModel.themeMode.collectAsState()
     val isDynamicColorEnabled by viewModel.dynamicColor.collectAsState()
     val profileStatsState by viewModel.profileStatsState.collectAsState()
+    val fingerprintLockEnabled by viewModel.fingerprintLockEnabled.collectAsState()
     val themeModePopupMenuState = rememberPopupState()
 
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -73,6 +82,9 @@ fun MeScreen(
     val context = LocalContext.current
     val isDynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val dynamicColorUnsupportedMessage = stringResource(R.string.dynamic_color_unsupported)
+    val fingerprintUnsupportedMessage = stringResource(R.string.fingerprint_not_supported)
+    val fingerprintNotEnrolledMessage = stringResource(R.string.fingerprint_not_enrolled)
+    val biometricManager = remember { BiometricManager.from(context) }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -211,13 +223,92 @@ fun MeScreen(
                 RoundedColumn {
                     ItemTitle(text = stringResource(R.string.data_and_security))
 
-                    Item(
+                    ItemSwitcher(
+                        state = fingerprintLockEnabled,
+                        onChange = { checked ->
+                            if (checked) {
+                                when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+                                    BiometricManager.BIOMETRIC_SUCCESS -> {
+                                        viewModel.setFingerprintLockEnabled(true)
+                                    }
+
+                                    BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                                        Toast
+                                            .makeText(context, fingerprintNotEnrolledMessage, Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
+
+                                    else -> {
+                                        Toast
+                                            .makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
+                                }
+                            } else {
+                                val activity = context.findFragmentActivity()
+                                if (activity == null) {
+                                    Toast
+                                        .makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT)
+                                        .show()
+                                    viewModel.setFingerprintLockEnabled(true)
+                                    return@ItemSwitcher
+                                }
+                                when (val capability = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
+                                    BiometricManager.BIOMETRIC_SUCCESS -> {
+                                        val executor = ContextCompat.getMainExecutor(activity)
+                                        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                                            .setTitle(context.getString(R.string.fingerprint_prompt_title))
+                                            .setSubtitle(context.getString(R.string.fingerprint_prompt_subtitle))
+                                            .setDescription(context.getString(R.string.fingerprint_prompt_description))
+                                            .setNegativeButtonText(context.getString(R.string.fingerprint_prompt_negative))
+                                            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                                            .build()
+                                        val prompt = BiometricPrompt(
+                                            activity,
+                                            executor,
+                                            object : BiometricPrompt.AuthenticationCallback() {
+                                                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                                    viewModel.setFingerprintLockEnabled(false)
+                                                }
+
+                                                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                                                    if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
+                                                        errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                                                        errorCode != BiometricPrompt.ERROR_TIMEOUT
+                                                    ) {
+                                                        Toast.makeText(context, errString, Toast.LENGTH_SHORT).show()
+                                                    }
+                                                    viewModel.setFingerprintLockEnabled(true)
+                                                }
+
+                                                override fun onAuthenticationFailed() {
+                                                    // 等待下一次输入，不立即改变状态
+                                                }
+                                            },
+                                        )
+                                        prompt.authenticate(promptInfo)
+                                    }
+
+                                    BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                                        Toast
+                                            .makeText(context, fingerprintNotEnrolledMessage, Toast.LENGTH_SHORT)
+                                            .show()
+                                        viewModel.setFingerprintLockEnabled(true)
+                                    }
+
+                                    else -> {
+                                        Toast
+                                            .makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT)
+                                            .show()
+                                        viewModel.setFingerprintLockEnabled(true)
+                                    }
+                                }
+                            }
+                        },
                         text = stringResource(R.string.fingerprint_security),
                         iconPainter = rememberVectorPainter(image = Icons.Outlined.Fingerprint),
                         iconColor = SaltTheme.colors.text,
                         iconPaddingValues = PaddingValues(all = 1.8.dp),
-                        onClick = {
-                        },
                     )
 
                     Item(
@@ -294,4 +385,10 @@ private fun MeProfileStatItem(
             color = contentColor.copy(alpha = 0.7f),
         )
     }
+}
+
+private tailrec fun Context.findFragmentActivity(): FragmentActivity? = when (this) {
+    is FragmentActivity -> this
+    is ContextWrapper -> baseContext.findFragmentActivity()
+    else -> null
 }

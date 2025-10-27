@@ -35,6 +35,11 @@ class PreferencesManager @Inject constructor(
     )
     val dynamicColor = _dynamicColor.asStateFlow() // 对外暴露为不可变的 StateFlow
 
+    private val _fingerprintLockEnabled = MutableStateFlow(
+        fastKV.getBoolean(PreferencesKeys.KEY_FINGERPRINT_LOCK, false)
+    )
+    val fingerprintLockEnabled = _fingerprintLockEnabled.asStateFlow()
+
     init {
         appIconManager.applyDynamicIcon(_dynamicColor.value)
     }
@@ -49,6 +54,11 @@ class PreferencesManager @Inject constructor(
         fastKV.putBoolean(PreferencesKeys.KEY_DYNAMIC_COLOR, enabled)
         _dynamicColor.value = enabled // 更新 Flow 的值，通知所有观察者
         appIconManager.applyDynamicIcon(enabled)
+    }
+
+    fun setFingerprintLockEnabled(enabled: Boolean) {
+        fastKV.putBoolean(PreferencesKeys.KEY_FINGERPRINT_LOCK, enabled)
+        _fingerprintLockEnabled.value = enabled
     }
 
 }

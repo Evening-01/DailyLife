@@ -81,6 +81,13 @@
     <string name="theme_mode_dark">暗色模式</string>
     <string name="data_and_security">数据与安全</string>
     <string name="fingerprint_security">指纹安全</string>
+    <string name="fingerprint_prompt_title">指纹解锁</string>
+    <string name="fingerprint_prompt_subtitle">请验证指纹以继续使用 DailyLife</string>
+    <string name="fingerprint_prompt_description">离开应用后再次进入将需要指纹验证。</string>
+    <string name="fingerprint_prompt_negative">取消</string>
+    <string name="fingerprint_not_supported">当前设备不支持指纹识别</string>
+    <string name="fingerprint_not_enrolled">请先在系统设置中录入指纹</string>
+    <string name="fingerprint_auth_failed_exit">未通过指纹验证</string>
     <string name="data_management">数据管理</string>
 
     <!-- Discover heat map -->

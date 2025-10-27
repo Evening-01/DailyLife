@@ -1,22 +1,25 @@
 package com.evening.dailylife.feature.me
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.preferences.PreferencesManager
 import com.evening.dailylife.core.data.preferences.ThemeMode
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import javax.inject.Inject
 
 @HiltViewModel
+@RequiresApi(Build.VERSION_CODES.O)
 class MeViewModel @Inject constructor(
     private val preferencesManager: PreferencesManager,
     private val transactionRepository: TransactionRepository,
@@ -24,6 +27,7 @@ class MeViewModel @Inject constructor(
 
     val themeMode = preferencesManager.themeMode
     val dynamicColor = preferencesManager.dynamicColor
+    val fingerprintLockEnabled = preferencesManager.fingerprintLockEnabled
 
     private val zoneId = ZoneId.systemDefault()
 
@@ -72,6 +76,10 @@ class MeViewModel @Inject constructor(
 
     fun setDynamicColor(enabled: Boolean) {
         preferencesManager.setDynamicColor(enabled)
+    }
+
+    fun setFingerprintLockEnabled(enabled: Boolean) {
+        preferencesManager.setFingerprintLockEnabled(enabled)
     }
 }
 

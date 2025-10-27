@@ -2,7 +2,6 @@ package com.evening.dailylife.app.main
 
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -10,18 +9,22 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.FragmentActivity
 import com.evening.dailylife.R
+import com.evening.dailylife.app.ui.theme.DailyTheme
 import com.evening.dailylife.core.data.preferences.PreferencesKeys
 import com.evening.dailylife.core.data.preferences.ThemeMode
-import com.evening.dailylife.app.ui.theme.DailyTheme
+import com.evening.dailylife.core.security.biometric.BiometricLockManager
 import com.moriafly.salt.ui.UnstableSaltApi
 import dagger.hilt.android.AndroidEntryPoint
 import io.fastkv.FastKV
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
+    @Inject lateinit var biometricLockManager: BiometricLockManager
 
     @OptIn(UnstableSaltApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +34,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        biometricLockManager.register(this)
         setContent {
             val themeMode by viewModel.themeMode.collectAsState()
             val dynamicColor by viewModel.dynamicColor.collectAsState()
