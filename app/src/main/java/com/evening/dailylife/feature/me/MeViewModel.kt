@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository
 import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository.MeProfileStatsData
 import com.evening.dailylife.core.data.preferences.PreferencesManager
-import com.evening.dailylife.core.data.preferences.ThemeMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -21,8 +20,6 @@ class MeViewModel @Inject constructor(
     analyticsRepository: TransactionAnalyticsRepository,
 ) : ViewModel() {
 
-    val themeMode = preferencesManager.themeMode
-    val dynamicColor = preferencesManager.dynamicColor
     val fingerprintLockEnabled = preferencesManager.fingerprintLockEnabled
 
     private val profileStatsFlow = analyticsRepository.profileStats()
@@ -34,14 +31,6 @@ class MeViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = profileStatsFlow.value.toUiState(isLoading = true),
         )
-
-    fun setThemeMode(themeMode: ThemeMode) {
-        preferencesManager.setThemeMode(themeMode)
-    }
-
-    fun setDynamicColor(enabled: Boolean) {
-        preferencesManager.setDynamicColor(enabled)
-    }
 
     fun setFingerprintLockEnabled(enabled: Boolean) {
         preferencesManager.setFingerprintLockEnabled(enabled)

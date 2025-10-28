@@ -30,8 +30,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.feature.me.component.MeInterfaceSettingsSection
-import com.evening.dailylife.feature.me.component.MeProfileHeader
 import com.evening.dailylife.feature.me.component.MeOtherSection
+import com.evening.dailylife.feature.me.component.MeProfileHeader
 import com.evening.dailylife.feature.me.component.MeSecuritySection
 import com.moriafly.salt.ui.UnstableSaltApi
 
@@ -41,9 +41,9 @@ import com.moriafly.salt.ui.UnstableSaltApi
 fun MeScreen(
     viewModel: MeViewModel = hiltViewModel(),
     onAboutAuthorClick: () -> Unit,
+    onGeneralSettingsClick: () -> Unit,
+    onAccountingPreferencesClick: () -> Unit,
 ) {
-    val themeMode by viewModel.themeMode.collectAsState()
-    val isDynamicColorEnabled by viewModel.dynamicColor.collectAsState()
     val profileStatsState by viewModel.profileStatsState.collectAsState()
     val fingerprintLockEnabled by viewModel.fingerprintLockEnabled.collectAsState()
 
@@ -52,8 +52,6 @@ fun MeScreen(
     val headerContentColor = extendedColors.onHeaderContainer
 
     val context = LocalContext.current
-    val isDynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val dynamicColorUnsupportedMessage = stringResource(R.string.dynamic_color_unsupported)
     val fingerprintUnsupportedMessage = stringResource(R.string.fingerprint_not_supported)
     val fingerprintNotEnrolledMessage = stringResource(R.string.fingerprint_not_enrolled)
     val biometricManager = remember { BiometricManager.from(context) }
@@ -175,19 +173,8 @@ fun MeScreen(
 
             item {
                 MeInterfaceSettingsSection(
-                    dynamicColorEnabled = isDynamicColorEnabled,
-                    isDynamicColorSupported = isDynamicColorSupported,
-                    onDynamicColorChange = viewModel::setDynamicColor,
-                    onDynamicColorUnsupported = {
-                        Toast
-                            .makeText(context, dynamicColorUnsupportedMessage, Toast.LENGTH_SHORT)
-                            .show()
-                    },
-                    themeMode = themeMode,
-                    onThemeModeSelected = viewModel::setThemeMode,
-                    onGeneralSettingsClick = {
-                        // TODO: 在这里处理点击事件，比如跳转到通用设置页面
-                    },
+                    onGeneralSettingsClick = onGeneralSettingsClick,
+                    onAccountingPreferencesClick = onAccountingPreferencesClick,
                 )
             }
 

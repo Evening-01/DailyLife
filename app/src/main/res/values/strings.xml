@@ -75,11 +75,13 @@
     <string name="discover_common_tool_budget_title">资产规划</string>
 
     <!-- Preferences -->
-    <string name="user_interface">主题与设置</string>
+    <string name="user_interface">偏好与设置</string>
     <string name="dynamic_color_switcher_text">动态颜色</string>
     <string name="dynamic_color_switcher_sub">应用来自于手机壁纸的主题色</string>
     <string name="theme_mode_switcher_text">主题模式</string>
-    <string name="general_settings">记账设置</string>
+    <string name="general_settings">通用设置</string>
+    <string name="accounting_preferences">记账偏好</string>
+    <string name="accounting_preferences_placeholder">更多记账偏好选项正在筹备中，敬请期待</string>
     <string name="dynamic_color_unsupported">动态颜色仅适用于 Android 12 及以上版本</string>
     <string name="theme_mode_system">跟随系统</string>
     <string name="theme_mode_light">亮色模式</string>

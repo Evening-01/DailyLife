@@ -118,6 +118,12 @@ private fun HomeNavHost(
                 onAboutAuthorClick = {
                     appNavController.navigate(Route.ABOUT_AUTHOR)
                 },
+                onGeneralSettingsClick = {
+                    appNavController.navigate(Route.GENERAL_SETTINGS)
+                },
+                onAccountingPreferencesClick = {
+                    appNavController.navigate(Route.ACCOUNTING_PREFERENCES)
+                },
             )
         }
     }

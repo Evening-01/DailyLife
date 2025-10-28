@@ -11,6 +11,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.evening.dailylife.feature.home.HomeScreen
 import com.evening.dailylife.feature.me.about.AboutAuthorScreen
+import com.evening.dailylife.feature.me.settings.accounting.AccountingPreferencesScreen
+import com.evening.dailylife.feature.me.settings.general.GeneralSettingsScreen
 import com.evening.dailylife.feature.transaction.details.TransactionDetailsScreen
 import com.evening.dailylife.feature.transaction.editor.TransactionEditorScreen
 
@@ -51,6 +53,12 @@ fun AppNavHost(
         }
         composable(Route.ABOUT_AUTHOR) {
             AboutAuthorScreen(navController = navController)
+        }
+        composable(Route.GENERAL_SETTINGS) {
+            GeneralSettingsScreen(navController = navController)
+        }
+        composable(Route.ACCOUNTING_PREFERENCES) {
+            AccountingPreferencesScreen(navController = navController)
         }
     }
 }
