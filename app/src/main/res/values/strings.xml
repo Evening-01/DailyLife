@@ -94,6 +94,25 @@
     <string name="fingerprint_not_enrolled">请先在系统设置中录入指纹</string>
     <string name="fingerprint_auth_failed_exit">未通过指纹验证</string>
     <string name="data_management">数据管理</string>
+    <string name="me_other_section_title">其他</string>
+    <string name="me_about_author">关于作者</string>
+    <string name="me_share_app">分享应用</string>
+    <string name="me_more_info">其他信息</string>
+    <string name="me_share_app_message">我正在使用 DailyLife 记录生活与财务，推荐你也来试试看！</string>
+    <string name="me_share_app_unavailable">未找到可用的分享方式</string>
+    <string name="me_about_author_intro">你好，我是 Evening，一名热爱设计与安卓移动开发者。DailyLife 是我用来探索“简单、美观、可信赖”记账体验的尝试。</string>
+    <string name="me_about_author_recent_title">近期在做的事</string>
+    <string name="me_about_author_recent_item_1">打磨记账与分析的交互体验</string>
+    <string name="me_about_author_recent_item_2">学习如何让数据更易读、更温暖</string>
+    <string name="me_about_author_recent_item_3">分享移动开发与生活效率的实践</string>
+    <string name="me_about_author_contacts_title">联系方式</string>
+    <string name="me_about_author_contact_github_label">GitHub</string>
+    <string name="me_about_author_contact_github_value">github.com/evening-01</string>
+    <string name="me_about_author_contact_email_label">邮箱</string>
+    <string name="me_about_author_contact_email_value">H3410233124@gmail.com</string>
+    <string name="me_about_author_contact_site_label">个人站</string>
+    <string name="me_about_author_contact_site_value">evening.dev</string>
+    <string name="me_about_author_footer">感谢你使用 DailyLife，希望它能陪你走向更自律、从容的生活。</string>
 
     <!-- Me profile -->
     <string name="me_profile_display_name">Evening</string>

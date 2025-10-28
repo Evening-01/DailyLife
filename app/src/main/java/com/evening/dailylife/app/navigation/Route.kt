@@ -6,6 +6,7 @@ object Route {
     const val CHART = "chart"
     const val DISCOVER = "discover"
     const val ME = "me"
+    const val ABOUT_AUTHOR = "about_author"
 
     private const val ADD_EDIT_TRANSACTION_ROUTE = "add_edit_transaction"
     const val ADD_EDIT_TRANSACTION = "$ADD_EDIT_TRANSACTION_ROUTE?transactionId={transactionId}"

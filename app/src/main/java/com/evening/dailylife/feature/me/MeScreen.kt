@@ -1,7 +1,9 @@
 package com.evening.dailylife.feature.me
 
+import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -29,6 +31,7 @@ import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.feature.me.component.MeInterfaceSettingsSection
 import com.evening.dailylife.feature.me.component.MeProfileHeader
+import com.evening.dailylife.feature.me.component.MeOtherSection
 import com.evening.dailylife.feature.me.component.MeSecuritySection
 import com.moriafly.salt.ui.UnstableSaltApi
 
@@ -37,6 +40,7 @@ import com.moriafly.salt.ui.UnstableSaltApi
 @Composable
 fun MeScreen(
     viewModel: MeViewModel = hiltViewModel(),
+    onAboutAuthorClick: () -> Unit,
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
     val isDynamicColorEnabled by viewModel.dynamicColor.collectAsState()
@@ -56,6 +60,28 @@ fun MeScreen(
     val fingerprintCapability = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
     val isFingerprintSupported = fingerprintCapability == BiometricManager.BIOMETRIC_SUCCESS ||
         fingerprintCapability == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED
+
+    val shareSubject = stringResource(R.string.me_share_app)
+    val shareMessage = stringResource(R.string.me_share_app_message)
+
+    val shareApp: () -> Unit = {
+        runCatching {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, shareSubject)
+                putExtra(Intent.EXTRA_TEXT, shareMessage)
+            }
+            val chooser = Intent.createChooser(intent, shareSubject)
+            if (context !is Activity) {
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(chooser)
+        }.onFailure {
+            Toast
+                .makeText(context, context.getString(R.string.me_share_app_unavailable), Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
 
     fun handleFingerprintToggle(checked: Boolean) {
         if (checked) {
@@ -176,6 +202,18 @@ fun MeScreen(
                             .show()
                     },
                     onDataManagementClick = {
+                    },
+                )
+            }
+
+            item {
+                MeOtherSection(
+                    onAboutAuthorClick = onAboutAuthorClick,
+                    onShareAppClick = shareApp,
+                    onMoreInfoClick = {
+                        Toast
+                            .makeText(context, R.string.me_more_info, Toast.LENGTH_SHORT)
+                            .show()
                     },
                 )
             }

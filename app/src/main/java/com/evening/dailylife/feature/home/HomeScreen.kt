@@ -114,7 +114,11 @@ private fun HomeNavHost(
             DiscoverScreen()
         }
         composable(Route.ME) {
-            MeScreen()
+            MeScreen(
+                onAboutAuthorClick = {
+                    appNavController.navigate(Route.ABOUT_AUTHOR)
+                },
+            )
         }
     }
 }

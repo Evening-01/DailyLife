@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.evening.dailylife.feature.home.HomeScreen
+import com.evening.dailylife.feature.me.about.AboutAuthorScreen
 import com.evening.dailylife.feature.transaction.details.TransactionDetailsScreen
 import com.evening.dailylife.feature.transaction.editor.TransactionEditorScreen
 
@@ -47,6 +48,9 @@ fun AppNavHost(
             arguments = listOf(navArgument("transactionId") { type = NavType.IntType })
         ) {
             TransactionDetailsScreen(navController = navController)
+        }
+        composable(Route.ABOUT_AUTHOR) {
+            AboutAuthorScreen(navController = navController)
         }
     }
 }
