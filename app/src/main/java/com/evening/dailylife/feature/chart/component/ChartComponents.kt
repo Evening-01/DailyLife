@@ -168,47 +168,27 @@ private fun ChartOverviewContent(
     animationKey: Int,
     labelFormatter: (String) -> String,
 ) {
-    when (status) {
-        ChartContentStatus.Loading -> {
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-            )
-        }
-
-        ChartContentStatus.Empty -> {
-            ChartOverviewEmptyState()
-        }
-
-        ChartContentStatus.Content -> {
-            if (entries.isEmpty()) {
-                ChartOverviewEmptyState()
-            } else {
-                BarChart(
-                    entries = entries,
-                    averageValue = averageValue.toFloat(),
-                    valueFormatter = { value -> valueFormatter(value.toDouble()) },
-                    labelFormatter = labelFormatter,
-                    animationKey = animationKey,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ChartOverviewEmptyState() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 160.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = stringResource(id = R.string.chart_empty_data),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+    if (status == ChartContentStatus.Loading) {
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
         )
+        return
     }
+
+    val resolvedEntries = if (entries.isEmpty()) {
+        listOf(ChartEntry(label = "", value = 0f))
+    } else {
+        entries
+    }
+    val resolvedAverage = if (entries.isEmpty()) 0.0 else averageValue
+
+    BarChart(
+        entries = resolvedEntries,
+        averageValue = resolvedAverage.toFloat(),
+        valueFormatter = { value -> valueFormatter(value.toDouble()) },
+        labelFormatter = labelFormatter,
+        animationKey = animationKey,
+    )
 }

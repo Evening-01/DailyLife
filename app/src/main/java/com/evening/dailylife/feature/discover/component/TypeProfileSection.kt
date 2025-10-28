@@ -40,20 +40,6 @@ fun TypeProfileSection(
     animationKey: Any? = null,
 ) {
     val total = profile.total
-    if (total <= 0.0) {
-        Box(
-            modifier = modifier.heightIn(min = 132.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = stringResource(id = R.string.chart_type_profile_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        return
-    }
-
     val percentFormatter = remember { DecimalFormat("0%") }
     val expenseAmountText = numberFormatter.format(profile.expenseTotal)
     val incomeAmountText = numberFormatter.format(profile.incomeTotal)

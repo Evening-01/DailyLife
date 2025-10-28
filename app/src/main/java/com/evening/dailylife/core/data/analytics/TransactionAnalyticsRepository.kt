@@ -45,6 +45,13 @@ class TransactionAnalyticsRepository @Inject constructor(
 
     private val sortedTransactions: StateFlow<List<TransactionEntity>> =
         transactionRepository.observeAllTransactions()
+            .map { transactions ->
+                transactions
+                    .asSequence()
+                    .filter { !it.isDeleted }
+                    .sortedBy(TransactionEntity::date)
+                    .toList()
+            }
             .stateIn(
                 scope = applicationScope,
                 started = SharingStarted.Eagerly,
