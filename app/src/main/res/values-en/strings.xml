@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Preferences -->
+    <string name="general_settings">General Settings</string>
+    <string name="user_interface">Appearance</string>
+    <string name="dynamic_color_switcher_text">Dynamic color</string>
+    <string name="dynamic_color_switcher_sub">Tint the app with wallpaper colors</string>
+    <string name="dynamic_color_unsupported">Dynamic color is available on Android 12 and above only</string>
+    <string name="theme_mode_switcher_text">Theme mode</string>
+    <string name="theme_mode_system">Follow system</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_dark">Dark</string>
+    <string name="text_language_settings">Text &amp; language</string>
+    <string name="text_size_switcher_text">Text size</string>
+    <string name="text_size_switcher_sub">Adjust font size in the app</string>
+    <string name="text_size_small">Small</string>
+    <string name="text_size_medium">Standard</string>
+    <string name="text_size_large">Large</string>
+    <string name="language_switcher_text">Language</string>
+    <string name="language_switcher_sub">Switch display language</string>
+    <string name="language_chinese">Simplified Chinese</string>
+    <string name="language_english">English</string>
+    <string name="custom_font_switcher_text">Custom font</string>
+    <string name="custom_font_switcher_sub">Enable the DailyLife typeface</string>
+</resources>

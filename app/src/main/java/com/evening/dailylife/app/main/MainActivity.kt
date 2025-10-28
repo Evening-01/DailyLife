@@ -5,9 +5,12 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import com.evening.dailylife.R
@@ -38,6 +41,19 @@ class MainActivity : FragmentActivity() {
         setContent {
             val themeMode by viewModel.themeMode.collectAsState()
             val dynamicColor by viewModel.dynamicColor.collectAsState()
+            val textSizeOption by viewModel.textSizeOption.collectAsState()
+            val appLanguage by viewModel.appLanguage.collectAsState()
+            val customFontEnabled by viewModel.customFontEnabled.collectAsState()
+
+            LaunchedEffect(appLanguage) {
+                val desiredTag = appLanguage.languageTag
+                val currentTag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+                if (currentTag != desiredTag) {
+                    AppCompatDelegate.setApplicationLocales(
+                        LocaleListCompat.forLanguageTags(desiredTag)
+                    )
+                }
+            }
 
             val darkTheme = when (themeMode) {
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
@@ -47,7 +63,9 @@ class MainActivity : FragmentActivity() {
 
             DailyTheme(
                 dynamicColor = dynamicColor,
-                darkTheme = darkTheme
+                darkTheme = darkTheme,
+                textSizeScale = textSizeOption.scale,
+                useCustomFont = customFontEnabled
             ) {
                 DailyLifeApp()
             }

@@ -75,7 +75,7 @@
     <string name="discover_common_tool_budget_title">资产规划</string>
 
     <!-- Preferences -->
-    <string name="user_interface">偏好与设置</string>
+    <string name="user_interface">主题</string>
     <string name="dynamic_color_switcher_text">动态颜色</string>
     <string name="dynamic_color_switcher_sub">应用来自于手机壁纸的主题色</string>
     <string name="theme_mode_switcher_text">主题模式</string>
@@ -86,6 +86,18 @@
     <string name="theme_mode_system">跟随系统</string>
     <string name="theme_mode_light">亮色模式</string>
     <string name="theme_mode_dark">暗色模式</string>
+    <string name="text_language_settings">文字与语言</string>
+    <string name="text_size_switcher_text">文字大小</string>
+    <string name="text_size_switcher_sub">调整应用内文字显示大小</string>
+    <string name="text_size_small">小</string>
+    <string name="text_size_medium">标准</string>
+    <string name="text_size_large">大</string>
+    <string name="language_switcher_text">界面语言</string>
+    <string name="language_switcher_sub">切换应用显示语言</string>
+    <string name="language_chinese">简体中文</string>
+    <string name="language_english">English</string>
+    <string name="custom_font_switcher_text">自定义字体</string>
+    <string name="custom_font_switcher_sub">启用 DailyLife 专属字体</string>
     <string name="data_and_security">数据与安全</string>
     <string name="fingerprint_security">指纹安全</string>
     <string name="fingerprint_prompt_title">指纹解锁</string>

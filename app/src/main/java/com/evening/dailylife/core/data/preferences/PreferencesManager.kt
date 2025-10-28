@@ -40,6 +40,25 @@ class PreferencesManager @Inject constructor(
     )
     val fingerprintLockEnabled = _fingerprintLockEnabled.asStateFlow()
 
+    private val _textSizeOption = MutableStateFlow(
+        TextSizeOption.fromName(
+            fastKV.getString(PreferencesKeys.KEY_TEXT_SIZE, TextSizeOption.MEDIUM.name)
+        )
+    )
+    val textSizeOption = _textSizeOption.asStateFlow()
+
+    private val _appLanguage = MutableStateFlow(
+        AppLanguage.fromName(
+            fastKV.getString(PreferencesKeys.KEY_APP_LANGUAGE, AppLanguage.CHINESE.name)
+        )
+    )
+    val appLanguage = _appLanguage.asStateFlow()
+
+    private val _customFontEnabled = MutableStateFlow(
+        fastKV.getBoolean(PreferencesKeys.KEY_CUSTOM_FONT, true)
+    )
+    val customFontEnabled = _customFontEnabled.asStateFlow()
+
     init {
         appIconManager.applyDynamicIcon(_dynamicColor.value)
     }
@@ -54,6 +73,21 @@ class PreferencesManager @Inject constructor(
         fastKV.putBoolean(PreferencesKeys.KEY_DYNAMIC_COLOR, enabled)
         _dynamicColor.value = enabled // 更新 Flow 的值，通知所有观察者
         appIconManager.applyDynamicIcon(enabled)
+    }
+
+    fun setTextSizeOption(option: TextSizeOption) {
+        fastKV.putString(PreferencesKeys.KEY_TEXT_SIZE, option.name)
+        _textSizeOption.value = option
+    }
+
+    fun setAppLanguage(language: AppLanguage) {
+        fastKV.putString(PreferencesKeys.KEY_APP_LANGUAGE, language.name)
+        _appLanguage.value = language
+    }
+
+    fun setCustomFontEnabled(enabled: Boolean) {
+        fastKV.putBoolean(PreferencesKeys.KEY_CUSTOM_FONT, enabled)
+        _customFontEnabled.value = enabled
     }
 
     fun setFingerprintLockEnabled(enabled: Boolean) {

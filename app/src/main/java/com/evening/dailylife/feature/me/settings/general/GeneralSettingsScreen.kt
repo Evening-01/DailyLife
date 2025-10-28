@@ -12,8 +12,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrightnessMedium
+import androidx.compose.material.icons.outlined.FontDownload
+import androidx.compose.material.icons.outlined.FormatSize
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.evening.dailylife.R
+import com.evening.dailylife.core.data.preferences.AppLanguage
+import com.evening.dailylife.core.data.preferences.TextSizeOption
 import com.evening.dailylife.core.data.preferences.ThemeMode
 import com.evening.dailylife.core.designsystem.component.ItemPopup
 import com.evening.dailylife.core.navigation.debouncedPopBackStack
@@ -49,8 +55,13 @@ fun GeneralSettingsScreen(
 ) {
     val dynamicColorEnabled by viewModel.dynamicColor.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
+    val textSizeOption by viewModel.textSizeOption.collectAsState()
+    val appLanguage by viewModel.appLanguage.collectAsState()
+    val customFontEnabled by viewModel.customFontEnabled.collectAsState()
 
     val themeModePopupState = rememberPopupState()
+    val textSizePopupState = rememberPopupState()
+    val languagePopupState = rememberPopupState()
     val context = LocalContext.current
     val isDynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val dynamicColorUnsupportedMessage = stringResource(R.string.dynamic_color_unsupported)
@@ -121,6 +132,64 @@ fun GeneralSettingsScreen(
                     )
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        RoundedColumn(modifier = Modifier.fillMaxWidth()) {
+            ItemTitle(text = stringResource(id = R.string.text_language_settings))
+
+            ItemPopup(
+                state = textSizePopupState,
+                iconPainter = rememberVectorPainter(image = Icons.Outlined.FormatSize),
+                iconPaddingValues = PaddingValues(all = 1.8.dp),
+                iconColor = SaltTheme.colors.text,
+                text = stringResource(R.string.text_size_switcher_text),
+                sub = stringResource(R.string.text_size_switcher_sub),
+                selectedItem = stringResource(id = textSizeOption.resId),
+                popupWidth = 160,
+            ) {
+                TextSizeOption.entries.forEach { option ->
+                    PopupMenuItem(
+                        onClick = {
+                            viewModel.setTextSizeOption(option)
+                            textSizePopupState.dismiss()
+                        },
+                        text = stringResource(id = option.resId),
+                    )
+                }
+            }
+
+            ItemPopup(
+                state = languagePopupState,
+                iconPainter = rememberVectorPainter(image = Icons.Outlined.Language),
+                iconPaddingValues = PaddingValues(all = 1.8.dp),
+                iconColor = SaltTheme.colors.text,
+                text = stringResource(R.string.language_switcher_text),
+                sub = stringResource(R.string.language_switcher_sub),
+                selectedItem = stringResource(id = appLanguage.resId),
+                popupWidth = 180,
+            ) {
+                AppLanguage.entries.forEach { language ->
+                    PopupMenuItem(
+                        onClick = {
+                            viewModel.setAppLanguage(language)
+                            languagePopupState.dismiss()
+                        },
+                        text = stringResource(id = language.resId),
+                    )
+                }
+            }
+
+            ItemSwitcher(
+                state = customFontEnabled,
+                onChange = viewModel::setCustomFontEnabled,
+                text = stringResource(R.string.custom_font_switcher_text),
+                sub = stringResource(R.string.custom_font_switcher_sub),
+                iconPainter = rememberVectorPainter(image = Icons.Outlined.FontDownload),
+                iconPaddingValues = PaddingValues(all = 1.8.dp),
+                iconColor = SaltTheme.colors.text,
+            )
         }
 
     }

@@ -14,5 +14,8 @@ class MainViewModel @Inject constructor(
     // 直接暴露来自 PreferencesManager 的 StateFlow
     val themeMode = preferencesManager.themeMode
     val dynamicColor = preferencesManager.dynamicColor
+    val textSizeOption = preferencesManager.textSizeOption
+    val appLanguage = preferencesManager.appLanguage
+    val customFontEnabled = preferencesManager.customFontEnabled
 
 }

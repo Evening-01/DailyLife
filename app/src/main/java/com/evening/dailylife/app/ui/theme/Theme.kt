@@ -14,7 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import com.materialkolor.PaletteStyle
@@ -32,6 +34,8 @@ import com.moriafly.salt.ui.saltTextStyles
 fun DailyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
+    textSizeScale: Float = 1f,
+    useCustomFont: Boolean = true,
     seedColor: Color = DailySeedColor,
     paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     specVersion: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2025,
@@ -65,23 +69,25 @@ fun DailyTheme(
         }
     }
 
+    val targetFontFamily = if (useCustomFont) appFontFamily else FontFamily.Default
+
     val customSaltTextStyles = saltTextStyles(
         main = TextStyle(
-            fontFamily = appFontFamily,
+            fontFamily = targetFontFamily,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
-        ),
+        ).scaled(textSizeScale),
         sub = TextStyle(
-            fontFamily = appFontFamily,
+            fontFamily = targetFontFamily,
             fontSize = 12.sp,
             fontWeight = FontWeight.Normal
-        ),
+        ).scaled(textSizeScale),
         paragraph = TextStyle(
-            fontFamily = appFontFamily,
+            fontFamily = targetFontFamily,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
             lineHeight = 22.sp
-        )
+        ).scaled(textSizeScale)
     )
 
     CompositionLocalProvider(LocalExtendedColorScheme provides extendedColorScheme) {
@@ -92,9 +98,21 @@ fun DailyTheme(
         ) {
             MaterialTheme(
                 colorScheme = materialColorScheme,
-                typography = Typography,
+                typography = createDailyTypography(
+                    fontFamily = targetFontFamily,
+                    scale = textSizeScale
+                ),
                 content = content
             )
         }
     }
+}
+
+private fun TextStyle.scaled(scale: Float): TextStyle {
+    val scaledFontSize = if (fontSize.isSpecified) (fontSize.value * scale).sp else fontSize
+    val scaledLineHeight = if (lineHeight.isSpecified) (lineHeight.value * scale).sp else lineHeight
+    return copy(
+        fontSize = scaledFontSize,
+        lineHeight = scaledLineHeight,
+    )
 }
