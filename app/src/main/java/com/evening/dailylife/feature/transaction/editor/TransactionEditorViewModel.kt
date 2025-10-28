@@ -7,6 +7,8 @@ import com.evening.dailylife.R
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.core.model.MoodRepository
+import com.evening.dailylife.core.model.TransactionCategoryRepository
+import com.evening.dailylife.core.model.TransactionSource
 import com.evening.dailylife.core.util.StringProvider
 import com.evening.dailylife.feature.transaction.editor.model.TransactionEditorEvent
 import com.evening.dailylife.feature.transaction.editor.model.TransactionEditorUiState
@@ -52,7 +54,14 @@ class TransactionEditorViewModel @Inject constructor(
         viewModelScope.launch {
             val transaction = repository.getTransactionById(transactionId).firstOrNull()
             transaction?.let { entity ->
-                originalTransaction = entity
+                val normalizedCategoryId = TransactionCategoryRepository.normalizeCategoryId(entity.category)
+                val sanitizedTransaction = if (normalizedCategoryId != entity.category) {
+                    entity.copy(category = normalizedCategoryId)
+                } else {
+                    entity
+                }
+                originalTransaction = sanitizedTransaction
+
                 val moodName = entity.mood?.let { score ->
                     MoodRepository.getMoodNameByScore(stringProvider, score)
                 } ?: ""
@@ -60,7 +69,7 @@ class TransactionEditorViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         amount = formatAmountForInput(abs(entity.amount)),
-                        category = entity.category,
+                        categoryId = normalizedCategoryId,
                         description = entity.description,
                         date = entity.date,
                         isExpense = entity.amount < 0,
@@ -84,8 +93,8 @@ class TransactionEditorViewModel @Inject constructor(
         _uiState.update { it.copy(amount = amount) }
     }
 
-    fun onCategoryChange(category: String) {
-        _uiState.update { it.copy(category = category, error = null) }
+    fun onCategoryChange(categoryId: String) {
+        _uiState.update { it.copy(categoryId = categoryId, error = null) }
     }
 
     fun onDescriptionChange(description: String) {
@@ -108,7 +117,7 @@ class TransactionEditorViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 isExpense = isExpense,
-                category = "",
+                categoryId = "",
                 error = null
             )
         }
@@ -126,7 +135,7 @@ class TransactionEditorViewModel @Inject constructor(
                 return@launch
             }
 
-            if (currentState.category.isBlank()) {
+            if (currentState.categoryId.isBlank()) {
                 val error = stringProvider.getString(R.string.editor_error_select_category)
                 _uiState.update { it.copy(error = error) }
                 _events.emit(TransactionEditorEvent.ShowMessage(error))
@@ -145,18 +154,23 @@ class TransactionEditorViewModel @Inject constructor(
             }
 
 
+            val normalizedSource = originalTransaction?.source?.takeUnless {
+                TransactionSource.isAppSource(it)
+            } ?: TransactionSource.DEFAULT
+
             val newTransaction = originalTransaction?.copy(
                 amount = transactionAmount,
-                category = currentState.category,
+                category = currentState.categoryId,
                 description = currentState.description,
                 mood = moodScore,
+                source = normalizedSource,
                 date = currentState.date
             ) ?: TransactionEntity(
                 amount = transactionAmount,
-                category = currentState.category,
+                category = currentState.categoryId,
                 description = currentState.description,
                 mood = moodScore,
-                source = stringProvider.getString(R.string.app_name),
+                source = normalizedSource,
                 date = currentState.date,
             )
 
@@ -178,7 +192,7 @@ class TransactionEditorViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             amount = "",
-                            category = "",
+                            categoryId = "",
                             description = "",
                             mood = "",
                             isSaving = false,

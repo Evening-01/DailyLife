@@ -25,7 +25,7 @@
     <string name="chart_period_week">Week</string>
     <string name="chart_period_month">Month</string>
     <string name="chart_period_year">Year</string>
-    <string name="chart_total_label">%1$s total</string>
+    <string name="chart_total_label">Total %1$s</string>
     <string name="chart_average_label">Average: %1$s</string>
     <string name="chart_average_prefix">Average:</string>
     <string name="chart_empty_data">No data yet</string>
@@ -41,42 +41,42 @@
     <string name="chart_tab_month_with_year">Month %2$02d, %1$d</string>
     <string name="chart_tab_year_this">This year</string>
     <string name="chart_tab_year_last">Last year</string>
-    <string name="chart_tab_year_value">%1$d</string>
+    <string name="chart_tab_year_value">Year %1$d</string>
     <string name="chart_overview_title">Overview</string>
-    <string name="chart_rank_title_expense">Top expenses</string>
-    <string name="chart_rank_title_income">Top income</string>
+    <string name="chart_rank_title_expense">Expense leaderboard</string>
+    <string name="chart_rank_title_income">Income leaderboard</string>
     <string name="chart_mood_trend_title">Mood trend</string>
-    <string name="chart_rank_empty">No categories available</string>
+    <string name="chart_rank_empty">No categories to rank yet</string>
     <string name="chart_rank_amount">Amount: %1$s</string>
     <string name="chart_type_profile_title">Expense / income profile</string>
     <string name="chart_type_profile_expense">Expense</string>
     <string name="chart_type_profile_income">Income</string>
     <string name="chart_type_profile_transactions">Transactions %1$d</string>
     <string name="chart_type_profile_balance">Balance: %1$s</string>
-    <string name="chart_type_profile_ratio">Expense ratio %1$s / Income ratio %2$s</string>
+    <string name="chart_type_profile_ratio">Expense ratio %1$s · Income ratio %2$s</string>
     <string name="chart_type_profile_empty">No records for this period</string>
-    <string name="discover_type_profile_title_month">Month %1$d profile</string>
+    <string name="discover_type_profile_title_month">Profile for month %1$d</string>
     <string name="discover_type_profile_balance_label">Balance:</string>
     <string name="discover_type_profile_month_label">%1$d-%2$02d</string>
     <string name="discover_type_profile_subtitle">Overview of this month\'s records</string>
-    <string name="discover_type_profile_month_expense">Expense this month</string>
+    <string name="discover_type_profile_month_expense">Expenses this month</string>
     <string name="discover_type_profile_month_income">Income this month</string>
     <string name="discover_type_profile_expense_ratio_label">Expense ratio</string>
-    <string name="discover_ai_title">AI finance assistant</string>
-    <string name="discover_ai_subtitle">Insight, budgets, and smart reminders are coming soon</string>
-    <string name="discover_ai_card_title">Upcoming smart features</string>
+    <string name="discover_ai_title">AI financial assistant</string>
+    <string name="discover_ai_subtitle">Insights, budget planning, and smart reminders are coming soon</string>
+    <string name="discover_ai_card_title">Smart features coming soon</string>
     <string name="discover_ai_chip_insight">Trend analysis</string>
     <string name="discover_ai_chip_plan">Budget planning</string>
     <string name="discover_ai_chip_alert">Bill alerts</string>
     <string name="discover_ai_toast">In development…</string>
-    <string name="discover_common_tools_title">Financial tools</string>
+    <string name="discover_common_tools_title">Popular finance tools</string>
     <string name="discover_common_tool_mortgage_title">Mortgage calculator</string>
-    <string name="discover_common_tool_fx_title">FX converter</string>
+    <string name="discover_common_tool_fx_title">Currency converter</string>
     <string name="discover_common_tool_check_title">Check archive</string>
-    <string name="discover_common_tool_budget_title">Asset planner</string>
+    <string name="discover_common_tool_budget_title">Asset planning</string>
 
     <!-- Preferences -->
-    <string name="user_interface">Appearance</string>
+    <string name="user_interface">Theme</string>
     <string name="dynamic_color_switcher_text">Dynamic color</string>
     <string name="dynamic_color_switcher_sub">Apply wallpaper colors to the theme</string>
     <string name="theme_mode_switcher_text">Theme mode</string>
@@ -84,26 +84,26 @@
     <string name="accounting_preferences">Accounting preferences</string>
     <string name="accounting_preferences_placeholder">More bookkeeping options are on the way.</string>
     <string name="dynamic_color_unsupported">Dynamic color is only available on Android 12 and above.</string>
-    <string name="theme_mode_system">Follow system</string>
-    <string name="theme_mode_light">Light</string>
-    <string name="theme_mode_dark">Dark</string>
+    <string name="theme_mode_system">Match system</string>
+    <string name="theme_mode_light">Light mode</string>
+    <string name="theme_mode_dark">Dark mode</string>
     <string name="text_language_settings">Text &amp; language</string>
     <string name="text_size_switcher_text">Text size</string>
     <string name="text_size_switcher_sub">Adjust in-app text size</string>
     <string name="text_size_small">Small</string>
     <string name="text_size_medium">Standard</string>
     <string name="text_size_large">Large</string>
-    <string name="language_switcher_text">Display language</string>
-    <string name="language_switcher_sub">Switch the app language</string>
+    <string name="language_switcher_text">Interface language</string>
+    <string name="language_switcher_sub">Change the app language</string>
     <string name="language_chinese">Simplified Chinese</string>
     <string name="language_english">English</string>
     <string name="custom_font_switcher_text">Custom font</string>
     <string name="custom_font_switcher_sub">Enable the DailyLife typeface</string>
     <string name="data_and_security">Data &amp; security</string>
-    <string name="fingerprint_security">Fingerprint lock</string>
+    <string name="fingerprint_security">Fingerprint security</string>
     <string name="fingerprint_prompt_title">Fingerprint unlock</string>
     <string name="fingerprint_prompt_subtitle">Verify your fingerprint to continue using DailyLife</string>
-    <string name="fingerprint_prompt_description">You will need a fingerprint the next time you return.</string>
+    <string name="fingerprint_prompt_description">You\'ll need to verify your fingerprint when you return.</string>
     <string name="fingerprint_prompt_negative">Cancel</string>
     <string name="fingerprint_not_supported">Fingerprint authentication is not supported on this device</string>
     <string name="fingerprint_not_enrolled">Enroll a fingerprint in system settings first</string>
@@ -113,13 +113,13 @@
     <string name="me_about_author">About the author</string>
     <string name="me_share_app">Share the app</string>
     <string name="me_more_info">More information</string>
-    <string name="me_share_app_message">I\'m using DailyLife to track life and finances\nGive it a try!</string>
+    <string name="me_share_app_message">I\'m using DailyLife to track life and finances. Give it a try!</string>
     <string name="me_share_app_unavailable">No share target available</string>
     <string name="me_about_author_intro">Hi, I\'m Evening, a designer and Android developer. DailyLife is my attempt at a simple, beautiful, and trustworthy bookkeeping experience.</string>
     <string name="me_about_author_recent_title">Currently working on</string>
-    <string name="me_about_author_recent_item_1">Polishing the bookkeeping and analysis experience</string>
-    <string name="me_about_author_recent_item_2">Learning how to present data warmly</string>
-    <string name="me_about_author_recent_item_3">Sharing mobile development and productivity tips</string>
+    <string name="me_about_author_recent_item_1">Refining bookkeeping and analytics interactions</string>
+    <string name="me_about_author_recent_item_2">Learning how to make data easier to read and warmer</string>
+    <string name="me_about_author_recent_item_3">Sharing mobile development and productivity practices</string>
     <string name="me_about_author_contacts_title">Contact</string>
     <string name="me_about_author_contact_github_label">GitHub</string>
     <string name="me_about_author_contact_github_value">github.com/evening-01</string>
@@ -132,7 +132,7 @@
     <!-- Me profile -->
     <string name="me_profile_display_name">Evening</string>
     <string name="me_profile_id">ID: dailylife_001</string>
-    <string name="me_profile_signature">A young heart needs no utopia; the road ahead will brighten on its own.</string>
+    <string name="me_profile_signature">The young need no utopia; when the heart looks far ahead, the road grows clear.</string>
     <string name="me_profile_avatar_content_description">Profile avatar</string>
     <string name="me_profile_stat_streak">Current streak</string>
     <string name="me_profile_stat_total_days">Total days tracked</string>
@@ -143,13 +143,13 @@
     <string name="details_month_pattern">M</string>
     <string name="details_today_with_date">Today %1$s</string>
     <string name="details_add_transaction_content_description">Add transaction</string>
-    <string name="details_add_transaction_label">Add</string>
-    <string name="details_month_day_with_weekday">%1$s/%2$s %3$s</string>
+    <string name="details_add_transaction_label">Log entry</string>
+    <string name="details_month_day_with_weekday">%1$s/%2$s · %3$s</string>
     <string name="details_mood_content_description">Mood of the day</string>
     <string name="details_income_amount">Income: %1$s</string>
     <string name="details_expense_amount">Expense: %1$s</string>
     <string name="details_empty_state_content_description">Empty state</string>
-    <string name="details_empty_state_message">No transactions yet\nTap the button in the bottom right to add one!</string>
+    <string name="details_empty_state_message">No transactions yet\nTap the button in the bottom right to log one!</string>
     <string name="details_select_month">Select month</string>
 
     <!-- Editor -->
@@ -160,7 +160,7 @@
     <string name="editor_tab_expense">Expense</string>
     <string name="editor_tab_income">Income</string>
     <string name="editor_category_settings">Settings</string>
-    <string name="editor_toast_category_settings">Open category settings</string>
+    <string name="editor_toast_category_settings">Go to category settings</string>
     <string name="editor_remark_length_warning">Notes can contain at most %1$d characters</string>
     <string name="editor_remark_hint_optional">Note (optional)</string>
     <string name="editor_mood_select">Select mood</string>
@@ -182,7 +182,7 @@
     <string name="transaction_detail_category">Category</string>
     <string name="transaction_detail_time">Time</string>
     <string name="transaction_detail_source">Source</string>
-    <string name="transaction_detail_source_default">DailyLife</string>
+    <string name="transaction_detail_source_default">@string/app_name</string>
     <string name="transaction_detail_mood">Mood</string>
     <string name="transaction_detail_note">Note</string>
     <string name="transaction_detail_note_empty">None</string>
@@ -196,15 +196,15 @@
     <!-- Mood -->
     <string name="mood_happy">Happy</string>
     <string name="mood_good">Good</string>
-    <string name="mood_normal">Okay</string>
-    <string name="mood_bad">Down</string>
-    <string name="mood_terrible">Awful</string>
+    <string name="mood_normal">Average</string>
+    <string name="mood_bad">Annoyed</string>
+    <string name="mood_terrible">Terrible</string>
 
     <!-- Transaction categories -->
-    <string name="category_food">Food &amp; dining</string>
+    <string name="category_food">Food</string>
     <string name="category_transport">Transport</string>
     <string name="category_shopping">Shopping</string>
-    <string name="category_daily_use">Daily goods</string>
+    <string name="category_daily_use">Daily</string>
     <string name="category_vegetable">Vegetables</string>
     <string name="category_fruit">Fruit</string>
     <string name="category_snack">Snacks</string>
@@ -216,7 +216,7 @@
     <string name="category_movie">Movies</string>
     <string name="category_sport">Sports</string>
     <string name="category_travel">Travel</string>
-    <string name="category_tobacco_alcohol">Tobacco &amp; alcohol</string>
+    <string name="category_tobacco_alcohol">Tobacco</string>
     <string name="category_clothing">Clothing</string>
     <string name="category_beauty">Beauty</string>
     <string name="category_learning">Learning</string>
@@ -225,9 +225,9 @@
     <string name="category_elder">Parents</string>
     <string name="category_pet">Pets</string>
     <string name="category_social">Social</string>
-    <string name="category_family">Family &amp; friends</string>
+    <string name="category_family">Family</string>
     <string name="category_gift">Gifts</string>
-    <string name="category_cash_gift">Cash gifts</string>
+    <string name="category_cash_gift">Cashgift</string>
     <string name="category_medical">Medical</string>
     <string name="category_office">Office</string>
     <string name="category_digital">Digital</string>
@@ -237,7 +237,7 @@
     <string name="category_lottery">Lottery</string>
     <string name="category_others">Others</string>
     <string name="category_salary">Salary</string>
-    <string name="category_part_time">Part-time</string>
+    <string name="category_part_time">Parttime</string>
     <string name="category_finance">Investing</string>
-    <string name="category_cash_gift_income">Gift money</string>
+    <string name="category_cash_gift_income">Giftcash</string>
 </resources>

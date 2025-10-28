@@ -2,7 +2,7 @@ package com.evening.dailylife.feature.transaction.editor.model
 
 data class TransactionEditorUiState(
     val amount: String = "",
-    val category: String = "",
+    val categoryId: String = "",
     val description: String = "",
     val date: Long = System.currentTimeMillis(),
     val isExpense: Boolean = true,

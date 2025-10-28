@@ -181,7 +181,7 @@
     <string name="transaction_detail_category">分类</string>
     <string name="transaction_detail_time">时间</string>
     <string name="transaction_detail_source">来源</string>
-    <string name="transaction_detail_source_default">日子记账</string>
+    <string name="transaction_detail_source_default">@string/app_name</string>
     <string name="transaction_detail_mood">心情</string>
     <string name="transaction_detail_note">备注</string>
     <string name="transaction_detail_note_empty">暂无</string>

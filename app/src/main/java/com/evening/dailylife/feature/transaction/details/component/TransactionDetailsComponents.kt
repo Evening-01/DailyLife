@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.evening.dailylife.R
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.model.MoodRepository
+import com.evening.dailylife.core.model.TransactionSource
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,6 +43,7 @@ import java.util.Locale
 @Composable
 fun TransactionDetailsContent(
     transaction: TransactionEntity,
+    categoryLabel: String,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
     iconVector: ImageVector,
@@ -55,10 +57,11 @@ fun TransactionDetailsContent(
         Spacer(modifier = Modifier.height(16.dp))
         TransactionSummaryCard(
             transaction = transaction,
+            categoryLabel = categoryLabel,
             iconVector = iconVector,
         )
         Spacer(modifier = Modifier.height(24.dp))
-        TransactionDetailsList(transaction)
+        TransactionDetailsList(transaction = transaction, categoryLabel = categoryLabel)
         Spacer(modifier = Modifier.weight(1f))
         ActionButtons(
             onDelete = onDelete,
@@ -71,6 +74,7 @@ fun TransactionDetailsContent(
 @Composable
 fun TransactionSummaryCard(
     transaction: TransactionEntity,
+    categoryLabel: String,
     iconVector: ImageVector,
 ) {
     Card(
@@ -92,7 +96,7 @@ fun TransactionSummaryCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = transaction.category,
+                    text = categoryLabel,
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
@@ -117,7 +121,7 @@ fun TransactionSummaryCard(
 
                 Icon(
                     imageVector = iconVector,
-                    contentDescription = transaction.category,
+                    contentDescription = categoryLabel,
                     modifier = Modifier
                         .size(96.dp)
                         .graphicsLayer(alpha = 0.99f)
@@ -137,15 +141,16 @@ fun TransactionSummaryCard(
 }
 
 @Composable
-fun TransactionDetailsList(transaction: TransactionEntity) {
+fun TransactionDetailsList(transaction: TransactionEntity, categoryLabel: String) {
     val datePattern = stringResource(R.string.transaction_details_date_pattern)
-    val sdf = remember(datePattern) { SimpleDateFormat(datePattern, Locale.CHINESE) }
+    val currentLocale = Locale.getDefault()
+    val sdf = remember(datePattern, currentLocale) { SimpleDateFormat(datePattern, currentLocale) }
     val dateString = sdf.format(Date(transaction.date))
 
     Column(modifier = Modifier.fillMaxWidth()) {
         DetailItem(
             label = stringResource(R.string.transaction_detail_category),
-            value = transaction.category,
+            value = categoryLabel,
         )
         Divider()
         DetailItem(
@@ -153,11 +158,17 @@ fun TransactionDetailsList(transaction: TransactionEntity) {
             value = dateString,
         )
         Divider()
+        val defaultSourceLabel = stringResource(R.string.transaction_detail_source_default)
+        val storedSource = transaction.source.ifBlank { TransactionSource.DEFAULT }
+        val displaySource = if (TransactionSource.isAppSource(storedSource)) {
+            defaultSourceLabel
+        } else {
+            storedSource
+        }
+
         DetailItem(
             label = stringResource(R.string.transaction_detail_source),
-            value = transaction.source.ifBlank {
-                stringResource(R.string.transaction_detail_source_default)
-            },
+            value = displaySource,
         )
         Divider()
 

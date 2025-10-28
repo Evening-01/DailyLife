@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -129,7 +130,11 @@ private fun CategoryRankingItem(
     animationKey: Any?
 ) {
     val context = LocalContext.current
-    val icon = remember(rank.category) { TransactionCategoryRepository.getIcon(context, rank.category) }
+    val configuration = LocalConfiguration.current
+    val categoryLabel = remember(rank.category, configuration) {
+        TransactionCategoryRepository.getDisplayName(context, rank.category)
+    }
+    val icon = remember(rank.category) { TransactionCategoryRepository.getIcon(rank.category) }
     val percentText = remember(rank.ratio) { percentFormatter.format(rank.ratio.toDouble()) }
 
     Row(
@@ -167,7 +172,7 @@ private fun CategoryRankingItem(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = rank.category,
+                        text = categoryLabel,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface

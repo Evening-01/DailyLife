@@ -118,8 +118,8 @@ fun TransactionEditorContent(
         }
     }
 
-    LaunchedEffect(uiState.isEditing, uiState.category) {
-        if (uiState.isEditing && uiState.category.isNotBlank()) {
+    LaunchedEffect(uiState.isEditing, uiState.categoryId) {
+        if (uiState.isEditing && uiState.categoryId.isNotBlank()) {
             showCalculator = true
         }
     }
@@ -183,10 +183,10 @@ fun TransactionEditorContent(
 
             TransactionCategoryGrid(
                 categories = categories,
-                selectedCategory = uiState.category,
+                selectedCategoryId = uiState.categoryId,
                 onCategorySelected = { category ->
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onCategoryChange(category.name)
+                    onCategoryChange(category.id)
                     showCalculator = true
                 },
                 onManageCategory = {

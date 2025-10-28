@@ -77,7 +77,7 @@ fun TransactionTypeTabs(
 @Composable
 fun TransactionCategoryGrid(
     categories: List<TransactionCategory>,
-    selectedCategory: String,
+    selectedCategoryId: String,
     onCategorySelected: (TransactionCategory) -> Unit,
     onManageCategory: () -> Unit,
     manageLabel: String,
@@ -93,11 +93,11 @@ fun TransactionCategoryGrid(
     ) {
         items(
             items = categories,
-            key = { it.name }
+            key = { it.id }
         ) { category ->
             CategoryItem(
                 category = category,
-                isSelected = category.name == selectedCategory,
+                isSelected = category.id == selectedCategoryId,
                 onClick = { onCategorySelected(category) }
             )
         }
@@ -105,6 +105,7 @@ fun TransactionCategoryGrid(
         item {
             CategoryItem(
                 category = TransactionCategory(
+                    id = "__manage__",
                     name = manageLabel,
                     icon = manageIcon
                 ),

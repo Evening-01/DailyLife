@@ -16,9 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,13 +45,23 @@ fun DailyHeader(
         todayLabel
     } else {
         val parts = date.split(" ")
-        val dateParts = parts[0].split("/")
-        stringResource(
-            R.string.details_month_day_with_weekday,
-            dateParts[0],
-            dateParts[1],
-            parts.getOrNull(1).orEmpty(),
-        )
+        val monthDay = parts.firstOrNull().orEmpty()
+        val dateParts = monthDay.split("/")
+
+        val month = dateParts.getOrNull(0)
+        val day = dateParts.getOrNull(1)
+        val weekDay = parts.drop(1).joinToString(" ") { it.trim() }.trim()
+
+        if (month != null && day != null && month.isNotBlank() && day.isNotBlank()) {
+            stringResource(
+                R.string.details_month_day_with_weekday,
+                month,
+                day,
+                weekDay,
+            )
+        } else {
+            date
+        }
     }
 
     Row(
@@ -107,6 +119,13 @@ fun TransactionListItem(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val categoryLabel = remember(transaction.category, configuration) {
+        TransactionCategoryRepository.getDisplayName(context, transaction.category)
+    }
+    val categoryIcon = remember(transaction.category) {
+        TransactionCategoryRepository.getIcon(transaction.category)
+    }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -127,8 +146,8 @@ fun TransactionListItem(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = TransactionCategoryRepository.getIcon(context, transaction.category),
-                    contentDescription = transaction.category,
+                    imageVector = categoryIcon,
+                    contentDescription = categoryLabel,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp),
                 )
@@ -139,7 +158,7 @@ fun TransactionListItem(
                 if (transaction.description.isNotBlank()) {
                     Column {
                         Text(
-                            text = transaction.category,
+                            text = categoryLabel,
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
                         )
@@ -151,7 +170,7 @@ fun TransactionListItem(
                     }
                 } else {
                     Text(
-                        text = transaction.category,
+                        text = categoryLabel,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                     )
