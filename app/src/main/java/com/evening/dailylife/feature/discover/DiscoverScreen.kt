@@ -18,13 +18,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.feature.discover.component.DiscoverAiSection
@@ -45,6 +52,26 @@ fun DiscoverScreen(
     val headerContainerColor = LocalExtendedColorScheme.current.headerContainer
     val headerContentColor = LocalExtendedColorScheme.current.onHeaderContainer
     val numberFormatter = remember { DecimalFormat("#,##0.00") }
+    var profileAnimationTrigger by remember { mutableIntStateOf(0) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                profileAnimationTrigger++
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(typeProfileState.typeProfile, typeProfileState.isLoading) {
+        if (!typeProfileState.isLoading) {
+            profileAnimationTrigger++
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -66,6 +93,7 @@ fun DiscoverScreen(
             innerPadding = innerPadding,
             typeProfileState = typeProfileState,
             numberFormatter = numberFormatter,
+            profileAnimationKey = profileAnimationTrigger,
         )
     }
 }
@@ -76,6 +104,7 @@ private fun DiscoverContent(
     innerPadding: PaddingValues,
     typeProfileState: DiscoverTypeProfileUiState,
     numberFormatter: DecimalFormat,
+    profileAnimationKey: Int,
 ) {
     val scrollState = rememberScrollState()
     val sectionSpacing = 8.dp
@@ -93,7 +122,11 @@ private fun DiscoverContent(
                 stringResource(id = R.string.discover_type_profile_title_month, month)
             } ?: stringResource(id = R.string.chart_type_profile_title)
             ItemTitle(text = profileTitle)
-            DiscoverTypeProfileContent(typeProfileState, numberFormatter)
+            DiscoverTypeProfileContent(
+                state = typeProfileState,
+                numberFormatter = numberFormatter,
+                animationKey = profileAnimationKey,
+            )
         }
         DiscoverAiSection(
             modifier = Modifier
@@ -108,6 +141,7 @@ private fun DiscoverContent(
 private fun DiscoverTypeProfileContent(
     state: DiscoverTypeProfileUiState,
     numberFormatter: DecimalFormat,
+    animationKey: Int,
 ) {
     if (state.isLoading) {
         LinearProgressIndicator(
@@ -119,6 +153,7 @@ private fun DiscoverTypeProfileContent(
         TypeProfileSection(
             profile = state.typeProfile,
             numberFormatter = numberFormatter,
+            animationKey = animationKey,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 2.dp),

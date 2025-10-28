@@ -1,7 +1,7 @@
 package com.evening.dailylife.feature.discover.component
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +37,7 @@ fun TypeProfileSection(
     profile: TypeProfile,
     numberFormatter: DecimalFormat,
     modifier: Modifier = Modifier,
+    animationKey: Any? = null,
 ) {
     val total = profile.total
     if (total <= 0.0) {
@@ -66,14 +67,17 @@ fun TypeProfileSection(
     val defaultValueColor = MaterialTheme.colorScheme.onSurface
     val progressColor = MaterialTheme.colorScheme.primary
 
-    val animatedExpenseRatio by animateFloatAsState(
-        targetValue = expenseRatio,
-        animationSpec = tween(
+    val expenseProgress = remember { Animatable(0f) }
+    val animationSpec = remember {
+        tween<Float>(
             durationMillis = 800,
             easing = FastOutSlowInEasing,
-        ),
-        label = "expenseRatio",
-    )
+        )
+    }
+    LaunchedEffect(animationKey, expenseRatio) {
+        expenseProgress.snapTo(0f)
+        expenseProgress.animateTo(expenseRatio, animationSpec = animationSpec)
+    }
 
     Row(
         modifier = modifier
@@ -82,7 +86,7 @@ fun TypeProfileSection(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         TypeProfileExpenseProgress(
-            progress = animatedExpenseRatio,
+            progress = expenseProgress.value,
             ratioText = expenseRatioText,
             progressColor = progressColor,
             modifier = Modifier.size(140.dp),

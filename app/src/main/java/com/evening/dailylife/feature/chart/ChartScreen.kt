@@ -226,6 +226,7 @@ fun ChartScreen(
                         MoodLineChart(
                             entries = uiState.moodEntries,
                             period = selectedPeriod,
+                            animationKey = barAnimationTrigger,
                         )
                     }
                 }
