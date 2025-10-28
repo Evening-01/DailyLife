@@ -53,6 +53,9 @@ fun MeScreen(
     val fingerprintUnsupportedMessage = stringResource(R.string.fingerprint_not_supported)
     val fingerprintNotEnrolledMessage = stringResource(R.string.fingerprint_not_enrolled)
     val biometricManager = remember { BiometricManager.from(context) }
+    val fingerprintCapability = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+    val isFingerprintSupported = fingerprintCapability == BiometricManager.BIOMETRIC_SUCCESS ||
+        fingerprintCapability == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED
 
     fun handleFingerprintToggle(checked: Boolean) {
         if (checked) {
@@ -165,7 +168,13 @@ fun MeScreen(
             item {
                 MeSecuritySection(
                     fingerprintLockEnabled = fingerprintLockEnabled,
+                    isFingerprintSupported = isFingerprintSupported,
                     onFingerprintToggle = { checked -> handleFingerprintToggle(checked) },
+                    onFingerprintUnsupported = {
+                        Toast
+                            .makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT)
+                            .show()
+                    },
                     onDataManagementClick = {
                     },
                 )
