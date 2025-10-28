@@ -1,7 +1,9 @@
 package com.evening.dailylife.app.main
 
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -10,11 +12,15 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.DailyTheme
+import com.evening.dailylife.core.data.preferences.AppLanguage
 import com.evening.dailylife.core.data.preferences.PreferencesKeys
 import com.evening.dailylife.core.data.preferences.ThemeMode
 import com.evening.dailylife.core.security.biometric.BiometricLockManager
@@ -36,7 +42,16 @@ class MainActivity : FragmentActivity() {
         }
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(
+                lightScrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.auto(
+                lightScrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT
+            )
+        )
         biometricLockManager.register(this)
         setContent {
             val themeMode by viewModel.themeMode.collectAsState()
@@ -45,13 +60,19 @@ class MainActivity : FragmentActivity() {
             val appLanguage by viewModel.appLanguage.collectAsState()
             val customFontEnabled by viewModel.customFontEnabled.collectAsState()
 
+            var lastAppliedLanguage by remember { mutableStateOf<AppLanguage?>(null) }
+
             LaunchedEffect(appLanguage) {
-                val desiredTag = appLanguage.languageTag
-                val currentTag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-                if (currentTag != desiredTag) {
-                    AppCompatDelegate.setApplicationLocales(
-                        LocaleListCompat.forLanguageTags(desiredTag)
-                    )
+                val desiredLocales = LocaleListCompat.forLanguageTags(appLanguage.languageTag)
+                if (AppCompatDelegate.getApplicationLocales() != desiredLocales) {
+                    AppCompatDelegate.setApplicationLocales(desiredLocales)
+                    val previouslyApplied = lastAppliedLanguage
+                    lastAppliedLanguage = appLanguage
+                    if (previouslyApplied != null && previouslyApplied != appLanguage) {
+                        this@MainActivity.recreate()
+                    }
+                } else {
+                    lastAppliedLanguage = appLanguage
                 }
             }
 
@@ -60,6 +81,8 @@ class MainActivity : FragmentActivity() {
                 ThemeMode.DARK -> true
                 ThemeMode.LIGHT -> false
             }
+
+            EdgeToEdgeEffect(isDarkTheme = darkTheme)
 
             DailyTheme(
                 dynamicColor = dynamicColor,
@@ -71,6 +94,7 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
+
     private fun shouldUseDynamicSplashIcon(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             return false

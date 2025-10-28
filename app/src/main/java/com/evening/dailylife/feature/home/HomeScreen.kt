@@ -2,8 +2,13 @@ package com.evening.dailylife.feature.home
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -74,12 +79,18 @@ fun HomeScreen(
                 }
             }
         },
+        contentWindowInsets = WindowInsets.safeDrawing.only(
+            WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+        ),
     ) { innerPadding ->
         HomeNavHost(
             navController = homeNavController,
             appNavController = appNavController,
             onAddTransactionClick = onAddTransactionClick,
-            modifier = Modifier.padding(PaddingValues(bottom = innerPadding.calculateBottomPadding()))
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
         )
     }
 }

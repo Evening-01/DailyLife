@@ -1,5 +1,8 @@
 package com.evening.dailylife.feature.me.settings.general
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -20,9 +23,12 @@ import androidx.compose.material.icons.outlined.FormatSize
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +71,23 @@ fun GeneralSettingsScreen(
     val context = LocalContext.current
     val isDynamicColorSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val dynamicColorUnsupportedMessage = stringResource(R.string.dynamic_color_unsupported)
+
+    var lastObservedTextSizeOption by remember { mutableStateOf(textSizeOption) }
+    var lastObservedCustomFontEnabled by remember { mutableStateOf(customFontEnabled) }
+
+    LaunchedEffect(textSizeOption) {
+        if (lastObservedTextSizeOption != textSizeOption) {
+            lastObservedTextSizeOption = textSizeOption
+            context.findActivity()?.recreate()
+        }
+    }
+
+    LaunchedEffect(customFontEnabled) {
+        if (lastObservedCustomFontEnabled != customFontEnabled) {
+            lastObservedCustomFontEnabled = customFontEnabled
+            context.findActivity()?.recreate()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -193,4 +216,10 @@ fun GeneralSettingsScreen(
         }
 
     }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

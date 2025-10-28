@@ -20,7 +20,10 @@ import com.evening.dailylife.app.navigation.AppNavHost
 fun DailyLifeApp() {
     val navController = rememberNavController()
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        AppNavHost(navController = navController)
+        AppNavHost(
+            navController = navController,
+            modifier = Modifier.fillMaxSize()
+        )
     } else {
         UnsupportedVersionContent()
     }
