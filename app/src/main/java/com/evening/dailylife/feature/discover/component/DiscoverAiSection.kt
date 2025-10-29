@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,6 +34,7 @@ import com.evening.dailylife.R
 /**
  * AI 功能宣传区，单独负责展示渐变卡片与交互提示。
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DiscoverAiSection(
     modifier: Modifier = Modifier,
@@ -107,9 +110,10 @@ fun DiscoverAiSection(
                         fontWeight = FontWeight.Medium,
                         color = Color.White,
                     )
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         AiFeatureChip(
                             text = stringResource(id = R.string.discover_ai_chip_insight),

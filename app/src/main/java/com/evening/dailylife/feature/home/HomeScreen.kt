@@ -143,7 +143,17 @@ private fun NavHostController.navigateFromMe(
     appNavController: NavHostController,
     destinationRoute: String,
 ) {
-    if (currentBackStackEntry?.destination?.route == Route.ME) {
-        appNavController.navigate(destinationRoute)
+    val isOnMeTab = currentBackStackEntry?.destination?.route == Route.ME
+    if (!isOnMeTab) {
+        return
+    }
+
+    val currentGlobalRoute = appNavController.currentBackStackEntry?.destination?.route
+    if (currentGlobalRoute == destinationRoute) {
+        return
+    }
+
+    appNavController.navigate(destinationRoute) {
+        launchSingleTop = true
     }
 }

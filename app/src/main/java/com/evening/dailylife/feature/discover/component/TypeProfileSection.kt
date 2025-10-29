@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.SuccessGreen
 import com.evening.dailylife.feature.discover.model.TypeProfile
@@ -193,19 +195,26 @@ private fun TypeProfileDetailRow(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
         )
         Text(
             text = value,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Medium,
             color = valueColor,
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.End,
+            maxLines = 3,
+            overflow = TextOverflow.Clip,
+            softWrap = true,
         )
     }
 }
