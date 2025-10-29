@@ -12,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.navigation.compose.rememberNavController
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import com.evening.dailylife.R
@@ -64,6 +65,7 @@ class MainActivity : FragmentActivity() {
             val uiScale by viewModel.uiScale.collectAsState()
             val fontScale by viewModel.fontScale.collectAsState()
             val customFontEnabled by viewModel.customFontEnabled.collectAsState()
+            val navController = rememberNavController()
 
             val darkTheme = when (themeMode) {
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
@@ -80,7 +82,7 @@ class MainActivity : FragmentActivity() {
                 fontScale = fontScale,
                 useCustomFont = customFontEnabled
             ) {
-                DailyLifeApp()
+                DailyLifeApp(navController)
             }
         }
     }

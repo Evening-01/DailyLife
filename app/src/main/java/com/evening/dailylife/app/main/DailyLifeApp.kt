@@ -12,13 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavHostController
 import com.evening.dailylife.R
 import com.evening.dailylife.app.navigation.AppNavHost
 
 @Composable
-fun DailyLifeApp() {
-    val navController = rememberNavController()
+fun DailyLifeApp(navController: NavHostController) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         AppNavHost(
             navController = navController,
