@@ -127,15 +127,24 @@ private fun HomeNavHost(
         composable(Route.ME) {
             MeScreen(
                 onAboutAuthorClick = {
-                    appNavController.navigate(Route.ABOUT_AUTHOR)
+                    navController.navigateFromMe(appNavController, Route.ABOUT_AUTHOR)
                 },
                 onGeneralSettingsClick = {
-                    appNavController.navigate(Route.GENERAL_SETTINGS)
+                    navController.navigateFromMe(appNavController, Route.GENERAL_SETTINGS)
                 },
                 onAccountingPreferencesClick = {
-                    appNavController.navigate(Route.ACCOUNTING_PREFERENCES)
+                    navController.navigateFromMe(appNavController, Route.ACCOUNTING_PREFERENCES)
                 },
             )
         }
+    }
+}
+
+private fun NavHostController.navigateFromMe(
+    appNavController: NavHostController,
+    destinationRoute: String,
+) {
+    if (currentBackStackEntry?.destination?.route == Route.ME) {
+        appNavController.navigate(destinationRoute)
     }
 }
