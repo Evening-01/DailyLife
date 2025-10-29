@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.evening.dailylife.R
-import com.evening.dailylife.core.navigation.debouncedPopBackStack
+import com.evening.dailylife.core.navigation.safePopBackStack
 import com.moriafly.salt.ui.SaltTheme
 import com.moriafly.salt.ui.TitleBar
 import com.moriafly.salt.ui.UnstableSaltApi
@@ -85,7 +85,7 @@ fun AboutAuthorScreen(navController: NavHostController) {
             .safeMainPadding(),
     ) {
         TitleBar(
-            onBack = { navController.debouncedPopBackStack() },
+            onBack = { navController.safePopBackStack() },
             text = stringResource(id = R.string.me_about_author),
         )
         Column(
@@ -192,7 +192,7 @@ private fun AuthorHeader() {
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
                 )
                 Text(
-                    text = "Mobile Developer · Android爱好者",
+                    text = stringResource(id = R.string.me_about_author_role),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

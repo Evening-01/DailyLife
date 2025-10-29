@@ -1,7 +1,5 @@
 package com.evening.dailylife.feature.home
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -33,6 +31,9 @@ import com.evening.dailylife.feature.chart.ChartScreen
 import com.evening.dailylife.feature.details.DetailsScreen
 import com.evening.dailylife.feature.discover.DiscoverScreen
 import com.evening.dailylife.feature.me.MeScreen
+import android.os.Build
+import androidx.annotation.RequiresApi
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,9 +112,7 @@ private fun HomeNavHost(
         composable(Route.DETAILS) {
             DetailsScreen(
                 onTransactionClick = { transactionId ->
-                    appNavController.navigate(
-                        Route.TRANSACTION_DETAILS.replace("{transactionId}", transactionId.toString()),
-                    )
+                    appNavController.navigate(Route.transactionDetails(transactionId))
                 },
                 onAddTransactionClick = onAddTransactionClick,
             )

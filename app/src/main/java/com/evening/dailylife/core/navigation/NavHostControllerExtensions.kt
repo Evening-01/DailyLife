@@ -3,7 +3,7 @@ package com.evening.dailylife.core.navigation
 import android.util.Log
 import androidx.navigation.NavHostController
 
-fun NavHostController.debouncedPopBackStack() {
+fun NavHostController.safePopBackStack() {
     val currentRoute = this.currentBackStackEntry?.destination?.route
     val previousRoute = this.previousBackStackEntry?.destination?.route
 

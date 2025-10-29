@@ -4,9 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
-import android.os.Build
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +32,8 @@ import com.evening.dailylife.feature.me.component.MeOtherSection
 import com.evening.dailylife.feature.me.component.MeProfileHeader
 import com.evening.dailylife.feature.me.component.MeSecuritySection
 import com.moriafly.salt.ui.UnstableSaltApi
+import android.os.Build
+import androidx.annotation.RequiresApi
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableSaltApi::class)

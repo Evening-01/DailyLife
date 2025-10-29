@@ -31,7 +31,7 @@ fun AppNavHost(
             HomeScreen(
                 onAddTransactionClick = {
                     // 导航到编辑页面，不带参数表示新建
-                    navController.navigate(Route.ADD_EDIT_TRANSACTION.replace("{transactionId}", "-1"))
+                    navController.navigate(Route.addEditTransactionWithId(-1))
                 },
                 appNavController = navController
             )

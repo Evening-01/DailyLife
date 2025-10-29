@@ -121,6 +121,7 @@
     <string name="me_share_app_message">我正在使用 DailyLife 记录生活与财务，推荐你也来试试看！</string>
     <string name="me_share_app_unavailable">未找到可用的分享方式</string>
     <string name="me_about_author_intro">你好，我是 Evening，一名热爱设计与安卓移动开发者。DailyLife 是我用来探索“简单、美观、可信赖”记账体验的尝试。</string>
+    <string name="me_about_author_role">Mobile Developer · 安卓爱好者</string>
     <string name="me_about_author_recent_title">近期在做的事</string>
     <string name="me_about_author_recent_item_1">打磨记账与分析的交互体验</string>
     <string name="me_about_author_recent_item_2">学习如何让数据更易读、更温暖</string>

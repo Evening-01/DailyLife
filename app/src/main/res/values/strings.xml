@@ -122,6 +122,7 @@
     <string name="me_share_app_message">I\'m using DailyLife to track life and finances. Give it a try!</string>
     <string name="me_share_app_unavailable">No share target available</string>
     <string name="me_about_author_intro">Hi, I\'m Evening, a designer and Android developer. DailyLife is my attempt at a simple, beautiful, and trustworthy bookkeeping experience.</string>
+    <string name="me_about_author_role">Mobile Developer · Android enthusiast</string>
     <string name="me_about_author_recent_title">Currently working on</string>
     <string name="me_about_author_recent_item_1">Refining bookkeeping and analytics interactions</string>
     <string name="me_about_author_recent_item_2">Learning how to make data easier to read and warmer</string>

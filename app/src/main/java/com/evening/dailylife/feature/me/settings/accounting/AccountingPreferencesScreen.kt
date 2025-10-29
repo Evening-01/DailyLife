@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.evening.dailylife.R
-import com.evening.dailylife.core.navigation.debouncedPopBackStack
+import com.evening.dailylife.core.navigation.safePopBackStack
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
 import com.moriafly.salt.ui.SaltTheme
@@ -36,7 +36,7 @@ fun AccountingPreferencesScreen(
             .safeMainPadding(),
     ) {
         TitleBar(
-            onBack = { navController.debouncedPopBackStack() },
+            onBack = { navController.safePopBackStack() },
             text = stringResource(id = R.string.accounting_preferences),
         )
 

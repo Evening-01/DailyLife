@@ -140,7 +140,7 @@ fun ItemPopup(
             )
         }
         PopupMenu(
-            modifier = Modifier.width(popupWidth.dp),  //TODO 宽度
+            modifier = Modifier.width(popupWidth.dp),
             expanded = state.expend,
             onDismissRequest = {
                 state.dismiss()

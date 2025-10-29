@@ -50,7 +50,7 @@ import com.evening.dailylife.R
 import com.evening.dailylife.core.data.preferences.AppLanguage
 import com.evening.dailylife.core.data.preferences.ThemeMode
 import com.evening.dailylife.core.designsystem.component.ItemPopup
-import com.evening.dailylife.core.navigation.debouncedPopBackStack
+import com.evening.dailylife.core.navigation.safePopBackStack
 import com.moriafly.salt.ui.ItemSwitcher
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
@@ -103,7 +103,7 @@ fun GeneralSettingsScreen(
             .safeMainPadding(),
     ) {
         TitleBar(
-            onBack = { navController.debouncedPopBackStack() },
+            onBack = { navController.safePopBackStack() },
             text = stringResource(id = R.string.general_settings),
         )
 

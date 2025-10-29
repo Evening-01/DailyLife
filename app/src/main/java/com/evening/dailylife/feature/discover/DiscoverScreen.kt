@@ -1,7 +1,5 @@
 package com.evening.dailylife.feature.discover
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,6 +39,8 @@ import com.evening.dailylife.feature.discover.model.DiscoverTypeProfileUiState
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
 import java.text.DecimalFormat
+import android.os.Build
+import androidx.annotation.RequiresApi
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
