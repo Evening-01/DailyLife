@@ -40,16 +40,15 @@ class PreferencesManager @Inject constructor(
     )
     val fingerprintLockEnabled = _fingerprintLockEnabled.asStateFlow()
 
-    private val _textSizeOption = MutableStateFlow(
-        TextSizeOption.fromName(
-            fastKV.getString(PreferencesKeys.KEY_TEXT_SIZE, TextSizeOption.MEDIUM.name)
-        )
-    )
-    val textSizeOption = _textSizeOption.asStateFlow()
+    private val _uiScale = MutableStateFlow(readUiScale())
+    val uiScale = _uiScale.asStateFlow()
+
+    private val _fontScale = MutableStateFlow(readFontScale())
+    val fontScale = _fontScale.asStateFlow()
 
     private val _appLanguage = MutableStateFlow(
         AppLanguage.fromName(
-            fastKV.getString(PreferencesKeys.KEY_APP_LANGUAGE, AppLanguage.CHINESE.name)
+            fastKV.getString(PreferencesKeys.KEY_APP_LANGUAGE, AppLanguage.SYSTEM.name)
         )
     )
     val appLanguage = _appLanguage.asStateFlow()
@@ -75,9 +74,22 @@ class PreferencesManager @Inject constructor(
         appIconManager.applyDynamicIcon(enabled)
     }
 
-    fun setTextSizeOption(option: TextSizeOption) {
-        fastKV.putString(PreferencesKeys.KEY_TEXT_SIZE, option.name)
-        _textSizeOption.value = option
+    fun setUiScale(scale: Float, persist: Boolean) {
+        val clamped = scale.coerceIn(0.5f, 2.0f)
+        if (persist) {
+            fastKV.putFloat(PreferencesKeys.KEY_UI_SCALE, clamped)
+            fastKV.remove(PreferencesKeys.KEY_TEXT_SIZE)
+        }
+        _uiScale.value = clamped
+    }
+
+    fun setFontScale(scale: Float, persist: Boolean) {
+        val clamped = scale.coerceIn(0.9f, 1.2f)
+        if (persist) {
+            fastKV.putFloat(PreferencesKeys.KEY_FONT_SCALE, clamped)
+            fastKV.remove(PreferencesKeys.KEY_TEXT_SIZE)
+        }
+        _fontScale.value = clamped
     }
 
     fun setAppLanguage(language: AppLanguage) {
@@ -95,4 +107,24 @@ class PreferencesManager @Inject constructor(
         _fingerprintLockEnabled.value = enabled
     }
 
+    private fun readUiScale(): Float {
+        val stored = fastKV.getFloat(PreferencesKeys.KEY_UI_SCALE, Float.NaN)
+        if (!stored.isNaN() && stored != 1.0f) {
+            fastKV.putFloat(PreferencesKeys.KEY_UI_SCALE, 1.0f)
+        }
+        return 1.0f
+    }
+
+    private fun readFontScale(): Float {
+        val stored = fastKV.getFloat(PreferencesKeys.KEY_FONT_SCALE, Float.NaN)
+        if (!stored.isNaN() && stored in 0.9f..1.2f) {
+            return stored
+        }
+        val legacy = fastKV.getString(PreferencesKeys.KEY_TEXT_SIZE, null)
+        return when (legacy) {
+            "SMALL" -> 0.9f
+            "LARGE" -> 1.1f
+            else -> 1.0f
+        }
+    }
 }

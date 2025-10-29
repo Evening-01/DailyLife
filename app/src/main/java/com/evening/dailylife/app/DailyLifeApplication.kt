@@ -20,10 +20,14 @@ class DailyLifeApplication : Application() {
         val fastKV = FastKV.Builder(this, PreferencesKeys.PREFERENCES_NAME).build()
         val storedLanguage = fastKV.getString(
             PreferencesKeys.KEY_APP_LANGUAGE,
-            AppLanguage.CHINESE.name
+            AppLanguage.SYSTEM.name
         )
         val appLanguage = AppLanguage.fromName(storedLanguage)
-        val desiredLocales = LocaleListCompat.forLanguageTags(appLanguage.languageTag)
+        val desiredLocales = if (appLanguage == AppLanguage.SYSTEM) {
+            LocaleListCompat.getEmptyLocaleList()
+        } else {
+            LocaleListCompat.forLanguageTags(appLanguage.languageTag)
+        }
         if (AppCompatDelegate.getApplicationLocales() != desiredLocales) {
             AppCompatDelegate.setApplicationLocales(desiredLocales)
         }

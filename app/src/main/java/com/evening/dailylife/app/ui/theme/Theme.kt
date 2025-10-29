@@ -30,13 +30,16 @@ import com.moriafly.salt.ui.saltTextStyles
 fun DailyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
-    textSizeScale: Float = 1f,
+    uiScale: Float = 1f,
+    fontScale: Float = 1f,
     useCustomFont: Boolean = true,
     seedColor: Color = DailySeedColor,
     paletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     specVersion: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2025,
     content: @Composable () -> Unit
 ) {
+    val clampedUiScale = uiScale.coerceIn(0.5f, 2.0f)
+    val clampedFontScale = fontScale.coerceIn(0.5f, 2.0f)
     val context = LocalContext.current
     val useDynamicColor = dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
@@ -64,21 +67,30 @@ fun DailyTheme(
             fontFamily = targetFontFamily,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal
-        ).scaled(textSizeScale),
+        ).scaled(clampedFontScale),
         sub = TextStyle(
             fontFamily = targetFontFamily,
             fontSize = 12.sp,
             fontWeight = FontWeight.Normal
-        ).scaled(textSizeScale),
+        ).scaled(clampedFontScale),
         paragraph = TextStyle(
             fontFamily = targetFontFamily,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
             lineHeight = 22.sp
-        ).scaled(textSizeScale)
+        ).scaled(clampedFontScale)
     )
 
-    CompositionLocalProvider(LocalExtendedColorScheme provides extendedColorScheme) {
+    val baseDensity = androidx.compose.ui.platform.LocalDensity.current
+    val scaledDensity = androidx.compose.ui.unit.Density(
+        density = baseDensity.density * clampedUiScale,
+        fontScale = baseDensity.fontScale * clampedFontScale
+    )
+
+    CompositionLocalProvider(
+        LocalExtendedColorScheme provides extendedColorScheme,
+        androidx.compose.ui.platform.LocalDensity provides scaledDensity
+    ) {
         SaltTheme(
             colors = saltColorsByColorScheme(materialColorScheme),
             configs = saltConfigs(isDarkTheme = darkTheme),
@@ -88,7 +100,7 @@ fun DailyTheme(
                 colorScheme = materialColorScheme,
                 typography = createDailyTypography(
                     fontFamily = targetFontFamily,
-                    scale = textSizeScale
+                    scale = clampedFontScale
                 ),
                 content = content
             )

@@ -56,14 +56,19 @@ class MainActivity : FragmentActivity() {
         setContent {
             val themeMode by viewModel.themeMode.collectAsState()
             val dynamicColor by viewModel.dynamicColor.collectAsState()
-            val textSizeOption by viewModel.textSizeOption.collectAsState()
+            val uiScale by viewModel.uiScale.collectAsState()
+            val fontScale by viewModel.fontScale.collectAsState()
             val appLanguage by viewModel.appLanguage.collectAsState()
             val customFontEnabled by viewModel.customFontEnabled.collectAsState()
 
             var lastAppliedLanguage by remember { mutableStateOf<AppLanguage?>(null) }
 
             LaunchedEffect(appLanguage) {
-                val desiredLocales = LocaleListCompat.forLanguageTags(appLanguage.languageTag)
+                val desiredLocales = if (appLanguage == AppLanguage.SYSTEM) {
+                    LocaleListCompat.getEmptyLocaleList()
+                } else {
+                    LocaleListCompat.forLanguageTags(appLanguage.languageTag)
+                }
                 if (AppCompatDelegate.getApplicationLocales() != desiredLocales) {
                     AppCompatDelegate.setApplicationLocales(desiredLocales)
                     val previouslyApplied = lastAppliedLanguage
@@ -87,7 +92,8 @@ class MainActivity : FragmentActivity() {
             DailyTheme(
                 dynamicColor = dynamicColor,
                 darkTheme = darkTheme,
-                textSizeScale = textSizeOption.scale,
+                uiScale = uiScale,
+                fontScale = fontScale,
                 useCustomFont = customFontEnabled
             ) {
                 DailyLifeApp()
