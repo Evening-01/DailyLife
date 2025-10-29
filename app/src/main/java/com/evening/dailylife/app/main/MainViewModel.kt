@@ -16,7 +16,6 @@ class MainViewModel @Inject constructor(
     val dynamicColor = preferencesManager.dynamicColor
     val uiScale = preferencesManager.uiScale
     val fontScale = preferencesManager.fontScale
-    val appLanguage = preferencesManager.appLanguage
     val customFontEnabled = preferencesManager.customFontEnabled
 
 }

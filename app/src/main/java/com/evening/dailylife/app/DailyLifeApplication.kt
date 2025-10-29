@@ -1,15 +1,23 @@
 package com.evening.dailylife.app
 
 import android.app.Application
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.os.LocaleListCompat
-import com.evening.dailylife.core.data.preferences.AppLanguage
-import com.evening.dailylife.core.data.preferences.PreferencesKeys
+import android.content.Context
+import com.evening.dailylife.core.domain.language.LanguageUseCase
+import com.evening.dailylife.core.util.readPersistedLanguageCode
+import com.evening.dailylife.core.util.wrapContextWithLanguage
 import dagger.hilt.android.HiltAndroidApp
-import io.fastkv.FastKV
+import javax.inject.Inject
 
 @HiltAndroidApp
 class DailyLifeApplication : Application() {
+
+    @Inject lateinit var languageUseCase: LanguageUseCase
+
+    override fun attachBaseContext(base: Context) {
+        val languageCode = readPersistedLanguageCode(base)
+        val wrapped = wrapContextWithLanguage(base, languageCode)
+        super.attachBaseContext(wrapped)
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -17,19 +25,6 @@ class DailyLifeApplication : Application() {
     }
 
     private fun applyPersistedLocale() {
-        val fastKV = FastKV.Builder(this, PreferencesKeys.PREFERENCES_NAME).build()
-        val storedLanguage = fastKV.getString(
-            PreferencesKeys.KEY_APP_LANGUAGE,
-            AppLanguage.SYSTEM.name
-        )
-        val appLanguage = AppLanguage.fromName(storedLanguage)
-        val desiredLocales = if (appLanguage == AppLanguage.SYSTEM) {
-            LocaleListCompat.getEmptyLocaleList()
-        } else {
-            LocaleListCompat.forLanguageTags(appLanguage.languageTag)
-        }
-        if (AppCompatDelegate.getApplicationLocales() != desiredLocales) {
-            AppCompatDelegate.setApplicationLocales(desiredLocales)
-        }
+        languageUseCase.reapplyPersistedLanguage()
     }
 }

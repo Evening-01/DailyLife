@@ -1,5 +1,7 @@
 package com.evening.dailylife.app.main
 
+import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -7,22 +9,18 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.DailyTheme
-import com.evening.dailylife.core.data.preferences.AppLanguage
 import com.evening.dailylife.core.data.preferences.PreferencesKeys
 import com.evening.dailylife.core.data.preferences.ThemeMode
+import com.evening.dailylife.core.domain.language.LanguageUseCase
+import com.evening.dailylife.core.util.readPersistedLanguageCode
+import com.evening.dailylife.core.util.wrapContextWithLanguage
 import com.evening.dailylife.core.security.biometric.BiometricLockManager
 import com.moriafly.salt.ui.UnstableSaltApi
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,6 +32,13 @@ class MainActivity : FragmentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
     @Inject lateinit var biometricLockManager: BiometricLockManager
+    @Inject lateinit var languageUseCase: LanguageUseCase
+
+    override fun attachBaseContext(newBase: Context) {
+        val languageCode = readPersistedLanguageCode(newBase)
+        val wrapped = wrapContextWithLanguage(newBase, languageCode)
+        super.attachBaseContext(wrapped)
+    }
 
     @OptIn(UnstableSaltApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,28 +63,7 @@ class MainActivity : FragmentActivity() {
             val dynamicColor by viewModel.dynamicColor.collectAsState()
             val uiScale by viewModel.uiScale.collectAsState()
             val fontScale by viewModel.fontScale.collectAsState()
-            val appLanguage by viewModel.appLanguage.collectAsState()
             val customFontEnabled by viewModel.customFontEnabled.collectAsState()
-
-            var lastAppliedLanguage by remember { mutableStateOf<AppLanguage?>(null) }
-
-            LaunchedEffect(appLanguage) {
-                val desiredLocales = if (appLanguage == AppLanguage.SYSTEM) {
-                    LocaleListCompat.getEmptyLocaleList()
-                } else {
-                    LocaleListCompat.forLanguageTags(appLanguage.languageTag)
-                }
-                if (AppCompatDelegate.getApplicationLocales() != desiredLocales) {
-                    AppCompatDelegate.setApplicationLocales(desiredLocales)
-                    val previouslyApplied = lastAppliedLanguage
-                    lastAppliedLanguage = appLanguage
-                    if (previouslyApplied != null && previouslyApplied != appLanguage) {
-                        this@MainActivity.recreate()
-                    }
-                } else {
-                    lastAppliedLanguage = appLanguage
-                }
-            }
 
             val darkTheme = when (themeMode) {
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
@@ -98,6 +82,13 @@ class MainActivity : FragmentActivity() {
             ) {
                 DailyLifeApp()
             }
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (languageUseCase.getPersistedLanguageCode().isNotBlank()) {
+            languageUseCase.reapplyPersistedLanguage()
         }
     }
 

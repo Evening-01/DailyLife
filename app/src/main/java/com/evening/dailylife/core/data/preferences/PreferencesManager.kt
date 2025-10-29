@@ -46,13 +46,6 @@ class PreferencesManager @Inject constructor(
     private val _fontScale = MutableStateFlow(readFontScale())
     val fontScale = _fontScale.asStateFlow()
 
-    private val _appLanguage = MutableStateFlow(
-        AppLanguage.fromName(
-            fastKV.getString(PreferencesKeys.KEY_APP_LANGUAGE, AppLanguage.SYSTEM.name)
-        )
-    )
-    val appLanguage = _appLanguage.asStateFlow()
-
     private val _customFontEnabled = MutableStateFlow(
         fastKV.getBoolean(PreferencesKeys.KEY_CUSTOM_FONT, true)
     )
@@ -90,11 +83,6 @@ class PreferencesManager @Inject constructor(
             fastKV.remove(PreferencesKeys.KEY_TEXT_SIZE)
         }
         _fontScale.value = clamped
-    }
-
-    fun setAppLanguage(language: AppLanguage) {
-        fastKV.putString(PreferencesKeys.KEY_APP_LANGUAGE, language.name)
-        _appLanguage.value = language
     }
 
     fun setCustomFontEnabled(enabled: Boolean) {
