@@ -21,7 +21,7 @@ import com.moriafly.salt.ui.UnstableSaltApi
 @Composable
 fun MeInterfaceSettingsSection(
     onGeneralSettingsClick: () -> Unit,
-    onAccountingPreferencesClick: () -> Unit,
+    onQuickUsageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     RoundedColumn(modifier = modifier.fillMaxWidth()) {
@@ -40,7 +40,7 @@ fun MeInterfaceSettingsSection(
             iconPainter = rememberVectorPainter(image = Icons.Outlined.AccountBalanceWallet),
             iconColor = SaltTheme.colors.text,
             iconPaddingValues = PaddingValues(all = 1.8.dp),
-            onClick = onAccountingPreferencesClick,
+            onClick = onQuickUsageClick,
         )
     }
 }

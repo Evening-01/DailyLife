@@ -131,8 +131,8 @@ private fun HomeNavHost(
                 onGeneralSettingsClick = {
                     navController.navigateFromMe(appNavController, Route.GENERAL_SETTINGS)
                 },
-                onAccountingPreferencesClick = {
-                    navController.navigateFromMe(appNavController, Route.ACCOUNTING_PREFERENCES)
+                onQuickUsageClick = {
+                    navController.navigateFromMe(appNavController, Route.QUICK_USAGE)
                 },
             )
         }

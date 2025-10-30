@@ -51,6 +51,14 @@ class PreferencesManager @Inject constructor(
     )
     val customFontEnabled = _customFontEnabled.asStateFlow()
 
+    private val _quickUsageReminderEnabled = MutableStateFlow(
+        fastKV.getBoolean(PreferencesKeys.KEY_QUICK_USAGE_REMINDER_ENABLED, false)
+    )
+    val quickUsageReminderEnabled = _quickUsageReminderEnabled.asStateFlow()
+
+    private val _quickUsageReminderTimeMinutes = MutableStateFlow(readQuickUsageReminderMinutes())
+    val quickUsageReminderTimeMinutes = _quickUsageReminderTimeMinutes.asStateFlow()
+
     init {
         appIconManager.applyDynamicIcon(_dynamicColor.value)
     }
@@ -95,6 +103,17 @@ class PreferencesManager @Inject constructor(
         _fingerprintLockEnabled.value = enabled
     }
 
+    fun setQuickUsageReminderEnabled(enabled: Boolean) {
+        fastKV.putBoolean(PreferencesKeys.KEY_QUICK_USAGE_REMINDER_ENABLED, enabled)
+        _quickUsageReminderEnabled.value = enabled
+    }
+
+    fun setQuickUsageReminderTimeMinutes(minutes: Int) {
+        val normalized = minutes.coerceIn(0, QuickUsageReminderDefaults.MINUTES_PER_DAY - 1)
+        fastKV.putInt(PreferencesKeys.KEY_QUICK_USAGE_REMINDER_TIME_MINUTES, normalized)
+        _quickUsageReminderTimeMinutes.value = normalized
+    }
+
     private fun readUiScale(): Float {
         val stored = fastKV.getFloat(PreferencesKeys.KEY_UI_SCALE, Float.NaN)
         if (!stored.isNaN() && stored != 1.0f) {
@@ -114,5 +133,13 @@ class PreferencesManager @Inject constructor(
             "LARGE" -> 1.1f
             else -> 1.0f
         }
+    }
+
+    private fun readQuickUsageReminderMinutes(): Int {
+        val stored = fastKV.getInt(
+            PreferencesKeys.KEY_QUICK_USAGE_REMINDER_TIME_MINUTES,
+            QuickUsageReminderDefaults.DEFAULT_TIME_MINUTES,
+        )
+        return stored.coerceIn(0, QuickUsageReminderDefaults.MINUTES_PER_DAY - 1)
     }
 }

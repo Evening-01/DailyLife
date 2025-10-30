@@ -42,7 +42,7 @@ fun MeScreen(
     viewModel: MeViewModel = hiltViewModel(),
     onAboutAuthorClick: () -> Unit,
     onGeneralSettingsClick: () -> Unit,
-    onAccountingPreferencesClick: () -> Unit,
+    onQuickUsageClick: () -> Unit,
 ) {
     val profileStatsState by viewModel.profileStatsState.collectAsState()
     val fingerprintLockEnabled by viewModel.fingerprintLockEnabled.collectAsState()
@@ -174,7 +174,7 @@ fun MeScreen(
             item {
                 MeInterfaceSettingsSection(
                     onGeneralSettingsClick = onGeneralSettingsClick,
-                    onAccountingPreferencesClick = onAccountingPreferencesClick,
+                    onQuickUsageClick = onQuickUsageClick,
                 )
             }
 

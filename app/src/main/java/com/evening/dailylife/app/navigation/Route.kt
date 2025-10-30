@@ -8,7 +8,7 @@ object Route {
     const val ME = "me"
     const val ABOUT_AUTHOR = "about_author"
     const val GENERAL_SETTINGS = "general_settings"
-    const val ACCOUNTING_PREFERENCES = "accounting_preferences"
+    const val QUICK_USAGE = "quick_usage"
 
     private const val ADD_EDIT_TRANSACTION_ROUTE = "add_edit_transaction"
     const val ADD_EDIT_TRANSACTION = "$ADD_EDIT_TRANSACTION_ROUTE?transactionId={transactionId}"
