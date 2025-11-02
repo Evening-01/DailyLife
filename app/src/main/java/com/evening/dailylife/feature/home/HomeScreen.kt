@@ -121,7 +121,11 @@ private fun HomeNavHost(
             ChartScreen()
         }
         composable(Route.DISCOVER) {
-            DiscoverScreen()
+            DiscoverScreen(
+                onMortgageCalculatorClick = {
+                    appNavController.navigate(Route.MORTGAGE_CALCULATOR)
+                },
+            )
         }
         composable(Route.ME) {
             MeScreen(

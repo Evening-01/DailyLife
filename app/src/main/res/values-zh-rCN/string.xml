@@ -73,6 +73,32 @@
     <string name="discover_common_tool_fx_title">汇率换算</string>
     <string name="discover_common_tool_check_title">支票存档</string>
     <string name="discover_common_tool_budget_title">资产规划</string>
+    <string name="mortgage_calculator_back">返回</string>
+    <string name="mortgage_calculator_currency_symbol">¥</string>
+    <string name="mortgage_calculator_inputs_title">贷款参数</string>
+    <string name="mortgage_calculator_principal_label">贷款总额</string>
+    <string name="mortgage_calculator_principal_placeholder">请输入贷款本金</string>
+    <string name="mortgage_calculator_annual_rate_label">年化利率</string>
+    <string name="mortgage_calculator_annual_rate_placeholder">请输入年化利率</string>
+    <string name="mortgage_calculator_term_label">贷款年限</string>
+    <string name="mortgage_calculator_term_placeholder">例如 30</string>
+    <string name="mortgage_calculator_years_suffix">年</string>
+    <string name="mortgage_calculator_type_section_title">还款方式</string>
+    <string name="mortgage_calculator_type_equal_payment">等额本息</string>
+    <string name="mortgage_calculator_type_equal_principal">等额本金</string>
+    <string name="mortgage_calculator_calculate_action">开始计算</string>
+    <string name="mortgage_calculator_result_title">计算结果</string>
+    <string name="mortgage_calculator_result_term">期限：%1$d 个月 · %2$d 年</string>
+    <string name="mortgage_calculator_result_monthly_payment">每月还款额</string>
+    <string name="mortgage_calculator_result_average_monthly_payment">月均还款额</string>
+    <string name="mortgage_calculator_result_total_payment">累计还款</string>
+    <string name="mortgage_calculator_result_total_interest">累计利息</string>
+    <string name="mortgage_calculator_result_first_month_payment">首月还款</string>
+    <string name="mortgage_calculator_result_last_month_payment">末月还款</string>
+    <string name="mortgage_calculator_result_monthly_decrease">每月递减</string>
+    <string name="mortgage_calculator_error_principal">请输入大于 0 的贷款金额</string>
+    <string name="mortgage_calculator_error_annual_rate">请输入 0-100 范围内的年化利率</string>
+    <string name="mortgage_calculator_error_term">请输入大于 0 的贷款年限</string>
 
     <!-- Preferences -->
     <string name="user_interface">主题</string>

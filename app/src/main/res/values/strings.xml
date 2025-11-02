@@ -74,6 +74,32 @@
     <string name="discover_common_tool_fx_title">Currency converter</string>
     <string name="discover_common_tool_check_title">Check archive</string>
     <string name="discover_common_tool_budget_title">Asset planning</string>
+    <string name="mortgage_calculator_back">Back</string>
+    <string name="mortgage_calculator_currency_symbol">¥</string>
+    <string name="mortgage_calculator_inputs_title">Loan inputs</string>
+    <string name="mortgage_calculator_principal_label">Loan amount</string>
+    <string name="mortgage_calculator_principal_placeholder">Enter the loan principal</string>
+    <string name="mortgage_calculator_annual_rate_label">Annual interest rate</string>
+    <string name="mortgage_calculator_annual_rate_placeholder">Enter the annual rate</string>
+    <string name="mortgage_calculator_term_label">Loan term</string>
+    <string name="mortgage_calculator_term_placeholder">Years to repay</string>
+    <string name="mortgage_calculator_years_suffix">years</string>
+    <string name="mortgage_calculator_type_section_title">Repayment method</string>
+    <string name="mortgage_calculator_type_equal_payment">Equal principal &amp; interest</string>
+    <string name="mortgage_calculator_type_equal_principal">Equal principal</string>
+    <string name="mortgage_calculator_calculate_action">Calculate repayment</string>
+    <string name="mortgage_calculator_result_title">Calculation results</string>
+    <string name="mortgage_calculator_result_term">Term: %1$d months · %2$d years</string>
+    <string name="mortgage_calculator_result_monthly_payment">Monthly payment</string>
+    <string name="mortgage_calculator_result_average_monthly_payment">Average monthly payment</string>
+    <string name="mortgage_calculator_result_total_payment">Total repayment</string>
+    <string name="mortgage_calculator_result_total_interest">Total interest</string>
+    <string name="mortgage_calculator_result_first_month_payment">First month payment</string>
+    <string name="mortgage_calculator_result_last_month_payment">Final month payment</string>
+    <string name="mortgage_calculator_result_monthly_decrease">Monthly decrease</string>
+    <string name="mortgage_calculator_error_principal">Enter a loan amount greater than 0</string>
+    <string name="mortgage_calculator_error_annual_rate">Enter an annual rate between 0 and 100</string>
+    <string name="mortgage_calculator_error_term">Enter a loan term in years greater than 0</string>
 
     <!-- Preferences -->
     <string name="user_interface">Theme</string>

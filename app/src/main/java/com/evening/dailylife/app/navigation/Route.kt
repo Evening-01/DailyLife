@@ -9,6 +9,7 @@ object Route {
     const val ABOUT_AUTHOR = "about_author"
     const val GENERAL_SETTINGS = "general_settings"
     const val QUICK_USAGE = "quick_usage"
+    const val MORTGAGE_CALCULATOR = "mortgage_calculator"
 
     private const val ADD_EDIT_TRANSACTION_ROUTE = "add_edit_transaction"
     const val ADD_EDIT_TRANSACTION =

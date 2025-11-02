@@ -23,6 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import com.evening.dailylife.R
 import com.moriafly.salt.ui.ItemTitle
 import com.moriafly.salt.ui.RoundedColumn
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * “常用工具” 区域，展示静态入口卡片并统一处理点击反馈。
@@ -42,6 +48,7 @@ import com.moriafly.salt.ui.RoundedColumn
 @Composable
 fun DiscoverCommonToolsSection(
     modifier: Modifier = Modifier,
+    onMortgageCalculatorClick: () -> Unit,
 ) {
     val context = LocalContext.current
     val toastComingSoon = {
@@ -50,21 +57,37 @@ fun DiscoverCommonToolsSection(
             .show()
     }
     val tools = listOf(
-        Icons.Outlined.Calculate to stringResource(id = R.string.discover_common_tool_mortgage_title),
-        Icons.Outlined.SwapHoriz to stringResource(id = R.string.discover_common_tool_fx_title),
-        Icons.Outlined.Inventory2 to stringResource(id = R.string.discover_common_tool_check_title),
-        Icons.Outlined.AccountBalance to stringResource(id = R.string.discover_common_tool_budget_title),
+        DiscoverCommonTool(
+            icon = Icons.Outlined.Calculate,
+            title = stringResource(id = R.string.discover_common_tool_mortgage_title),
+            onClick = onMortgageCalculatorClick,
+        ),
+        DiscoverCommonTool(
+            icon = Icons.Outlined.SwapHoriz,
+            title = stringResource(id = R.string.discover_common_tool_fx_title),
+            onClick = toastComingSoon,
+        ),
+        DiscoverCommonTool(
+            icon = Icons.Outlined.Inventory2,
+            title = stringResource(id = R.string.discover_common_tool_check_title),
+            onClick = toastComingSoon,
+        ),
+        DiscoverCommonTool(
+            icon = Icons.Outlined.AccountBalance,
+            title = stringResource(id = R.string.discover_common_tool_budget_title),
+            onClick = toastComingSoon,
+        ),
     )
     RoundedColumn(modifier = modifier) {
         ItemTitle(text = stringResource(id = R.string.discover_common_tools_title))
         Row(
             modifier = Modifier.fillMaxWidth(),
         ) {
-            tools.forEach { (icon, title) ->
+            tools.forEach { tool ->
                 DiscoverCommonToolCard(
-                    title = title,
-                    icon = icon,
-                    onClick = toastComingSoon,
+                    title = tool.title,
+                    icon = tool.icon,
+                    onClick = tool.onClick,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -79,6 +102,8 @@ private fun DiscoverCommonToolCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    var isClickEnabled by remember { mutableStateOf(true) }
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
@@ -86,7 +111,16 @@ private fun DiscoverCommonToolCard(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick,
+                enabled = isClickEnabled,
+                onClick = {
+                    if (!isClickEnabled) return@clickable
+                    isClickEnabled = false
+                    onClick()
+                    coroutineScope.launch {
+                        delay(DEBOUNCE_DURATION_MILLIS)
+                        isClickEnabled = true
+                    }
+                },
             )
             .padding(horizontal = 12.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -114,3 +148,11 @@ private fun DiscoverCommonToolCard(
         )
     }
 }
+
+private data class DiscoverCommonTool(
+    val icon: ImageVector,
+    val title: String,
+    val onClick: () -> Unit,
+)
+
+private const val DEBOUNCE_DURATION_MILLIS = 600L
