@@ -19,9 +19,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -317,7 +317,7 @@ private fun ResultCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Divider()
+            HorizontalDivider()
             ResultRow(
                 label = when (result.amortizationType) {
                     MortgageAmortizationType.EqualPrincipalInterest ->
@@ -337,7 +337,7 @@ private fun ResultCard(
                 value = formatCurrency(result.totalInterest, currencySymbol, amountFormatter),
             )
             if (result.firstMonthPayment != null && result.lastMonthPayment != null && result.monthlyPaymentDecrease != null) {
-                Divider()
+                HorizontalDivider()
                 ResultRow(
                     label = stringResource(id = R.string.mortgage_calculator_result_first_month_payment),
                     value = formatCurrency(result.firstMonthPayment, currencySymbol, amountFormatter),
