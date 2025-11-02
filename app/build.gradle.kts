@@ -65,6 +65,8 @@ dependencies {
     implementation(com.google.code.gson.gson)
     implementation(androidx.core.core.splashscreen)
     implementation(io.github.billywei01.fastkv)
+    implementation(androidx.glance.glance.appwidget)
+    implementation(androidx.glance.glance.material3)
 
     implementation(com.google.dagger.hilt.android)
     implementation(androidx.hilt.hilt.navigation.compose)

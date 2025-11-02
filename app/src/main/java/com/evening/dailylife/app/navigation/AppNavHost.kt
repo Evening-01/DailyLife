@@ -38,10 +38,21 @@ fun AppNavHost(
         }
         composable(
             route = Route.ADD_EDIT_TRANSACTION,
-            arguments = listOf(navArgument("transactionId") {
-                type = NavType.IntType
-                defaultValue = -1 // -1 表示新建
-            })
+            arguments = listOf(
+                navArgument("transactionId") {
+                    type = NavType.IntType
+                    defaultValue = -1 // -1 表示新建
+                },
+                navArgument("categoryId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = ""
+                },
+                navArgument("isExpense") {
+                    type = NavType.BoolType
+                    defaultValue = true
+                }
+            )
         ) {
             TransactionEditorScreen(navController = navController)
         }

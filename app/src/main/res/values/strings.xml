@@ -266,4 +266,18 @@
     <string name="category_part_time">Parttime</string>
     <string name="category_finance">Investing</string>
     <string name="category_cash_gift_income">Giftcash</string>
+
+    <!-- Widget -->
+    <string name="widget_loading">Loading…</string>
+    <string name="widget_title_today">Today</string>
+    <string name="widget_total_expense">Expense</string>
+    <string name="widget_total_income">Income</string>
+    <string name="widget_total_balance">Net</string>
+    <string name="widget_last_transaction">Last %1$s · %2$s</string>
+    <string name="widget_last_transaction_empty">No transactions yet</string>
+    <string name="widget_quick_add">Quick log</string>
+    <string name="widget_top_categories">Frequent categories</string>
+    <string name="widget_action_open_app">Open app</string>
+    <string name="widget_action_add_income">Add income</string>
+    <string name="widget_action_add_expense">Add expense</string>
 </resources>

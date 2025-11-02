@@ -266,5 +266,17 @@
     <string name="category_finance">理财</string>
     <string name="category_cash_gift_income">礼金</string>
 
-
+    <!-- Widget -->
+    <string name="widget_loading">加载中…</string>
+    <string name="widget_title_today">今日</string>
+    <string name="widget_total_expense">支出</string>
+    <string name="widget_total_income">收入</string>
+    <string name="widget_total_balance">结余</string>
+    <string name="widget_last_transaction">最近 %1$s · %2$s</string>
+    <string name="widget_last_transaction_empty">暂时还没有记账</string>
+    <string name="widget_quick_add">快速记账</string>
+    <string name="widget_top_categories">常用分类</string>
+    <string name="widget_action_open_app">打开应用</string>
+    <string name="widget_action_add_income">记一笔收入</string>
+    <string name="widget_action_add_expense">记一笔支出</string>
 </resources>

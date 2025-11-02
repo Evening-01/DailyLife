@@ -42,11 +42,24 @@ class TransactionEditorViewModel @Inject constructor(
     private val editingTransactionId: Int? =
         savedStateHandle.get<Int>("transactionId")?.takeIf { it != -1 }
 
+    private val initialCategoryId: String? =
+        savedStateHandle.get<String>("categoryId")?.takeIf { it.isNotBlank() }
+
+    private val initialIsExpense: Boolean =
+        savedStateHandle.get<Boolean>("isExpense") ?: true
+
     private var originalTransaction: TransactionEntity? = null
 
     init {
         editingTransactionId?.let { id ->
             loadTransaction(id)
+        } ?: run {
+            _uiState.update { current ->
+                current.copy(
+                    isExpense = initialIsExpense,
+                    categoryId = initialCategoryId ?: current.categoryId
+                )
+            }
         }
     }
 

@@ -59,6 +59,17 @@
         </activity-alias>
 
         <receiver
+            android:name=".app.widget.TransactionSummaryWidgetReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/transaction_summary_widget_info" />
+        </receiver>
+
+        <receiver
             android:name=".feature.me.settings.quickusage.scheduler.receiver.QuickUsageReminderReceiver"
             android:exported="false" />
 

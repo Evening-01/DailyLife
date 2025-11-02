@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import com.evening.dailylife.core.data.preferences.PreferencesManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -18,4 +21,15 @@ class MainViewModel @Inject constructor(
     val fontScale = preferencesManager.fontScale
     val customFontEnabled = preferencesManager.customFontEnabled
 
+    private val _navigationRequests = MutableSharedFlow<NavigationCommand>(extraBufferCapacity = 1)
+    val navigationRequests: SharedFlow<NavigationCommand> = _navigationRequests.asSharedFlow()
+
+    fun dispatchNavigation(command: NavigationCommand) {
+        _navigationRequests.tryEmit(command)
+    }
+
+    data class NavigationCommand(
+        val route: String,
+        val clearBackStack: Boolean = false
+    )
 }
