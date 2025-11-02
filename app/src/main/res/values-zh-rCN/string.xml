@@ -74,6 +74,29 @@
     <string name="discover_common_tool_check_title">支票存档</string>
     <string name="discover_common_tool_budget_title">资产规划</string>
     <string name="mortgage_calculator_back">返回</string>
+    <string name="currency_option_cny">人民币 · CNY</string>
+    <string name="currency_option_usd">美元 · USD</string>
+    <string name="currency_option_eur">欧元 · EUR</string>
+    <string name="currency_option_jpy">日元 · JPY</string>
+    <string name="currency_option_gbp">英镑 · GBP</string>
+    <string name="currency_option_hkd">港币 · HKD</string>
+    <string name="currency_option_aud">澳元 · AUD</string>
+    <string name="currency_option_cad">加元 · CAD</string>
+    <string name="currency_converter_inputs_title">换算参数</string>
+    <string name="currency_converter_base_currency_label">原始货币</string>
+    <string name="currency_converter_target_currency_label">目标货币</string>
+    <string name="currency_converter_amount_label">金额</string>
+    <string name="currency_converter_rate_label">汇率</string>
+    <string name="currency_converter_rate_placeholder">输入 1 %1$s = ? %2$s</string>
+    <string name="currency_converter_rate_hint">请手动填写最新汇率。</string>
+    <string name="currency_converter_swap_action">互换币种</string>
+    <string name="currency_converter_convert_action">开始换算</string>
+    <string name="currency_converter_result_title">换算结果</string>
+    <string name="currency_converter_result_amount">%1$s %2$s = %3$s %4$s</string>
+    <string name="currency_converter_result_rate">1 %1$s = %2$s %3$s</string>
+    <string name="currency_converter_result_inverse_rate">1 %1$s = %2$s %3$s</string>
+    <string name="currency_converter_error_amount">请输入大于 0 的金额</string>
+    <string name="currency_converter_error_rate">请输入大于 0 的汇率</string>
     <string name="mortgage_calculator_currency_symbol">¥</string>
     <string name="mortgage_calculator_inputs_title">贷款参数</string>
     <string name="mortgage_calculator_principal_label">贷款总额</string>

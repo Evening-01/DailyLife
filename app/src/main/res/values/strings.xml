@@ -100,6 +100,29 @@
     <string name="mortgage_calculator_error_principal">Enter a loan amount greater than 0</string>
     <string name="mortgage_calculator_error_annual_rate">Enter an annual rate between 0 and 100</string>
     <string name="mortgage_calculator_error_term">Enter a loan term in years greater than 0</string>
+    <string name="currency_option_cny">Chinese Yuan · CNY</string>
+    <string name="currency_option_usd">US Dollar · USD</string>
+    <string name="currency_option_eur">Euro · EUR</string>
+    <string name="currency_option_jpy">Japanese Yen · JPY</string>
+    <string name="currency_option_gbp">British Pound · GBP</string>
+    <string name="currency_option_hkd">Hong Kong Dollar · HKD</string>
+    <string name="currency_option_aud">Australian Dollar · AUD</string>
+    <string name="currency_option_cad">Canadian Dollar · CAD</string>
+    <string name="currency_converter_inputs_title">Conversion inputs</string>
+    <string name="currency_converter_base_currency_label">From currency</string>
+    <string name="currency_converter_target_currency_label">To currency</string>
+    <string name="currency_converter_amount_label">Amount</string>
+    <string name="currency_converter_rate_label">Exchange rate</string>
+    <string name="currency_converter_rate_placeholder">Enter 1 %1$s = ? %2$s</string>
+    <string name="currency_converter_rate_hint">Provide the latest rate manually.</string>
+    <string name="currency_converter_swap_action">Swap currencies</string>
+    <string name="currency_converter_convert_action">Convert amount</string>
+    <string name="currency_converter_result_title">Conversion result</string>
+    <string name="currency_converter_result_amount">%1$s %2$s = %3$s %4$s</string>
+    <string name="currency_converter_result_rate">1 %1$s = %2$s %3$s</string>
+    <string name="currency_converter_result_inverse_rate">1 %1$s = %2$s %3$s</string>
+    <string name="currency_converter_error_amount">Enter an amount greater than 0</string>
+    <string name="currency_converter_error_rate">Enter an exchange rate greater than 0</string>
 
     <!-- Preferences -->
     <string name="user_interface">Theme</string>

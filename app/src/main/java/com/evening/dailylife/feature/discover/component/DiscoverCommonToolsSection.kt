@@ -49,6 +49,7 @@ import kotlinx.coroutines.launch
 fun DiscoverCommonToolsSection(
     modifier: Modifier = Modifier,
     onMortgageCalculatorClick: () -> Unit,
+    onCurrencyConverterClick: () -> Unit,
 ) {
     val context = LocalContext.current
     val toastComingSoon = {
@@ -65,7 +66,7 @@ fun DiscoverCommonToolsSection(
         DiscoverCommonTool(
             icon = Icons.Outlined.SwapHoriz,
             title = stringResource(id = R.string.discover_common_tool_fx_title),
-            onClick = toastComingSoon,
+            onClick = onCurrencyConverterClick,
         ),
         DiscoverCommonTool(
             icon = Icons.Outlined.Inventory2,

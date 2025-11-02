@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.R
-import com.evening.dailylife.app.ui.theme.DailyLifeTheme
 import com.evening.dailylife.feature.mortgage.model.MortgageAmortizationType
 import com.evening.dailylife.feature.mortgage.model.MortgageCalculationResult
 import com.evening.dailylife.feature.mortgage.model.MortgageCalculatorUiState

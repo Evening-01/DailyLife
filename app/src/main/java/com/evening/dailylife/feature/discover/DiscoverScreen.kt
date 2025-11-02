@@ -47,6 +47,7 @@ import androidx.annotation.RequiresApi
 @Composable
 fun DiscoverScreen(
     onMortgageCalculatorClick: () -> Unit,
+    onCurrencyConverterClick: () -> Unit,
     viewModel: DiscoverViewModel = hiltViewModel(),
 ) {
     val typeProfileState by viewModel.typeProfileState.collectAsState()
@@ -96,6 +97,7 @@ fun DiscoverScreen(
             numberFormatter = numberFormatter,
             profileAnimationKey = profileAnimationTrigger,
             onMortgageCalculatorClick = onMortgageCalculatorClick,
+            onCurrencyConverterClick = onCurrencyConverterClick,
         )
     }
 }
@@ -108,6 +110,7 @@ private fun DiscoverContent(
     numberFormatter: DecimalFormat,
     profileAnimationKey: Int,
     onMortgageCalculatorClick: () -> Unit,
+    onCurrencyConverterClick: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val sectionSpacing = 8.dp
@@ -138,6 +141,7 @@ private fun DiscoverContent(
         )
         DiscoverCommonToolsSection(
             onMortgageCalculatorClick = onMortgageCalculatorClick,
+            onCurrencyConverterClick = onCurrencyConverterClick,
         )
     }
 }

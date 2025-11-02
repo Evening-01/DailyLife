@@ -10,6 +10,7 @@ object Route {
     const val GENERAL_SETTINGS = "general_settings"
     const val QUICK_USAGE = "quick_usage"
     const val MORTGAGE_CALCULATOR = "mortgage_calculator"
+    const val CURRENCY_CONVERTER = "currency_converter"
 
     private const val ADD_EDIT_TRANSACTION_ROUTE = "add_edit_transaction"
     const val ADD_EDIT_TRANSACTION =

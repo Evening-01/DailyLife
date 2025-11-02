@@ -125,6 +125,9 @@ private fun HomeNavHost(
                 onMortgageCalculatorClick = {
                     appNavController.navigate(Route.MORTGAGE_CALCULATOR)
                 },
+                onCurrencyConverterClick = {
+                    appNavController.navigate(Route.CURRENCY_CONVERTER)
+                },
             )
         }
         composable(Route.ME) {
