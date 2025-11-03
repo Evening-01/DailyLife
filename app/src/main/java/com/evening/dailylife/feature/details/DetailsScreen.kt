@@ -78,19 +78,7 @@ fun DetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDatePickerDialog by remember { mutableStateOf(false) }
-
-    val fallbackCalendar = remember { Calendar.getInstance() }
-    val selectedYear = uiState.selectedYear ?: fallbackCalendar.get(Calendar.YEAR)
-    val selectedMonth = uiState.selectedMonth ?: (fallbackCalendar.get(Calendar.MONTH) + 1)
-    val selectedCalendar = Calendar.getInstance().apply {
-        set(Calendar.YEAR, selectedYear)
-        set(Calendar.MONTH, selectedMonth - 1)
-        set(Calendar.DAY_OF_MONTH, 1)
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-    }
+    var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
 
     val yearPattern = stringResource(R.string.details_year_pattern)
     val monthPattern = stringResource(R.string.details_month_pattern)
@@ -105,15 +93,15 @@ fun DetailsScreen(
             showBottomSheet = true,
             onDismiss = { showDatePickerDialog = false },
             type = CalendarPickerType.MONTH,
-            initialDate = (selectedCalendar.clone() as Calendar),
+            initialDate = selectedDate,
             onDateSelected = { _, _, _ -> },
             onMonthSelected = { year, month ->
                 val newCalendar = Calendar.getInstance().apply {
                     clear()
                     set(Calendar.YEAR, year)
                     set(Calendar.MONTH, month - 1)
-                    set(Calendar.DAY_OF_MONTH, 1)
                 }
+                selectedDate = newCalendar
                 viewModel.filterByMonth(newCalendar)
                 showDatePickerDialog = false
             },
@@ -150,8 +138,8 @@ fun DetailsScreen(
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             DetailsSummaryHeader(
-                year = yearFormat.format(selectedCalendar.time),
-                month = monthFormat.format(selectedCalendar.time),
+                year = yearFormat.format(selectedDate.time),
+                month = monthFormat.format(selectedDate.time),
                 income = "%.2f".format(uiState.totalIncome),
                 expense = "%.2f".format(abs(uiState.totalExpense)),
                 onDateClick = { showDatePickerDialog = true },
