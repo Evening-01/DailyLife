@@ -256,8 +256,11 @@ class TransactionAnalyticsRepository @Inject constructor(
     ): DiscoverAnalyticsCache {
         if (transactions.isEmpty()) return DiscoverAnalyticsCache.EMPTY
 
-        val now = Calendar.getInstance(Locale.getDefault())
-        val monthStart = (now.clone() as Calendar).apply {
+        val latestDate = transactions.maxOf(TransactionEntity::date)
+        val referenceCalendar = Calendar.getInstance(Locale.getDefault()).apply {
+            timeInMillis = latestDate
+        }
+        val monthStart = (referenceCalendar.clone() as Calendar).apply {
             set(Calendar.DAY_OF_MONTH, 1)
             setToStartOfDay()
         }

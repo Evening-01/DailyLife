@@ -11,6 +11,8 @@ data class DailyTransactions(
 )
 
 data class DetailsUiState(
+    val selectedYear: Int? = null,
+    val selectedMonth: Int? = null,
     val transactions: List<DailyTransactions> = emptyList(),
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,

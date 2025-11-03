@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.evening.dailylife.R
 import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository
 import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository.MonthlySnapshot
+import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository.YearMonthKey
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.core.model.MoodRepository
@@ -31,19 +32,28 @@ class DetailsViewModel @Inject constructor(
     private val stringProvider: StringProvider
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(DetailsUiState(isLoading = true))
+    private val initialCalendar = Calendar.getInstance()
+    private var currentMonthKey = initialCalendar.toYearMonthKey()
+    private var userHasManualSelection = false
+
+    private val _uiState = MutableStateFlow(
+        DetailsUiState(
+            selectedYear = currentMonthKey.year,
+            selectedMonth = currentMonthKey.month + 1,
+            isLoading = true
+        )
+    )
     val uiState: StateFlow<DetailsUiState> = _uiState.asStateFlow()
 
     private var monthCollectionJob: Job? = null
-    private var currentCalendar: Calendar = Calendar.getInstance()
 
     init {
-        subscribeToMonth(currentCalendar)
+        subscribeToMonth(currentMonthKey)
+        observeLatestTransactions()
     }
 
     fun filterByMonth(calendar: Calendar) {
-        currentCalendar = calendar
-        subscribeToMonth(calendar)
+        updateMonthSelection(calendar.toYearMonthKey(), fromUser = true)
     }
 
     fun deleteTransaction(transaction: TransactionEntity) {
@@ -55,12 +65,42 @@ class DetailsViewModel @Inject constructor(
         }
     }
 
-    private fun subscribeToMonth(calendar: Calendar) {
+    private fun observeLatestTransactions() {
+        viewModelScope.launch {
+            transactionRepository.observeAllTransactions()
+                .collectLatest { transactions ->
+                    val latestKey = transactions.latestMonthKey() ?: return@collectLatest
+                    val hasDataForCurrent = transactions.hasTransactionsInMonth(currentMonthKey)
+                    if (!userHasManualSelection || !hasDataForCurrent) {
+                        updateMonthSelection(latestKey, fromUser = false)
+                    }
+                }
+        }
+    }
+
+    private fun updateMonthSelection(
+        key: YearMonthKey,
+        fromUser: Boolean
+    ) {
+        if (fromUser) {
+            userHasManualSelection = true
+        }
+        if (currentMonthKey == key) {
+            return
+        }
+        currentMonthKey = key
+        subscribeToMonth(key)
+    }
+
+    private fun subscribeToMonth(key: YearMonthKey) {
         monthCollectionJob?.cancel()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
+        _uiState.value = _uiState.value.copy(
+            selectedYear = key.year,
+            selectedMonth = key.month + 1,
+            isLoading = true
+        )
         monthCollectionJob = viewModelScope.launch {
-            analyticsRepository.observeMonthlySnapshot(year, month)
+            analyticsRepository.observeMonthlySnapshot(key.year, key.month)
                 .collectLatest { snapshot ->
                     _uiState.value = snapshot.toUiState(stringProvider)
                 }
@@ -89,6 +129,8 @@ class DetailsViewModel @Inject constructor(
         }
 
         return DetailsUiState(
+            selectedYear = year,
+            selectedMonth = month + 1,
             transactions = dailyTransactions,
             totalIncome = totalIncome,
             totalExpense = totalExpense,
@@ -113,6 +155,37 @@ class DetailsViewModel @Inject constructor(
             )
             else -> sdf.format(calendar.time)
         }
+    }
+
+    private fun Calendar.toYearMonthKey(): YearMonthKey {
+        return YearMonthKey(
+            year = get(Calendar.YEAR),
+            month = get(Calendar.MONTH)
+        )
+    }
+
+    private fun List<TransactionEntity>.latestMonthKey(): YearMonthKey? {
+        if (isEmpty()) return null
+        val calendar = Calendar.getInstance()
+        val latestDate = maxOf(TransactionEntity::date)
+        calendar.timeInMillis = latestDate
+        return calendar.toYearMonthKey()
+    }
+
+    private fun List<TransactionEntity>.hasTransactionsInMonth(
+        key: YearMonthKey
+    ): Boolean {
+        if (isEmpty()) return false
+        val calendar = Calendar.getInstance()
+        for (transaction in this) {
+            calendar.timeInMillis = transaction.date
+            val yearMatches = calendar.get(Calendar.YEAR) == key.year
+            val monthMatches = calendar.get(Calendar.MONTH) == key.month
+            if (yearMatches && monthMatches) {
+                return true
+            }
+        }
+        return false
     }
 
     companion object {
