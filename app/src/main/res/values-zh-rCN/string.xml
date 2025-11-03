@@ -225,6 +225,8 @@
     <string name="details_empty_state_content_description">空数据</string>
     <string name="details_empty_state_message">暂无账单数据\n点击右下角的按钮记一笔吧！</string>
     <string name="details_select_month">选择月份</string>
+    <string name="details_delete_dialog_title">确认删除这条记录？</string>
+    <string name="details_delete_dialog_description">删除后将无法恢复。</string>
 
     <!-- Editor -->
     <string name="editor_title_edit_transaction">编辑账单</string>

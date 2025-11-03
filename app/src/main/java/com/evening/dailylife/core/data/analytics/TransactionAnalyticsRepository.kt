@@ -103,6 +103,18 @@ class TransactionAnalyticsRepository @Inject constructor(
             .distinctUntilChanged()
     }
 
+    fun observeLatestSnapshotUpTo(year: Int, zeroBasedMonth: Int): Flow<MonthlySnapshot> {
+        val targetKey = YearMonthKey(year, zeroBasedMonth)
+        return monthlySnapshotsFlow
+            .map { map ->
+                val fallbackKey = map.keys
+                    .filter { it <= targetKey }
+                    .maxOrNull()
+                fallbackKey?.let { map[it] } ?: MonthlySnapshot.empty(year, zeroBasedMonth)
+            }
+            .distinctUntilChanged()
+    }
+
     private fun ChartDataCalculator.Summary.toSnapshot(): ChartSummarySnapshot {
         return ChartSummarySnapshot(
             entries = entries,
@@ -623,7 +635,14 @@ class TransactionAnalyticsRepository @Inject constructor(
     data class YearMonthKey(
         val year: Int,
         val month: Int
-    )
+    ) : Comparable<YearMonthKey> {
+        override fun compareTo(other: YearMonthKey): Int {
+            return when {
+                year != other.year -> year - other.year
+                else -> month - other.month
+            }
+        }
+    }
 
     data class DailySnapshot(
         val dayStartMillis: Long,

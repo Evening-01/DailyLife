@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.evening.dailylife.R
+import com.evening.dailylife.app.navigation.Route
 import com.evening.dailylife.core.model.TransactionCategoryRepository
 import com.evening.dailylife.feature.transaction.editor.component.CalculatorPad
 import com.evening.dailylife.feature.transaction.editor.component.MoodSelector
@@ -72,7 +73,15 @@ fun TransactionEditorScreen(
                 }
 
                 TransactionEditorEvent.SaveSuccess -> {
-                    navController.popBackStack()
+                    val popped = navController.popBackStack()
+                    if (popped) {
+                        val currentRoute = navController.currentBackStackEntry?.destination?.route
+                        val isTransactionDetailsRoute = currentRoute == Route.TRANSACTION_DETAILS ||
+                            currentRoute?.startsWith("transaction_details/") == true
+                        if (isTransactionDetailsRoute) {
+                            navController.popBackStack()
+                        }
+                    }
                 }
             }
         }

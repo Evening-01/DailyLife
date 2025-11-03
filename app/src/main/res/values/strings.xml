@@ -226,6 +226,8 @@
     <string name="details_empty_state_content_description">Empty state</string>
     <string name="details_empty_state_message">No transactions yet\nTap the button in the bottom right to log one!</string>
     <string name="details_select_month">Select month</string>
+    <string name="details_delete_dialog_title">Delete transaction?</string>
+    <string name="details_delete_dialog_description">This action cannot be undone.</string>
 
     <!-- Editor -->
     <string name="editor_title_edit_transaction">Edit entry</string>
