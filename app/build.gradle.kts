@@ -1,3 +1,34 @@
+import java.util.Properties
+
+data class SigningCredentials(
+    val storeFile: String,
+    val storePassword: String,
+    val keyAlias: String,
+    val keyPassword: String,
+)
+
+fun Project.loadReleaseSigning(): SigningCredentials? {
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use(localProperties::load)
+    }
+
+    fun propertyOrEnv(name: String): String? =
+        localProperties.getProperty(name)?.takeIf { it.isNotBlank() } ?: System.getenv(name)?.takeIf { it.isNotBlank() }
+
+    val storeFile = propertyOrEnv("dailylife.signing.storeFile")
+    val storePassword = propertyOrEnv("dailylife.signing.storePassword")
+    val keyAlias = propertyOrEnv("dailylife.signing.keyAlias")
+    val keyPassword = propertyOrEnv("dailylife.signing.keyPassword")
+
+    return if (storeFile != null && storePassword != null && keyAlias != null && keyPassword != null) {
+        SigningCredentials(storeFile, storePassword, keyAlias, keyPassword)
+    } else {
+        null
+    }
+}
+
 plugins {
     autowire(libs.plugins.android.application)
     autowire(libs.plugins.kotlin.android)
@@ -7,6 +38,7 @@ plugins {
 }
 
 android {
+    val releaseSigning = project.loadReleaseSigning()
     namespace = property.project.app.packageName
     compileSdk = property.project.android.compileSdk
 
@@ -19,13 +51,28 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        releaseSigning?.let { credentials ->
+            create("release") {
+                storeFile = file(credentials.storeFile)
+                storePassword = credentials.storePassword
+                keyAlias = credentials.keyAlias
+                keyPassword = credentials.keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (releaseSigning != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {

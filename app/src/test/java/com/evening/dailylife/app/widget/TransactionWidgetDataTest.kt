@@ -1,12 +1,12 @@
 package com.evening.dailylife.app.widget
 
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
-import java.time.Instant
-import java.time.ZoneId
-import org.junit.Test
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.time.Instant
+import java.time.ZoneId
 
 class TransactionWidgetDataTest {
 
@@ -53,9 +53,9 @@ class TransactionWidgetDataTest {
         assertEquals(1170.5, state.netToday, 0.01)
         val last = state.lastTransaction
         assertNotNull(last)
-        assertEquals("snack", last.categoryId)
-        assertEquals(5.0, last.amount, 0.01)
-        assertTrue(last.isExpense)
+        assertEquals("snack", last!!.categoryId)
+        assertEquals(5.0, last!!.amount, 0.01)
+        assertTrue(last!!.isExpense)
     }
 
     @Test
@@ -64,7 +64,7 @@ class TransactionWidgetDataTest {
         val base = now.minusSeconds(3600)
         val transactions = buildList {
             repeat(3) { index ->
-                add(transaction(id = index, category = "food", amount = -20.0, timestamp = base.minusSeconds(index * 60)))
+                add(transaction(id = index, category = "food", amount = -20.0, timestamp = base.minusSeconds(index * 60L)))
             }
             repeat(2) { index ->
                 add(transaction(id = 10 + index, category = "shopping", amount = -80.0, timestamp = base.minusSeconds(1200L + index * 60)))
