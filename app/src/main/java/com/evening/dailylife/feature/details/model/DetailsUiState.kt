@@ -1,6 +1,7 @@
 package com.evening.dailylife.feature.details.model
 
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
+import java.util.Calendar
 
 data class DailyTransactions(
     val date: String,
@@ -16,4 +17,6 @@ data class DetailsUiState(
     val totalExpense: Double = 0.0,
     val averageMood: Int? = null,
     val isLoading: Boolean = true,
+    val displayYear: Int = Calendar.getInstance().get(Calendar.YEAR),
+    val displayMonth: Int = Calendar.getInstance().get(Calendar.MONTH),
 )

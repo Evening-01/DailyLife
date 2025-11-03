@@ -38,12 +38,12 @@ class DetailsViewModel @Inject constructor(
     private var currentCalendar: Calendar = Calendar.getInstance()
 
     init {
-        subscribeToMonth(currentCalendar)
+        subscribeToMonth(currentCalendar, allowFallback = true)
     }
 
     fun filterByMonth(calendar: Calendar) {
         currentCalendar = calendar
-        subscribeToMonth(calendar)
+        subscribeToMonth(calendar, allowFallback = false)
     }
 
     fun deleteTransaction(transaction: TransactionEntity) {
@@ -55,15 +55,34 @@ class DetailsViewModel @Inject constructor(
         }
     }
 
-    private fun subscribeToMonth(calendar: Calendar) {
+    private fun subscribeToMonth(calendar: Calendar, allowFallback: Boolean) {
         monthCollectionJob?.cancel()
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
+        _uiState.value = _uiState.value.copy(isLoading = true)
         monthCollectionJob = viewModelScope.launch {
-            analyticsRepository.observeMonthlySnapshot(year, month)
-                .collectLatest { snapshot ->
-                    _uiState.value = snapshot.toUiState(stringProvider)
+            val snapshotFlow = if (allowFallback) {
+                analyticsRepository.observeLatestSnapshotUpTo(year, month)
+            } else {
+                analyticsRepository.observeMonthlySnapshot(year, month)
+            }
+
+            snapshotFlow.collectLatest { snapshot ->
+                val shouldUpdateCalendar = allowFallback &&
+                    (snapshot.year != year || snapshot.month != month)
+                currentCalendar = if (shouldUpdateCalendar) {
+                    Calendar.getInstance().apply {
+                        clear()
+                        set(Calendar.YEAR, snapshot.year)
+                        set(Calendar.MONTH, snapshot.month)
+                        set(Calendar.DAY_OF_MONTH, 1)
+                    }
+                } else {
+                    calendar
                 }
+
+                _uiState.value = snapshot.toUiState(stringProvider)
+            }
         }
     }
 
@@ -93,7 +112,9 @@ class DetailsViewModel @Inject constructor(
             totalIncome = totalIncome,
             totalExpense = totalExpense,
             averageMood = averageMood,
-            isLoading = false
+            isLoading = false,
+            displayYear = year,
+            displayMonth = month
         )
     }
 

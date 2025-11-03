@@ -80,6 +80,20 @@ fun DetailsScreen(
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
 
+    LaunchedEffect(uiState.displayYear, uiState.displayMonth) {
+        val newCalendar = Calendar.getInstance().apply {
+            clear()
+            set(Calendar.YEAR, uiState.displayYear)
+            set(Calendar.MONTH, uiState.displayMonth)
+            set(Calendar.DAY_OF_MONTH, 1)
+        }
+        val yearChanged = selectedDate.get(Calendar.YEAR) != newCalendar.get(Calendar.YEAR)
+        val monthChanged = selectedDate.get(Calendar.MONTH) != newCalendar.get(Calendar.MONTH)
+        if (yearChanged || monthChanged) {
+            selectedDate = newCalendar
+        }
+    }
+
     val yearPattern = stringResource(R.string.details_year_pattern)
     val monthPattern = stringResource(R.string.details_month_pattern)
     val yearFormat = remember(yearPattern) { SimpleDateFormat(yearPattern, Locale.getDefault()) }
@@ -100,6 +114,7 @@ fun DetailsScreen(
                     clear()
                     set(Calendar.YEAR, year)
                     set(Calendar.MONTH, month - 1)
+                    set(Calendar.DAY_OF_MONTH, 1)
                 }
                 selectedDate = newCalendar
                 viewModel.filterByMonth(newCalendar)
