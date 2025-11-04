@@ -18,9 +18,6 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # 如果不想放在顶层，也可以在这里设置 job 级 permissions:
-    # permissions:
-    #   contents: write
 
     steps:
       - name: Checkout
@@ -47,13 +44,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # ⬇️ 新增：从 AUTH_KEY（Base64 的 .jks）恢复签名文件，并导出 ANDROID_KEYSTORE_PATH
+      # ✅ 修正点：不要在 if: 里用 secrets
+      # 直接把 AUTH_KEY 注入 env，然后在脚本里检测、解码并导出 ANDROID_KEYSTORE_PATH
       - name: Restore signing keystore from AUTH_KEY
-        if: ${{ secrets.AUTH_KEY != '' }}
+        shell: bash
         env:
-          AUTH_KEY: ${{ secrets.AUTH_KEY }}
+          AUTH_KEY: ${{ secrets.AUTH_KEY }}  # 仓库级别 Secret：Base64 的 .jks 内容
         run: |
-          echo "$AUTH_KEY" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          if [ -z "${AUTH_KEY:-}" ]; then
+            echo "::error::Missing repository secret AUTH_KEY (base64-encoded .jks)."
+            exit 1
+          fi
+          echo "$AUTH_KEY" | base64 --decode > "$RUNNER_TEMP/release.jks" || {
+            echo "::error::AUTH_KEY is not valid base64 or decode failed."
+            exit 1
+          }
           echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
 
       - name: Determine build tag
@@ -80,8 +85,7 @@ jobs:
         run: ./gradlew assembleRelease bundleRelease --stacktrace
         env:
           BUILD_TAG: ${{ steps.resolve_tag.outputs.build_tag }}
-          # ⬇️ 传给 Gradle 的环境变量（常见做法：build.gradle 里用 System.getenv 读取）
-          ANDROID_KEYSTORE_PATH: ${{ env.ANDROID_KEYSTORE_PATH }}
+          # 注意：ANDROID_KEYSTORE_PATH 已经通过 $GITHUB_ENV 注入，无需在这里用表达式再次引用
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -99,7 +103,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.resolve_tag.outputs.build_tag }}
-          name: ${{ steps.resolve_tag.outputs.build_tag }}     # <- 正确字段（之前是 release_name 导致警告）
+          name: ${{ steps.resolve_tag.outputs.build_tag }}
           body: |
             Release built by GitHub Actions
             - Trigger: ${{ github.event_name }}
@@ -111,7 +115,6 @@ jobs:
           fail_on_unmatched_files: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # ⬇️ 新增：清理临时签名文件
       - name: Cleanup signing material
         if: always()
         run: |
