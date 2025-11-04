@@ -1,10 +1,13 @@
 package com.evening.dailylife.feature.me
 
 import android.app.Activity
+import android.content.ClipData
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.os.Build
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.Arrangement
@@ -23,8 +26,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.evening.dailylife.BuildConfig
 import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.feature.me.component.MeInterfaceSettingsSection
@@ -32,8 +37,8 @@ import com.evening.dailylife.feature.me.component.MeOtherSection
 import com.evening.dailylife.feature.me.component.MeProfileHeader
 import com.evening.dailylife.feature.me.component.MeSecuritySection
 import com.moriafly.salt.ui.UnstableSaltApi
-import android.os.Build
-import androidx.annotation.RequiresApi
+import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(UnstableSaltApi::class)
@@ -43,6 +48,7 @@ fun MeScreen(
     onAboutAuthorClick: () -> Unit,
     onGeneralSettingsClick: () -> Unit,
     onQuickUsageClick: () -> Unit,
+    onMoreInfoClick: () -> Unit,
 ) {
     val profileStatsState by viewModel.profileStatsState.collectAsState()
     val fingerprintLockEnabled by viewModel.fingerprintLockEnabled.collectAsState()
@@ -60,14 +66,38 @@ fun MeScreen(
         fingerprintCapability == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED
 
     val shareSubject = stringResource(R.string.me_share_app)
-    val shareMessage = stringResource(R.string.me_share_app_message)
-
     val shareApp: () -> Unit = {
         runCatching {
+            val packageManager = context.packageManager
+            val applicationInfo = packageManager.getApplicationInfo(context.packageName, 0)
+            val sourceApk = File(applicationInfo.sourceDir)
+            val sharedDir = File(context.cacheDir, "shared_apk").apply { mkdirs() }
+            val sanitizedName = context.getString(R.string.app_name)
+                .replace("\\s+".toRegex(), "_")
+            val cacheApk = File(sharedDir, "$sanitizedName-${BuildConfig.VERSION_NAME}.apk")
+
+            val needsCopy = !cacheApk.exists() || cacheApk.length() != sourceApk.length()
+            if (needsCopy) {
+                sourceApk.inputStream().use { input ->
+                    cacheApk.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
+
+            val apkUri = FileProvider.getUriForFile(
+                context,
+                "${BuildConfig.APPLICATION_ID}.fileprovider",
+                cacheApk
+            )
+
             val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
+                type = "application/vnd.android.package-archive"
+                putExtra(Intent.EXTRA_STREAM, apkUri)
                 putExtra(Intent.EXTRA_SUBJECT, shareSubject)
-                putExtra(Intent.EXTRA_TEXT, shareMessage)
+                putExtra(Intent.EXTRA_TEXT, context.getString(R.string.me_share_app_message))
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                clipData = ClipData.newUri(context.contentResolver, shareSubject, apkUri)
             }
             val chooser = Intent.createChooser(intent, shareSubject)
             if (context !is Activity) {
@@ -75,9 +105,11 @@ fun MeScreen(
             }
             context.startActivity(chooser)
         }.onFailure {
-            Toast
-                .makeText(context, context.getString(R.string.me_share_app_unavailable), Toast.LENGTH_SHORT)
-                .show()
+            if (it !is CancellationException) {
+                Toast
+                    .makeText(context, context.getString(R.string.me_share_app_unavailable), Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
     }
 
@@ -197,11 +229,7 @@ fun MeScreen(
                 MeOtherSection(
                     onAboutAuthorClick = onAboutAuthorClick,
                     onShareAppClick = shareApp,
-                    onMoreInfoClick = {
-                        Toast
-                            .makeText(context, R.string.me_more_info, Toast.LENGTH_SHORT)
-                            .show()
-                    },
+                    onMoreInfoClick = onMoreInfoClick,
                 )
             }
         }
