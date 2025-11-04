@@ -142,6 +142,9 @@ private fun HomeNavHost(
                 onQuickUsageClick = {
                     navController.navigateFromMe(appNavController, Route.QUICK_USAGE)
                 },
+                onDataManagementClick = {
+                    navController.navigateFromMe(appNavController, Route.DATA_MANAGEMENT)
+                },
                 onMoreInfoClick = {
                     navController.navigateFromMe(appNavController, Route.ABOUT_APP)
                 }

@@ -49,6 +49,7 @@ fun MeScreen(
     onAboutAuthorClick: () -> Unit,
     onGeneralSettingsClick: () -> Unit,
     onQuickUsageClick: () -> Unit,
+    onDataManagementClick: () -> Unit,
     onMoreInfoClick: () -> Unit,
 ) {
     val profileStatsState by viewModel.profileStatsState.collectAsState()
@@ -216,19 +217,18 @@ fun MeScreen(
             }
 
             item {
-                MeSecuritySection(
-                    fingerprintLockEnabled = fingerprintLockEnabled,
-                    isFingerprintSupported = isFingerprintSupported,
-                    onFingerprintToggle = { checked -> handleFingerprintToggle(checked) },
-                    onFingerprintUnsupported = {
-                        Toast
-                            .makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT)
-                            .show()
-                    },
-                    onDataManagementClick = {
-                    },
-                )
-            }
+            MeSecuritySection(
+                fingerprintLockEnabled = fingerprintLockEnabled,
+                isFingerprintSupported = isFingerprintSupported,
+                onFingerprintToggle = { checked -> handleFingerprintToggle(checked) },
+                onFingerprintUnsupported = {
+                    Toast
+                        .makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT)
+                        .show()
+                },
+                onDataManagementClick = onDataManagementClick,
+            )
+        }
 
             item {
                 MeOtherSection(

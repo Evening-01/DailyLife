@@ -12,4 +12,5 @@ object PreferencesKeys {
     const val KEY_CUSTOM_FONT = "custom_font"
     const val KEY_QUICK_USAGE_REMINDER_ENABLED = "quick_usage_reminder_enabled"
     const val KEY_QUICK_USAGE_REMINDER_TIME_MINUTES = "quick_usage_reminder_time_minutes"
+    const val KEY_LAST_BACKUP_TIMESTAMP = "last_backup_timestamp"
 }

@@ -13,6 +13,7 @@ import com.evening.dailylife.feature.home.HomeScreen
 import com.evening.dailylife.feature.me.about.AboutAuthorScreen
 import com.evening.dailylife.feature.me.about.AboutAppScreen
 import com.evening.dailylife.feature.me.settings.quickusage.QuickUsageScreen
+import com.evening.dailylife.feature.me.settings.datamanagement.DataManagementScreen
 import com.evening.dailylife.feature.me.settings.general.GeneralSettingsScreen
 import com.evening.dailylife.feature.mortgage.MortgageCalculatorScreen
 import com.evening.dailylife.feature.currency.CurrencyConverterScreen
@@ -76,6 +77,9 @@ fun AppNavHost(
         }
         composable(Route.QUICK_USAGE) {
             QuickUsageScreen(navController = navController)
+        }
+        composable(Route.DATA_MANAGEMENT) {
+            DataManagementScreen(navController = navController)
         }
         composable(Route.MORTGAGE_CALCULATOR) {
             MortgageCalculatorScreen(

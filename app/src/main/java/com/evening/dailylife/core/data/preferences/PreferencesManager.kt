@@ -59,6 +59,11 @@ class PreferencesManager @Inject constructor(
     private val _quickUsageReminderTimeMinutes = MutableStateFlow(readQuickUsageReminderMinutes())
     val quickUsageReminderTimeMinutes = _quickUsageReminderTimeMinutes.asStateFlow()
 
+    private val _lastBackupTimestamp = MutableStateFlow(
+        fastKV.getLong(PreferencesKeys.KEY_LAST_BACKUP_TIMESTAMP, 0L)
+    )
+    val lastBackupTimestamp = _lastBackupTimestamp.asStateFlow()
+
     init {
         appIconManager.applyDynamicIcon(_dynamicColor.value)
     }
@@ -112,6 +117,11 @@ class PreferencesManager @Inject constructor(
         val normalized = minutes.coerceIn(0, QuickUsageReminderDefaults.MINUTES_PER_DAY - 1)
         fastKV.putInt(PreferencesKeys.KEY_QUICK_USAGE_REMINDER_TIME_MINUTES, normalized)
         _quickUsageReminderTimeMinutes.value = normalized
+    }
+
+    fun setLastBackupTimestamp(timestamp: Long) {
+        fastKV.putLong(PreferencesKeys.KEY_LAST_BACKUP_TIMESTAMP, timestamp)
+        _lastBackupTimestamp.value = timestamp
     }
 
     private fun readUiScale(): Float {

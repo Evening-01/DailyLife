@@ -12,6 +12,7 @@ object Route {
     const val ABOUT_APP = "about_app"
     const val MORTGAGE_CALCULATOR = "mortgage_calculator"
     const val CURRENCY_CONVERTER = "currency_converter"
+    const val DATA_MANAGEMENT = "data_management"
 
     private const val ADD_EDIT_TRANSACTION_ROUTE = "add_edit_transaction"
     const val ADD_EDIT_TRANSACTION =
