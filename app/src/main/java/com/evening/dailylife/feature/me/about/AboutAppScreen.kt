@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -154,9 +155,9 @@ fun AboutAppScreen(navController: NavHostController) {
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 FlowChipGroup(highlightChips)
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = stringResource(id = R.string.me_about_app_highlights_description),
                     style = MaterialTheme.typography.bodyMedium,
@@ -255,6 +256,7 @@ private fun HeaderCard() {
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 Surface(
+                    modifier = Modifier.size(112.dp),
                     shape = CircleShape,
                     tonalElevation = 6.dp,
                     color = MaterialTheme.colorScheme.primary,
@@ -263,8 +265,11 @@ private fun HeaderCard() {
                         painter = painterResource(id = R.drawable.ic_launcher_foreground),
                         contentDescription = null,
                         modifier = Modifier
-                            .size(86.dp)
-                            .padding(12.dp),
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                scaleX = 1.45f
+                                scaleY = 1.45f
+                            },
                         contentScale = ContentScale.Fit,
                     )
                 }
@@ -350,7 +355,6 @@ private fun FlowChipGroup(entries: List<String>) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         entries.forEach { entry ->
             AssistChip(
