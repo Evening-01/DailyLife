@@ -47,6 +47,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      # ⬇️ 新增：从 AUTH_KEY（Base64 的 .jks）恢复签名文件，并导出 ANDROID_KEYSTORE_PATH
+      - name: Restore signing keystore from AUTH_KEY
+        if: ${{ secrets.AUTH_KEY != '' }}
+        env:
+          AUTH_KEY: ${{ secrets.AUTH_KEY }}
+        run: |
+          echo "$AUTH_KEY" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
       - name: Determine build tag
         id: resolve_tag
         env:
@@ -71,6 +80,11 @@ jobs:
         run: ./gradlew assembleRelease bundleRelease --stacktrace
         env:
           BUILD_TAG: ${{ steps.resolve_tag.outputs.build_tag }}
+          # ⬇️ 传给 Gradle 的环境变量（常见做法：build.gradle 里用 System.getenv 读取）
+          ANDROID_KEYSTORE_PATH: ${{ env.ANDROID_KEYSTORE_PATH }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: Upload release artifacts (Actions artifacts)
         uses: actions/upload-artifact@v4
@@ -96,6 +110,12 @@ jobs:
             app/build/outputs/bundle/release/*.aab
           fail_on_unmatched_files: false
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ⬇️ 新增：清理临时签名文件
+      - name: Cleanup signing material
+        if: always()
+        run: |
+          rm -f "$ANDROID_KEYSTORE_PATH" 2>/dev/null || true
 
       - name: Summary
         env:
