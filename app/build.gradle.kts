@@ -14,13 +14,18 @@ fun Project.loadReleaseSigning(): SigningCredentials? {
         localPropertiesFile.inputStream().use(localProperties::load)
     }
 
-    fun propertyOrEnv(name: String): String? =
-        localProperties.getProperty(name)?.takeIf { it.isNotBlank() } ?: System.getenv(name)?.takeIf { it.isNotBlank() }
+    fun propertyOrEnv(vararg keys: String): String? {
+        keys.forEach { key ->
+            localProperties.getProperty(key)?.takeIf { it.isNotBlank() }?.let { return it }
+            System.getenv(key)?.takeIf { it.isNotBlank() }?.let { return it }
+        }
+        return null
+    }
 
-    val storeFile = propertyOrEnv("dailylife.signing.storeFile")
-    val storePassword = propertyOrEnv("dailylife.signing.storePassword")
-    val keyAlias = propertyOrEnv("dailylife.signing.keyAlias")
-    val keyPassword = propertyOrEnv("dailylife.signing.keyPassword")
+    val storeFile = propertyOrEnv("ANDROID_KEYSTORE_PATH", "dailylife.signing.storeFile")
+    val storePassword = propertyOrEnv("ANDROID_KEYSTORE_PASSWORD", "dailylife.signing.storePassword")
+    val keyAlias = propertyOrEnv("ANDROID_KEY_ALIAS", "dailylife.signing.keyAlias")
+    val keyPassword = propertyOrEnv("ANDROID_KEY_PASSWORD", "dailylife.signing.keyPassword")
 
     return if (storeFile != null && storePassword != null && keyAlias != null && keyPassword != null) {
         SigningCredentials(storeFile, storePassword, keyAlias, keyPassword)

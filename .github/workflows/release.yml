@@ -80,6 +80,7 @@ jobs:
             fi
           fi
 
+      # 生成签名的 release APK/AAB（Gradle 中需绑定 signingConfigs.release）
       - name: Assemble release (apk + bundle if needed)
         # 若你也需要生成 .aab，请确保使用 bundleRelease / include bundle task
         run: ./gradlew assembleRelease bundleRelease --stacktrace
@@ -89,6 +90,14 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      # 可选：输出签名报告，确认 release 变体已签名
+      - name: Signing report
+        run: ./gradlew :app:signingReport
+
+      # 避免把未签名 APK 上传
+      - name: Remove unsigned APKs
+        run: rm -f app/build/outputs/apk/release/*-unsigned.apk || true
 
       - name: Upload release artifacts (Actions artifacts)
         uses: actions/upload-artifact@v4
