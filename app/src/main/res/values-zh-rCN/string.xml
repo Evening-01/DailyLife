@@ -245,7 +245,7 @@
     <string name="me_about_app_support_description">欢迎通过邮箱或 GitHub Issues 提交反馈与功能建议，我们重视每一条声音。</string>
     <string name="me_about_app_support_action">前往 GitHub Issues 反馈</string>
     <string name="me_about_app_support_footer">通常会在 1–2 个工作日内回复，并认真评估可行性。</string>
-    <string name="me_about_author_intro">你好，我是 Evening，一名热爱设计与安卓移动开发者。DailyLife 是我用来探索“简单、美观、可信赖”记账体验的尝试。</string>
+    <string name="me_about_author_intro">DailyLife 是我用来探索“简单、美观、可信赖”记账体验的尝试。</string>
     <string name="me_about_author_role">Mobile Developer · 安卓爱好者</string>
     <string name="me_about_author_recent_title">近期在做的事</string>
     <string name="me_about_author_recent_item_1">打磨记账与分析的交互体验</string>
