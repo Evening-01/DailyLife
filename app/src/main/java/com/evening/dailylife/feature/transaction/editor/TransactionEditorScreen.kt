@@ -72,13 +72,33 @@ fun TransactionEditorScreen(
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
 
-                TransactionEditorEvent.SaveSuccess -> {
+                is TransactionEditorEvent.SaveSuccess -> {
+                    val savedAt = event.savedAt
+                    navController.previousBackStackEntry?.let { backStackEntry ->
+                        val route = backStackEntry.destination.route
+                        val shouldPropagate = route == Route.HOME ||
+                            route?.startsWith(Route.TRANSACTION_DETAILS_PREFIX) == true
+                        if (shouldPropagate) {
+                            backStackEntry.savedStateHandle.set(
+                                Route.DETAILS_TARGET_DATE_KEY,
+                                savedAt
+                            )
+                        }
+                    }
+                    runCatching { navController.getBackStackEntry(Route.HOME) }
+                        .getOrNull()
+                        ?.savedStateHandle
+                        ?.set(Route.DETAILS_TARGET_DATE_KEY, savedAt)
+
                     val popped = navController.popBackStack()
                     if (popped) {
                         val currentRoute = navController.currentBackStackEntry?.destination?.route
-                        val isTransactionDetailsRoute = currentRoute == Route.TRANSACTION_DETAILS ||
-                            currentRoute?.startsWith("transaction_details/") == true
+                        val isTransactionDetailsRoute = currentRoute?.startsWith(Route.TRANSACTION_DETAILS_PREFIX) == true
                         if (isTransactionDetailsRoute) {
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                Route.DETAILS_TARGET_DATE_KEY,
+                                savedAt
+                            )
                             navController.popBackStack()
                         }
                     }

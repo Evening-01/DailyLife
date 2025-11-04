@@ -213,7 +213,7 @@ class TransactionEditorViewModel @Inject constructor(
                         )
                     }
                 }
-                _events.emit(TransactionEditorEvent.SaveSuccess)
+                _events.emit(TransactionEditorEvent.SaveSuccess(savedAt = newTransaction.date))
             }.onFailure { throwable ->
                 val error = throwable.message
                     ?: stringProvider.getString(R.string.editor_error_save_failed)

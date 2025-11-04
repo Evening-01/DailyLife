@@ -15,5 +15,5 @@ data class TransactionEditorUiState(
 
 sealed interface TransactionEditorEvent {
     data class ShowMessage(val message: String) : TransactionEditorEvent
-    data object SaveSuccess : TransactionEditorEvent
+    data class SaveSuccess(val savedAt: Long) : TransactionEditorEvent
 }

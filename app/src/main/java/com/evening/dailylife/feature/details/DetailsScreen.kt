@@ -51,7 +51,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.evening.dailylife.R
+import com.evening.dailylife.app.navigation.Route
 import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
 import com.evening.dailylife.core.designsystem.component.CalendarPickerBottomSheet
@@ -61,6 +63,7 @@ import com.evening.dailylife.feature.details.component.DetailsEmptyState
 import com.evening.dailylife.feature.details.component.DetailsSummaryHeader
 import com.evening.dailylife.feature.details.component.TransactionListItem
 import com.evening.dailylife.feature.details.model.DailyTransactions
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -72,6 +75,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
+    appNavController: NavHostController? = null,
     onTransactionClick: (Int) -> Unit,
     onAddTransactionClick: () -> Unit,
     viewModel: DetailsViewModel = hiltViewModel(),
@@ -79,6 +83,23 @@ fun DetailsScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
+
+    LaunchedEffect(appNavController) {
+        val navController = appNavController ?: return@LaunchedEffect
+        val homeEntry = runCatching { navController.getBackStackEntry(Route.HOME) }.getOrNull()
+        val savedStateHandle = homeEntry?.savedStateHandle ?: return@LaunchedEffect
+        savedStateHandle.getStateFlow<Long?>(Route.DETAILS_TARGET_DATE_KEY, null).collect { targetDate ->
+            if (targetDate != null) {
+                val calendar = Calendar.getInstance().apply {
+                    timeInMillis = targetDate
+                    set(Calendar.DAY_OF_MONTH, 1)
+                }
+                selectedDate = calendar
+                viewModel.filterByMonth(calendar)
+                savedStateHandle.set(Route.DETAILS_TARGET_DATE_KEY, null)
+            }
+        }
+    }
 
     LaunchedEffect(uiState.displayYear, uiState.displayMonth) {
         val newCalendar = Calendar.getInstance().apply {

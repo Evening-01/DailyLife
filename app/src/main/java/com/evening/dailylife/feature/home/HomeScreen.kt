@@ -111,6 +111,7 @@ private fun HomeNavHost(
     ) {
         composable(Route.DETAILS) {
             DetailsScreen(
+                appNavController = appNavController,
                 onTransactionClick = { transactionId ->
                     appNavController.navigate(Route.transactionDetails(transactionId))
                 },

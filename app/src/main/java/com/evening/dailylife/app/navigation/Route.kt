@@ -16,9 +16,12 @@ object Route {
     const val ADD_EDIT_TRANSACTION =
         "$ADD_EDIT_TRANSACTION_ROUTE?transactionId={transactionId}&categoryId={categoryId}&isExpense={isExpense}"
 
-    const val TRANSACTION_DETAILS = "transaction_details/{transactionId}"
+    private const val TRANSACTION_DETAILS_BASE = "transaction_details"
+    const val TRANSACTION_DETAILS = "$TRANSACTION_DETAILS_BASE/{transactionId}"
+    const val TRANSACTION_DETAILS_PREFIX = TRANSACTION_DETAILS_BASE
+    const val DETAILS_TARGET_DATE_KEY = "details_target_date"
 
-    fun transactionDetails(transactionId: Int) = "transaction_details/$transactionId"
+    fun transactionDetails(transactionId: Int) = "$TRANSACTION_DETAILS_BASE/$transactionId"
 
     fun addEditTransactionWithId(
         transactionId: Int,
