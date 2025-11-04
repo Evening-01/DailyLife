@@ -71,6 +71,24 @@ jobs:
             app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab
 
+      - name: Create GitHub release and upload binaries
+        if: always()
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.resolve_tag.outputs.build_tag }}
+          release_name: ${{ steps.resolve_tag.outputs.build_tag }}
+          body: |
+            Release built by GitHub Actions
+            - Trigger: ${{ github.event_name }}
+            - Build tag: ${{ steps.resolve_tag.outputs.build_tag }}
+            - Run: ${{ github.run_id }}
+          # 上传 APK / AAB（supports globs）
+          files: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab
+
       - name: Summary
         env:
           EVENT_NAME: ${{ github.event_name }}
