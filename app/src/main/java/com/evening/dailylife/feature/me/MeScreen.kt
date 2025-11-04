@@ -32,6 +32,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.evening.dailylife.BuildConfig
 import com.evening.dailylife.R
 import com.evening.dailylife.app.ui.theme.LocalExtendedColorScheme
+import com.evening.dailylife.core.util.launchExternalUrl
 import com.evening.dailylife.feature.me.component.MeInterfaceSettingsSection
 import com.evening.dailylife.feature.me.component.MeOtherSection
 import com.evening.dailylife.feature.me.component.MeProfileHeader
@@ -111,6 +112,10 @@ fun MeScreen(
                     .show()
             }
         }
+    }
+
+    val openSourceRepo: () -> Unit = {
+        context.launchExternalUrl(DAILY_LIFE_REPOSITORY_URL)
     }
 
     fun handleFingerprintToggle(checked: Boolean) {
@@ -230,11 +235,14 @@ fun MeScreen(
                     onAboutAuthorClick = onAboutAuthorClick,
                     onShareAppClick = shareApp,
                     onMoreInfoClick = onMoreInfoClick,
+                    onOpenSourceClick = openSourceRepo,
                 )
             }
         }
     }
 }
+
+private const val DAILY_LIFE_REPOSITORY_URL = "https://github.com/Evening-01/DailyLife"
 
 private tailrec fun Context.findFragmentActivity(): FragmentActivity? = when (this) {
     is FragmentActivity -> this

@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,9 +43,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.evening.dailylife.R
 import com.evening.dailylife.core.navigation.safePopBackStack
+import com.evening.dailylife.core.util.launchExternalUrl
 import com.moriafly.salt.ui.SaltTheme
 import com.moriafly.salt.ui.TitleBar
 import com.moriafly.salt.ui.UnstableSaltApi
@@ -54,6 +57,8 @@ import com.moriafly.salt.ui.ext.safeMainPadding
 @OptIn(UnstableSaltApi::class)
 @Composable
 fun AboutAuthorScreen(navController: NavHostController) {
+    val context = LocalContext.current
+
     val recentItems = listOf(
         stringResource(id = R.string.me_about_author_recent_item_1),
         stringResource(id = R.string.me_about_author_recent_item_2),
@@ -65,16 +70,19 @@ fun AboutAuthorScreen(navController: NavHostController) {
             icon = Icons.Outlined.Public,
             label = stringResource(id = R.string.me_about_author_contact_site_label),
             value = stringResource(id = R.string.me_about_author_contact_site_value),
+            onClick = { context.launchExternalUrl(AUTHOR_SITE_URL) },
         ),
         ContactInfo(
             icon = Icons.Outlined.Link,
             label = stringResource(id = R.string.me_about_author_contact_github_label),
             value = stringResource(id = R.string.me_about_author_contact_github_value),
+            onClick = { context.launchExternalUrl(AUTHOR_GITHUB_URL) },
         ),
         ContactInfo(
             icon = Icons.Outlined.Email,
             label = stringResource(id = R.string.me_about_author_contact_email_label),
             value = stringResource(id = R.string.me_about_author_contact_email_value),
+            onClick = { context.launchExternalUrl(AUTHOR_EMAIL_URI) },
         ),
     )
 
@@ -245,8 +253,19 @@ private fun SectionCard(content: @Composable () -> Unit) {
 
 @Composable
 private fun ContactRow(contact: ContactInfo) {
+    val shape = RoundedCornerShape(16.dp)
+    val rowModifier = if (contact.onClick != null) {
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .clickable(onClick = contact.onClick)
+            .padding(horizontal = 4.dp, vertical = 4.dp)
+    } else {
+        Modifier.fillMaxWidth()
+    }
+
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = rowModifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -272,6 +291,11 @@ private fun ContactRow(contact: ContactInfo) {
             Text(
                 text = contact.value,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = if (contact.onClick != null) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
             )
         }
     }
@@ -281,4 +305,9 @@ private data class ContactInfo(
     val icon: ImageVector,
     val label: String,
     val value: String,
+    val onClick: (() -> Unit)? = null,
 )
+
+private const val AUTHOR_SITE_URL = "https://evening.dev"
+private const val AUTHOR_GITHUB_URL = "https://github.com/Evening-01"
+private const val AUTHOR_EMAIL_URI = "mailto:H3410233124@gmail.com"

@@ -17,6 +17,7 @@
     <string name="common_cancel">取消</string>
     <string name="common_confirm">确定</string>
     <string name="label_today">今天</string>
+    <string name="common_open_link_error">无法打开链接。</string>
 
     <!-- Chart -->
     <string name="chart_type_expense">支出</string>
@@ -186,6 +187,7 @@
     <string name="me_about_author">关于作者</string>
     <string name="me_share_app">分享应用</string>
     <string name="me_more_info">其他信息</string>
+    <string name="me_open_source_repository">开源地址</string>
     <string name="me_share_app_message">我正在使用 DailyLife 记录生活与财务，推荐你也来试试看！</string>
     <string name="me_share_app_unavailable">未找到可用的分享方式</string>
     <string name="me_about_app_tagline">记录生活，读懂你的每一笔。</string>
@@ -200,6 +202,7 @@
     <string name="me_about_app_open_source_footer">可在仓库查看源码与贡献指南。</string>
     <string name="me_about_app_support_title">需要帮助？</string>
     <string name="me_about_app_support_description">欢迎通过邮箱或 GitHub Issues 提交反馈与功能建议，我们重视每一条声音。</string>
+    <string name="me_about_app_support_action">前往 GitHub Issues 反馈</string>
     <string name="me_about_app_support_footer">通常会在 1–2 个工作日内回复，并认真评估可行性。</string>
     <string name="me_about_author_intro">你好，我是 Evening，一名热爱设计与安卓移动开发者。DailyLife 是我用来探索“简单、美观、可信赖”记账体验的尝试。</string>
     <string name="me_about_author_role">Mobile Developer · 安卓爱好者</string>

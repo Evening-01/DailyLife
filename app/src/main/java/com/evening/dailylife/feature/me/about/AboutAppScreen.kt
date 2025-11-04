@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.evening.dailylife.R
+import com.evening.dailylife.core.util.launchExternalUrl
 import com.evening.dailylife.core.navigation.safePopBackStack
 import com.moriafly.salt.ui.SaltTheme
 import com.moriafly.salt.ui.TitleBar
@@ -55,6 +58,8 @@ import com.moriafly.salt.ui.ext.safeMainPadding
 @OptIn(UnstableSaltApi::class)
 @Composable
 fun AboutAppScreen(navController: NavHostController) {
+
+    val context = LocalContext.current
 
     val highlightChips = listOf(
         stringResource(id = R.string.me_about_app_highlight_1),
@@ -139,7 +144,7 @@ fun AboutAppScreen(navController: NavHostController) {
                 )
             }
 
-            SectionCard {
+            SectionCard(onClick = { context.launchExternalUrl(DAILY_LIFE_ISSUES_URL) }) {
                 Text(
                     text = stringResource(id = R.string.me_about_app_support_title),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -229,10 +234,24 @@ private fun HeaderCard() {
 }
 
 @Composable
-private fun SectionCard(content: @Composable ColumnScope.() -> Unit) {
+private fun SectionCard(
+    onClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val shape = RoundedCornerShape(24.dp)
+    val clickableModifier = if (onClick != null) {
+        Modifier
+            .clip(shape)
+            .clickable(onClick = onClick)
+    } else {
+        Modifier
+    }
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(clickableModifier),
+        shape = shape,
         tonalElevation = 2.dp,
         color = MaterialTheme.colorScheme.surface,
     ) {
@@ -266,3 +285,5 @@ private fun FlowChipGroup(entries: List<String>) {
         }
     }
 }
+
+private const val DAILY_LIFE_ISSUES_URL = "https://github.com/Evening-01/DailyLife/issues"

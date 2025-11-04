@@ -3,6 +3,7 @@ package com.evening.dailylife.feature.me.component
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.StarOutline
@@ -22,6 +23,7 @@ fun MeOtherSection(
     onAboutAuthorClick: () -> Unit,
     onShareAppClick: () -> Unit,
     onMoreInfoClick: () -> Unit,
+    onOpenSourceClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     RoundedColumn(modifier = modifier.fillMaxWidth()) {
@@ -41,6 +43,14 @@ fun MeOtherSection(
             iconColor = SaltTheme.colors.text,
             iconPaddingValues = PaddingValues(all = 1.8.dp),
             onClick = onShareAppClick,
+        )
+
+        Item(
+            text = stringResource(id = R.string.me_open_source_repository),
+            iconPainter = rememberVectorPainter(image = Icons.Outlined.Code),
+            iconColor = SaltTheme.colors.text,
+            iconPaddingValues = PaddingValues(all = 1.8.dp),
+            onClick = onOpenSourceClick,
         )
 
         Item(
