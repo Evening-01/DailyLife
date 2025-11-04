@@ -16,6 +16,7 @@ data class DataManagementUiState(
     val mode: DataManagementMode = DataManagementMode.BACKUP,
     val startDate: LocalDate = LocalDate.now().minusMonths(1),
     val endDate: LocalDate = LocalDate.now(),
+    val includePreferences: Boolean = true,
     val encryptionEnabled: Boolean = false,
     val password: String = "",
     val confirmPassword: String = "",
@@ -50,7 +51,7 @@ data class BackupMetadata(
 data class BackupPayload(
     val metadata: BackupMetadata,
     val transactions: List<BackupTransaction>,
-    val preferences: UserPreferencesSnapshot,
+    val preferences: UserPreferencesSnapshot?,
 )
 
 data class BackupEnvelope(

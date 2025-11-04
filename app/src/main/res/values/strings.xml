@@ -195,6 +195,8 @@
     <string name="data_management_end_date">To</string>
     <string name="data_management_encryption_label">Encrypt backup</string>
     <string name="data_management_encryption_sub">Protect the archive with a password.</string>
+    <string name="data_management_include_preferences_label">Include preferences</string>
+    <string name="data_management_include_preferences_sub">Add app settings and reminders to the backup.</string>
     <string name="data_management_password_placeholder">Password</string>
     <string name="data_management_password_confirm_placeholder">Confirm password</string>
     <string name="data_management_password_helper">Passwords must match and be at least 6 characters.</string>
@@ -220,7 +222,7 @@
     <string name="data_management_select_file">Select backup file</string>
     <string name="data_management_selected_file">Selected file: %1$s</string>
     <string name="data_management_restore_password_placeholder">Password (if encrypted)</string>
-    <string name="data_management_restore_help">Restoring merges transactions and updates preferences.</string>
+    <string name="data_management_restore_help">Restoring merges transactions and applies preferences when present.</string>
     <string name="data_management_restore_button">Restore backup</string>
     <string name="data_management_create_file_name">DailyLife-%1$s.dlbackup</string>
     <string name="me_other_section_title">More</string>

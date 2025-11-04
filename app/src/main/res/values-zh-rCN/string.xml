@@ -194,6 +194,8 @@
     <string name="data_management_end_date">结束</string>
     <string name="data_management_encryption_label">启用加密</string>
     <string name="data_management_encryption_sub">使用密码保护备份文件。</string>
+    <string name="data_management_include_preferences_label">包含偏好设置</string>
+    <string name="data_management_include_preferences_sub">将应用设置与提醒一并备份。</string>
     <string name="data_management_password_placeholder">输入密码</string>
     <string name="data_management_password_confirm_placeholder">确认密码</string>
     <string name="data_management_password_helper">密码需一致且至少 6 个字符。</string>
@@ -219,7 +221,7 @@
     <string name="data_management_select_file">选择备份文件</string>
     <string name="data_management_selected_file">已选文件：%1$s</string>
     <string name="data_management_restore_password_placeholder">密码（如已加密）</string>
-    <string name="data_management_restore_help">还原会合并账目并同步偏好设置。</string>
+    <string name="data_management_restore_help">还原会合并账目并在可用时同步偏好设置。</string>
     <string name="data_management_restore_button">开始还原</string>
     <string name="data_management_create_file_name">DailyLife-%1$s.dlbackup</string>
     <string name="me_other_section_title">其他</string>

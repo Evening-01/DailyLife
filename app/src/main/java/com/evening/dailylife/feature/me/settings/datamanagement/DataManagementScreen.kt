@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Restore
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -151,6 +152,7 @@ fun DataManagementScreen(
                     uiState = uiState,
                     onStartDateClick = { showStartDatePicker = true },
                     onEndDateClick = { showEndDatePicker = true },
+                    onToggleIncludePreferences = viewModel::toggleIncludePreferences,
                     onToggleEncryption = viewModel::toggleEncryption,
                     onPasswordChange = viewModel::updatePassword,
                     onConfirmPasswordChange = viewModel::updateConfirmPassword,
@@ -258,6 +260,7 @@ private fun BackupSection(
     uiState: DataManagementUiState,
     onStartDateClick: () -> Unit,
     onEndDateClick: () -> Unit,
+    onToggleIncludePreferences: (Boolean) -> Unit,
     onToggleEncryption: (Boolean) -> Unit,
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
@@ -294,6 +297,17 @@ private fun BackupSection(
                 MaterialTheme.colorScheme.error
             },
             modifier = Modifier.padding(horizontal = 20.dp),
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+        ItemSwitcher(
+            state = uiState.includePreferences,
+            onChange = onToggleIncludePreferences,
+            text = stringResource(id = R.string.data_management_include_preferences_label),
+            sub = stringResource(id = R.string.data_management_include_preferences_sub),
+            iconPainter = rememberVectorPainter(Icons.Outlined.Settings),
+            iconPaddingValues = PaddingValues(all = 1.8.dp),
+            iconColor = SaltTheme.colors.text,
         )
 
         Spacer(modifier = Modifier.height(12.dp))

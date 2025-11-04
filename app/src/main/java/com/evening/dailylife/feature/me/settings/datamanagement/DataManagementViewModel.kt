@@ -120,6 +120,10 @@ class DataManagementViewModel @Inject constructor(
         }
     }
 
+    fun toggleIncludePreferences(enabled: Boolean) {
+        _uiState.update { it.copy(includePreferences = enabled) }
+    }
+
     fun updatePassword(value: String) {
         _uiState.update { it.copy(password = value) }
     }
@@ -170,7 +174,11 @@ class DataManagementViewModel @Inject constructor(
                         .getTransactionsByDateRange(startMillis(state.startDate), endMillis(state.endDate))
                         .first()
 
-                    val snapshot = capturePreferencesSnapshot()
+                    val preferencesSnapshot = if (state.includePreferences) {
+                        capturePreferencesSnapshot()
+                    } else {
+                        null
+                    }
                     val payload = BackupPayload(
                         metadata = BackupMetadata(
                             startDateEpochMillis = startMillis(state.startDate),
@@ -181,7 +189,7 @@ class DataManagementViewModel @Inject constructor(
                             encrypted = state.encryptionEnabled,
                         ),
                         transactions = transactions.map { it.toBackupTransaction() },
-                        preferences = snapshot,
+                        preferences = preferencesSnapshot,
                     )
 
                     val envelope = if (state.encryptionEnabled) {
@@ -305,19 +313,20 @@ class DataManagementViewModel @Inject constructor(
             transactionRepository.insertTransaction(entity)
         }
 
-        val preferences = payload.preferences
-        val themeMode = runCatching { ThemeMode.valueOf(preferences.themeMode) }.getOrDefault(ThemeMode.SYSTEM)
-        preferencesManager.setThemeMode(themeMode)
-        preferencesManager.setDynamicColor(preferences.dynamicColor)
-        preferencesManager.setFingerprintLockEnabled(preferences.fingerprintLockEnabled)
-        preferencesManager.setUiScale(preferences.uiScale, persist = true)
-        preferencesManager.setFontScale(preferences.fontScale, persist = true)
-        preferencesManager.setCustomFontEnabled(preferences.customFontEnabled)
-        preferencesManager.setQuickUsageReminderEnabled(preferences.quickUsageReminderEnabled)
-        preferencesManager.setQuickUsageReminderTimeMinutes(preferences.quickUsageReminderTimeMinutes)
+        payload.preferences?.let { preferences ->
+            val themeMode = runCatching { ThemeMode.valueOf(preferences.themeMode) }.getOrDefault(ThemeMode.SYSTEM)
+            preferencesManager.setThemeMode(themeMode)
+            preferencesManager.setDynamicColor(preferences.dynamicColor)
+            preferencesManager.setFingerprintLockEnabled(preferences.fingerprintLockEnabled)
+            preferencesManager.setUiScale(preferences.uiScale, persist = true)
+            preferencesManager.setFontScale(preferences.fontScale, persist = true)
+            preferencesManager.setCustomFontEnabled(preferences.customFontEnabled)
+            preferencesManager.setQuickUsageReminderEnabled(preferences.quickUsageReminderEnabled)
+            preferencesManager.setQuickUsageReminderTimeMinutes(preferences.quickUsageReminderTimeMinutes)
 
-        if (preferences.languageCode.isNotBlank()) {
-            languageUseCase.setLanguage(preferences.languageCode)
+            if (preferences.languageCode.isNotBlank()) {
+                languageUseCase.setLanguage(preferences.languageCode)
+            }
         }
     }
 
