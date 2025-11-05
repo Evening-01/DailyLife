@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -42,8 +43,13 @@ object QuickUsageReminderNotificationHelper {
         val formattedTime = formatReminderTime(reminderMinutes)
         val contentIntent = buildContentIntent(context)
 
+        val largeIcon = BitmapFactory.decodeResource(
+            context.resources,
+            R.mipmap.ic_launcher
+        )
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(context.getString(R.string.quick_usage_reminder_notification_title))
             .setContentText(
                 context.getString(
@@ -51,6 +57,7 @@ object QuickUsageReminderNotificationHelper {
                     formattedTime,
                 )
             )
+            .setLargeIcon(largeIcon)
             .setContentIntent(contentIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
