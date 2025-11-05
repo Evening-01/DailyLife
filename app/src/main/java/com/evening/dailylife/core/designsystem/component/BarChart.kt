@@ -7,12 +7,9 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,13 +17,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -43,7 +38,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,24 +72,37 @@ fun BarChart(
     barAnimationSpec: AnimationSpec<Float> = tween(durationMillis = 600, easing = FastOutSlowInEasing),
     animationKey: Any? = null,
 ) {
+    val density = LocalDensity.current
+    val context = LocalContext.current
+    val emptyColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val emptyTextSizePx = remember(density) { with(density) { 14.sp.toPx() } }
+    val emptyPaint = remember(emptyColor, emptyTextSizePx) {
+        Paint().apply {
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+            color = emptyColor.toArgb()
+            textSize = emptyTextSizePx
+        }
+    }
+    val emptyMessage = stringResource(id = R.string.chart_empty_data)
+
     if (entries.isEmpty()) {
-        Box(
+        Canvas(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(vertical = 32.dp),
-            contentAlignment = Alignment.Center
+                .padding(vertical = 32.dp)
+                .height(96.dp)
         ) {
-            Text(
-                text = stringResource(id = R.string.chart_empty_data),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            val centerX = size.width / 2f
+            val centerY = size.height / 2f
+            val metrics = emptyPaint.fontMetrics
+            val baseline = centerY - (metrics.ascent + metrics.descent) / 2f
+            drawIntoCanvas { canvas ->
+                canvas.nativeCanvas.drawText(emptyMessage, centerX, baseline, emptyPaint)
+            }
         }
         return
     }
-
-    val density = LocalDensity.current
-    val context = LocalContext.current
 
     val rawMaxValue = remember(entries, averageValue) {
         val entryMax = entries.maxOfOrNull(ChartEntry::value) ?: 0f
@@ -108,6 +115,8 @@ fun BarChart(
 
     val steps = 4
     val currentFormatter by rememberUpdatedState(valueFormatter)
+    val currentLabelFormatter by rememberUpdatedState(labelFormatter)
+    val xLabelHeight = 12.dp
 
     val yAxisLabels = remember(maxValue) {
         (0..steps).map { step ->
@@ -155,6 +164,8 @@ fun BarChart(
             val avgTextSizePx: Float,
             val avgTextRightPadPx: Float,
             val avgTextTopPadPx: Float,
+            val xLabelTextSizePx: Float,
+            val xLabelBottomPadPx: Float,
         )
 
         val px = remember(density, usedBarWidth, spacing, sidePadding, gridStrokeWidth, yAxisOvershootTop) {
@@ -175,6 +186,8 @@ fun BarChart(
                     avgTextSizePx = 12.sp.toPx(),
                     avgTextRightPadPx = 4.dp.toPx(),
                     avgTextTopPadPx = 6.dp.toPx(),
+                    xLabelTextSizePx = 10.sp.toPx(),
+                    xLabelBottomPadPx = 4.dp.toPx(),
                 )
             }
         }
@@ -198,6 +211,16 @@ fun BarChart(
                 textSize = px.avgTextSizePx
             }
         }
+
+        val xLabelPaint = remember(xLabelColor, px.xLabelTextSizePx) {
+            Paint().apply {
+                isAntiAlias = true
+                textAlign = Paint.Align.CENTER
+                color = xLabelColor.toArgb()
+                textSize = px.xLabelTextSizePx
+            }
+        }
+        val xLabelFontMetrics = remember(xLabelPaint) { xLabelPaint.fontMetrics }
 
         val dashEffect = remember { PathEffect.dashPathEffect(floatArrayOf(12f, 12f)) }
         val animationProgress = remember { Animatable(0f) }
@@ -359,43 +382,26 @@ fun BarChart(
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val labelsRowModifier =
-                    if (shouldScroll) Modifier
-                        .horizontalScroll(scrollState)
-                        .width(usedChartWidth)
-                    else Modifier.width(usedChartWidth)
+            val labelsCanvasModifier = if (shouldScroll) {
+                Modifier
+                    .horizontalScroll(scrollState)
+                    .width(usedChartWidth)
+            } else {
+                Modifier.width(usedChartWidth)
+            }
 
-                Row(
-                    modifier = labelsRowModifier,
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Spacer(modifier = Modifier.width(sidePadding))
-                    entries.forEachIndexed { index, entry ->
-                        Box(
-                            modifier = Modifier.width(usedBarWidth),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = labelFormatter(entry.label),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = xLabelColor,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1
-                            )
-                        }
-                        if (index != entries.lastIndex) {
-                            Spacer(modifier = Modifier.width(spacing))
-                        }
+            Canvas(
+                modifier = labelsCanvasModifier
+                    .padding(top = 10.dp)
+                    .height(xLabelHeight)
+            ) {
+                val baselineY = size.height - px.xLabelBottomPadPx - xLabelFontMetrics.descent
+                entries.forEachIndexed { index, entry ->
+                    val centerX = px.sidePaddingPx + index * (px.barWidthPx + px.spacingPx) + px.barWidthPx / 2f
+                    val label = currentLabelFormatter(entry.label)
+                    drawIntoCanvas { canvas ->
+                        canvas.nativeCanvas.drawText(label, centerX, baselineY, xLabelPaint)
                     }
-                    Spacer(modifier = Modifier.width(sidePadding))
                 }
             }
         }
