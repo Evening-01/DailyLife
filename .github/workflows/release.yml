@@ -18,16 +18,18 @@ jobs:
   release:
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_SIGNING_STORE_FILE: keystore.jks
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # 拉全历史
-          fetch-tags: true        # 同步所有标签
-          ref: ${{ github.ref }}  # 明确检出触发的 ref
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.ref }}
 
       - name: Ensure full git history
-        shell: bash
         run: |
           set -euo pipefail
           if git rev-parse --is-shallow-repository | grep -q true; then
@@ -35,7 +37,6 @@ jobs:
           else
             git fetch --prune --tags --force
           fi
-          # 可选：确保在期望的 ref 上（对部分触发场景更稳）
           git checkout "${GITHUB_REF##refs/*/}" || true
 
       - name: Set up JDK
@@ -57,57 +58,61 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Recreate signing keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$ANDROID_SIGNING_STORE_FILE"
+          ls -l "$ANDROID_SIGNING_STORE_FILE"
+
       - name: Determine build tag
         id: resolve_tag
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          REF_NAME: ${{ github.ref_name }}
-        shell: bash
         run: |
           set -euo pipefail
-          if [ "$EVENT_NAME" = "push" ]; then
-            echo "build_tag=$REF_NAME" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "build_tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
           else
             input_tag=$(jq -r '.inputs.tag // ""' "$GITHUB_EVENT_PATH")
             if [ -n "$input_tag" ]; then
               echo "build_tag=$input_tag" >> "$GITHUB_OUTPUT"
             else
               latest_commit=$(git rev-parse HEAD)
-              custom_tag="manual-${latest_commit:0:7}"
-              echo "build_tag=$custom_tag" >> "$GITHUB_OUTPUT"
+              echo "build_tag=manual-${latest_commit:0:7}" >> "$GITHUB_OUTPUT"
             fi
           fi
 
       - name: Get git commit count as versionCode
         id: vercode
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "code=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
+        run: echo "code=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Get app name
         id: appname
-        shell: bash
         run: |
-          set -euo pipefail
           APP_NAME=$(./gradlew -q --console=plain printAppName | tail -n1 | tr -d '\r')
           echo "value=${APP_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Get versionName
         id: vername
-        shell: bash
         run: |
-          set -euo pipefail
           VER_NAME=$(./gradlew -q --console=plain printVersionName | tail -n1 | tr -d '\r')
           echo "value=${VER_NAME}" >> "$GITHUB_OUTPUT"
 
-      - name: Assemble release (apk + bundle)
-        run: ./gradlew assembleRelease bundleRelease --stacktrace
+      - name: Build, Sign, and Rename Artifacts
+        env:
+          dailylife.signing.storeFile: ${{ env.ANDROID_SIGNING_STORE_FILE }}
+          dailylife.signing.storePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          dailylife.signing.keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          dailylife.signing.keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          # 修复：
+          # 1. 只调用 renameReleaseBundle，它会自动依赖 assemble 和 bundle 任务
+          # 2. 使用 -P 注入 Git 提交次数作为 versionCode，覆盖 gradle.properties 中的值
+          ./gradlew renameReleaseBundle \
+            -Pproject.app.versionCode=${{ steps.vercode.outputs.code }} \
+            --stacktrace
 
-      - name: Rename release bundle to unified name
-        run: ./gradlew renameReleaseBundle
 
-      - name: Upload release artifacts (Actions artifacts)
+      - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.appname.outputs.value }}-${{ steps.vername.outputs.value }}(${{ steps.vercode.outputs.code }})
@@ -115,7 +120,7 @@ jobs:
             app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab
 
-      - name: Create GitHub release and upload binaries
+      - name: Create GitHub release
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v1
         with:
@@ -134,9 +139,6 @@ jobs:
 
       - name: Summary
         run: |
-          {
-            echo "## Release build"
-            echo "- Trigger: ${{ github.event_name }}"
-            echo "- Build tag: ${{ steps.resolve_tag.outputs.build_tag }}"
-            echo "- Artifact name: ${{ steps.appname.outputs.value }}-${{ steps.vername.outputs.value }}(${{ steps.vercode.outputs.code }})"
-          } >> "$GITHUB_STEP_SUMMARY"
+          echo "## Release build" >> $GITHUB_STEP_SUMMARY
+          echo "- Tag: ${{ steps.resolve_tag.outputs.build_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Artifact: ${{ steps.appname.outputs.value }}-${{ steps.vername.outputs.value }}(${{ steps.vercode.outputs.code }})" >> $GITHUB_STEP_SUMMARY
