@@ -20,10 +20,10 @@ fun Project.loadReleaseSigning(): SigningCredentials? {
     fun propertyOrEnv(name: String): String? =
         localProperties.getProperty(name)?.takeIf { it.isNotBlank() } ?: System.getenv(name)?.takeIf { it.isNotBlank() }
 
-    val storeFile = propertyOrEnv("dailylife.signing.storeFile")
-    val storePassword = propertyOrEnv("dailylife.signing.storePassword")
-    val keyAlias = propertyOrEnv("dailylife.signing.keyAlias")
-    val keyPassword = propertyOrEnv("dailylife.signing.keyPassword")
+    val storeFile = propertyOrEnv("SIGNING_STORE_FILE")
+    val storePassword = propertyOrEnv("SIGNING_STORE_PASSWORD")
+    val keyAlias = propertyOrEnv("SIGNING_KEY_ALIAS")
+    val keyPassword = propertyOrEnv("SIGNING_KEY_PASSWORD")
 
     return if (storeFile != null && storePassword != null && keyAlias != null && keyPassword != null) {
         SigningCredentials(storeFile, storePassword, keyAlias, keyPassword)

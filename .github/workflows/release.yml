@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # 必须获取完整历史才能计算提交次数
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -62,10 +62,62 @@ jobs:
             fi
           fi
 
-      - name: Assemble release (apk + bundle if needed)
+      # 新增：获取版本号 (总提交次数)
+      - name: Get Version Code (Total Commits)
+        id: versioning
+        run: |
+          # 计算总提交次数
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          echo "version_code=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
+          echo "Calculated version code: $COMMIT_COUNT"
+
+      # 新增：解码 Keystore
+      - name: Decode Keystore
+        run: |
+          echo "Decoding keystore..."
+          # 假设 keystore 放在 app 模块的根目录
+          # 确保 build.gradle 中的 storeFile file(...) 路径匹配
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/keystore.jks
+          echo "Keystore decoded."
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+      # 修改：传入签名环境变量
+      - name: Assemble release (apk + bundle)
         run: ./gradlew assembleRelease bundleRelease --stacktrace
         env:
           BUILD_TAG: ${{ steps.resolve_tag.outputs.build_tag }}
+          # 传入环境变量供 build.gradle 读取
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+
+      # 新增：重命名构建产物
+      - name: Rename Artifacts
+        run: |
+          VERSION_CODE=${{ steps.versioning.outputs.version_code }}
+          echo "Renaming artifacts with version code: $VERSION_CODE"
+
+          # 重命名 APKs
+          APK_DIR="app/build/outputs/apk/release"
+          for f in $APK_DIR/*.apk; do
+            if [ -f "$f" ]; then # 确保文件存在
+              BASE_NAME=$(basename "$f" .apk)
+              mv "$f" "$APK_DIR/${BASE_NAME}-${VERSION_CODE}.apk"
+              echo "Renamed APK to $APK_DIR/${BASE_NAME}-${VERSION_CODE}.apk"
+            fi
+          done
+
+          # 重命名 AABs
+          AAB_DIR="app/build/outputs/bundle/release"
+          for f in $AAB_DIR/*.aab; do
+            if [ -f "$f" ]; then # 确保文件存在
+              BASE_NAME=$(basename "$f" .aab)
+              mv "$f" "$AAB_DIR/${BASE_NAME}-${VERSION_CODE}.aab"
+              echo "Renamed AAB to $AAB_DIR/${BASE_NAME}-${VERSION_CODE}.aab"
+            fi
+          done
+          echo "Artifact renaming complete."
 
       - name: Upload release artifacts (Actions artifacts)
         uses: actions/upload-artifact@v4
@@ -85,6 +137,7 @@ jobs:
             Release built by GitHub Actions
             - Trigger: ${{ github.event_name }}
             - Build tag: ${{ steps.resolve_tag.outputs.build_tag }}
+            - Version Code (Commits): ${{ steps.versioning.outputs.version_code }}
             - Run: ${{ github.run_id }}
           files: |
             app/build/outputs/apk/release/*.apk
@@ -100,4 +153,5 @@ jobs:
             echo "## Release build"
             echo "- Trigger: $EVENT_NAME"
             echo "- Build tag: ${{ steps.resolve_tag.outputs.build_tag }}"
+            echo "- Version Code (Commits): ${{ steps.versioning.outputs.version_code }}"
           } >> "$GITHUB_STEP_SUMMARY"
