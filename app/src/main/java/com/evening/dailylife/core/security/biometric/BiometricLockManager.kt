@@ -48,7 +48,6 @@ class BiometricLockManager @Inject constructor(
     private var isPromptActive = false
     private var lockPending = preferencesManager.fingerprintLockEnabled.value
     private var isLockEnabled = preferencesManager.fingerprintLockEnabled.value
-    private var awaitingInitialUnlock = preferencesManager.fingerprintLockEnabled.value
 
     private val promptInfo by lazy {
         BiometricPrompt.PromptInfo.Builder()
@@ -66,17 +65,13 @@ class BiometricLockManager @Inject constructor(
             preferencesManager.fingerprintLockEnabled.collectLatest { enabled ->
                 val previouslyEnabled = isLockEnabled
                 isLockEnabled = enabled
-                if (enabled) {
-                    if (!previouslyEnabled) {
-                        lockPending = true
-                        _lockRequired.value = true
-                        awaitingInitialUnlock = true
-                    }
-                } else {
+                if (!enabled) {
                     lockPending = false
                     _lockRequired.value = false
-                    awaitingInitialUnlock = false
                     requestCancelAuthentication()
+                } else if (!previouslyEnabled) {
+                    lockPending = false
+                    _lockRequired.value = false
                 }
             }
         }
@@ -141,6 +136,8 @@ class BiometricLockManager @Inject constructor(
                 else -> R.string.fingerprint_not_supported
             }
             Toast.makeText(activity, messageRes, Toast.LENGTH_SHORT).show()
+            lockPending = false
+            _lockRequired.value = false
             // 设备状态发生变化时，自动关闭指纹锁
             preferencesManager.setFingerprintLockEnabled(false)
             return
@@ -151,29 +148,13 @@ class BiometricLockManager @Inject constructor(
                 isPromptActive = false
                 lockPending = false
                 _lockRequired.value = false
-                awaitingInitialUnlock = false
                 currentPrompt = null
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 isPromptActive = false
                 currentPrompt = null
-                val userDismissed = errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
-                    errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
-                    errorCode == BiometricPrompt.ERROR_TIMEOUT
-                val lockedOut = errorCode == BiometricPrompt.ERROR_LOCKOUT ||
-                    errorCode == BiometricPrompt.ERROR_LOCKOUT_PERMANENT
-
-                if (awaitingInitialUnlock && (userDismissed || lockedOut)) {
-                    notifyAndExit(activity, true)
-                    return
-                }
-
-                if (userDismissed || lockedOut) {
-                    notifyAndExit(activity, false)
-                    return
-                }
-
+                handleAuthenticationError(activity, errorCode, errString)
             }
 
             override fun onAuthenticationFailed() {
@@ -202,18 +183,37 @@ class BiometricLockManager @Inject constructor(
         isPromptActive = false
     }
 
-    private fun notifyAndExit(activity: FragmentActivity, fromInitialUnlock: Boolean) {
+    private fun handleAuthenticationError(
+        activity: FragmentActivity,
+        errorCode: Int,
+        errString: CharSequence,
+    ) {
+        if (errorCode == BiometricPrompt.ERROR_CANCELED) {
+            // Prompt was cancelled programmatically (e.g. app moved to background).
+            return
+        }
+
+        val userDismissed = errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
+            errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
+            errorCode == BiometricPrompt.ERROR_TIMEOUT
+        val lockedOut = errorCode == BiometricPrompt.ERROR_LOCKOUT ||
+            errorCode == BiometricPrompt.ERROR_LOCKOUT_PERMANENT
+        val shouldDisableLock = errorCode == BiometricPrompt.ERROR_HW_NOT_PRESENT ||
+            errorCode == BiometricPrompt.ERROR_NO_BIOMETRICS ||
+            errorCode == BiometricPrompt.ERROR_SECURITY_UPDATE_REQUIRED
+
+        val message = when {
+            lockedOut -> errString
+            userDismissed -> activity.getString(R.string.fingerprint_auth_failed_exit)
+            else -> errString.takeIf { it.isNotBlank() } ?: activity.getString(R.string.fingerprint_auth_failed_exit)
+        }
+        Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
+
         lockPending = true
         _lockRequired.value = true
-        if (fromInitialUnlock) {
-            awaitingInitialUnlock = true
+        if (shouldDisableLock) {
+            preferencesManager.setFingerprintLockEnabled(false)
         }
-        Toast.makeText(
-            activity,
-            activity.getString(R.string.fingerprint_auth_failed_exit),
-            Toast.LENGTH_SHORT
-        ).show()
         activity.moveTaskToBack(true)
-        activity.finish()
     }
 }

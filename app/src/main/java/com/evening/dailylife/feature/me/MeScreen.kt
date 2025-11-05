@@ -121,9 +121,45 @@ fun MeScreen(
 
     fun handleFingerprintToggle(checked: Boolean) {
         if (checked) {
+            val activity = context.findFragmentActivity()
+            if (activity == null) {
+                Toast.makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT).show()
+                return
+            }
+
             when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
                 BiometricManager.BIOMETRIC_SUCCESS -> {
-                    viewModel.setFingerprintLockEnabled(true)
+                    val executor = ContextCompat.getMainExecutor(activity)
+                    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                        .setTitle(context.getString(R.string.fingerprint_prompt_title))
+                        .setSubtitle(context.getString(R.string.fingerprint_prompt_subtitle))
+                        .setDescription(context.getString(R.string.fingerprint_prompt_description))
+                        .setNegativeButtonText(context.getString(R.string.fingerprint_prompt_negative))
+                        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                        .build()
+                    val prompt = BiometricPrompt(
+                        activity,
+                        executor,
+                        object : BiometricPrompt.AuthenticationCallback() {
+                            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                viewModel.setFingerprintLockEnabled(true)
+                            }
+
+                            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                                if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
+                                    errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                                    errorCode != BiometricPrompt.ERROR_TIMEOUT
+                                ) {
+                                    Toast.makeText(context, errString, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+
+                            override fun onAuthenticationFailed() {
+                                // Keep waiting for a valid fingerprint input.
+                            }
+                        },
+                    )
+                    prompt.authenticate(promptInfo)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
