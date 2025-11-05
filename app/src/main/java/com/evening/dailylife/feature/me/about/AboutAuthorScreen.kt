@@ -26,7 +26,7 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Public
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -154,7 +154,7 @@ fun AboutAuthorScreen(navController: NavHostController) {
                     contacts.forEachIndexed { index, contact ->
                         ContactRow(contact = contact)
                         if (index != contacts.lastIndex) {
-                            Divider(
+                            HorizontalDivider(
                                 modifier = Modifier
                                     .padding(vertical = 12.dp)
                                     .fillMaxWidth(),

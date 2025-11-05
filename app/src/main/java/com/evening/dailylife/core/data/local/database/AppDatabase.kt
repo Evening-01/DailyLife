@@ -33,7 +33,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .setQueryExecutor(databaseExecutor)
                     .setTransactionExecutor(databaseExecutor)
                     .setJournalMode(JournalMode.WRITE_AHEAD_LOGGING)
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(true)
                     .build()
                 INSTANCE = instance
                 instance

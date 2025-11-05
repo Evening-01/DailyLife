@@ -1,8 +1,8 @@
+name: Android Release
+
 permissions:
   contents: write
   packages: write
-
-name: Android Release
 
 on:
   push:
@@ -22,7 +22,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0          # 拉全历史
+          fetch-tags: true        # 同步所有标签
+          ref: ${{ github.ref }}  # 明确检出触发的 ref
+
+      - name: Ensure full git history
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git rev-parse --is-shallow-repository | grep -q true; then
+            git fetch --prune --unshallow --tags
+          else
+            git fetch --prune --tags --force
+          fi
+          # 可选：确保在期望的 ref 上（对部分触发场景更稳）
+          git checkout "${GITHUB_REF##refs/*/}" || true
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -48,7 +62,9 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
+        shell: bash
         run: |
+          set -euo pipefail
           if [ "$EVENT_NAME" = "push" ]; then
             echo "build_tag=$REF_NAME" >> "$GITHUB_OUTPUT"
           else
@@ -64,7 +80,10 @@ jobs:
 
       - name: Get git commit count as versionCode
         id: vercode
-        run: echo "code=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "code=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Get app name
         id: appname
