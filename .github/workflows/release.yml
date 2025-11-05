@@ -83,41 +83,15 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
       # 修改：传入签名环境变量
-      - name: Assemble release (apk + bundle)
-        run: ./gradlew assembleRelease bundleRelease --stacktrace
+      - name: Assemble signed release (apk + bundle)
+        run: ./gradlew renameReleaseBundle --stacktrace
         env:
           BUILD_TAG: ${{ steps.resolve_tag.outputs.build_tag }}
           # 传入环境变量供 build.gradle 读取
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-
-      # 新增：重命名构建产物
-      - name: Rename Artifacts
-        run: |
-          VERSION_CODE=${{ steps.versioning.outputs.version_code }}
-          echo "Renaming artifacts with version code: $VERSION_CODE"
-
-          # 重命名 APKs
-          APK_DIR="app/build/outputs/apk/release"
-          for f in $APK_DIR/*.apk; do
-            if [ -f "$f" ]; then # 确保文件存在
-              BASE_NAME=$(basename "$f" .apk)
-              mv "$f" "$APK_DIR/${BASE_NAME}-${VERSION_CODE}.apk"
-              echo "Renamed APK to $APK_DIR/${BASE_NAME}-${VERSION_CODE}.apk"
-            fi
-          done
-
-          # 重命名 AABs
-          AAB_DIR="app/build/outputs/bundle/release"
-          for f in $AAB_DIR/*.aab; do
-            if [ -f "$f" ]; then # 确保文件存在
-              BASE_NAME=$(basename "$f" .aab)
-              mv "$f" "$AAB_DIR/${BASE_NAME}-${VERSION_CODE}.aab"
-              echo "Renamed AAB to $AAB_DIR/${BASE_NAME}-${VERSION_CODE}.aab"
-            fi
-          done
-          echo "Artifact renaming complete."
+          SIGNING_STORE_FILE: keystore.jks
 
       - name: Upload release artifacts (Actions artifacts)
         uses: actions/upload-artifact@v4
@@ -144,6 +118,10 @@ jobs:
             app/build/outputs/bundle/release/*.aab
           fail_on_unmatched_files: false
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup keystore
+        if: always()
+        run: rm -f app/keystore.jks
 
       - name: Summary
         env:

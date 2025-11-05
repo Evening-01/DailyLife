@@ -1,10 +1,12 @@
+
 import com.android.build.api.dsl.ApplicationExtension
 import org.w3c.dom.Element
+import java.io.File
 import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
 
 data class SigningCredentials(
-    val storeFile: String,
+    val storeFile: File,
     val storePassword: String,
     val keyAlias: String,
     val keyPassword: String,
@@ -25,9 +27,20 @@ fun Project.loadReleaseSigning(): SigningCredentials? {
     val keyAlias = propertyOrEnv("SIGNING_KEY_ALIAS")
     val keyPassword = propertyOrEnv("SIGNING_KEY_PASSWORD")
 
-    return if (storeFile != null && storePassword != null && keyAlias != null && keyPassword != null) {
-        SigningCredentials(storeFile, storePassword, keyAlias, keyPassword)
+    val resolvedStoreFile = mutableListOf<File>().apply {
+        storeFile?.let { add(file(it)) }
+        add(file("keystore.jks"))
+        add(file("release/keystore.jks"))
+        add(rootProject.file("keystore.jks"))
+        add(rootProject.file("app/keystore.jks"))
+    }.firstOrNull { it.exists() && it.isFile }
+
+    return if (resolvedStoreFile != null && storePassword != null && keyAlias != null && keyPassword != null) {
+        SigningCredentials(resolvedStoreFile, storePassword, keyAlias, keyPassword)
     } else {
+        if (System.getenv().containsKey("GITHUB_ACTIONS") && resolvedStoreFile == null) {
+            logger.warn("[Signing] Release signing credentials detected but keystore file is missing; release artifact will be unsigned.")
+        }
         null
     }
 }
@@ -61,6 +74,19 @@ fun sanitizeFileNameCandidate(input: String): String {
         ?: "artifact"
 }
 
+fun Project.computeGitCommitCount(): Int? {
+    return runCatching {
+        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
+            .directory(rootProject.projectDir)
+            .redirectErrorStream(true)
+            .start()
+        process.inputStream.bufferedReader().use { reader ->
+            reader.readText().trim()
+        }.takeIf { it.isNotBlank() }?.toInt().also {
+            process.waitFor()
+        }
+    }.getOrNull()
+}
 
 plugins {
     autowire(libs.plugins.android.application)
@@ -69,6 +95,8 @@ plugins {
     autowire(libs.plugins.kotlin.ksp)
     autowire(libs.plugins.hilt.android)
 }
+
+val gitCommitCount = project.computeGitCommitCount()
 
 android {
     val releaseSigning = project.loadReleaseSigning()
@@ -80,14 +108,15 @@ android {
         minSdk = property.project.android.minSdk
         targetSdk = property.project.android.targetSdk
         versionName = property.project.app.versionName
-        versionCode = property.project.app.versionCode
+        val fallbackVersionCode = property.project.app.versionCode
+        versionCode = gitCommitCount ?: fallbackVersionCode
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         releaseSigning?.let { credentials ->
             create("release") {
-                storeFile = file(credentials.storeFile)
+                storeFile = credentials.storeFile
                 storePassword = credentials.storePassword
                 keyAlias = credentials.keyAlias
                 keyPassword = credentials.keyPassword
@@ -171,10 +200,13 @@ val appNameValue = readDefaultAppName()
 val versionNameValue = androidExtension.defaultConfig.versionName
     ?: findProperty("project.app.versionName")?.toString()
     ?: "0.0.0"
+val commitCountValue = gitCommitCount?.takeIf { it > 0 }?.toString()
 val versionCodeValue = androidExtension.defaultConfig.versionCode
     ?.toString()
+    ?: commitCountValue
     ?: findProperty("project.app.versionCode")?.toString()
     ?: "0"
+val versionSuffix = commitCountValue ?: versionCodeValue
 
 tasks.register("printAppName") {
     group = "ci"
@@ -192,13 +224,21 @@ tasks.register("printVersionName") {
     }
 }
 
+tasks.register("printCommitCount") {
+    group = "ci"
+    description = "Prints the git commit count used as versionCode for CI workflows."
+    doLast {
+        println(versionSuffix)
+    }
+}
+
 tasks.register("renameReleaseBundle") {
     group = "distribution"
     description = "Renames release APK/AAB artifacts to a unified naming convention."
     dependsOn("assembleRelease", "bundleRelease")
     doLast {
         val baseName = sanitizeFileNameCandidate(
-            "$appNameValue-$versionNameValue($versionCodeValue)"
+            "$appNameValue-$versionNameValue($versionSuffix)"
         )
 
         fun renameArtifacts(directory: File, extension: String) {
