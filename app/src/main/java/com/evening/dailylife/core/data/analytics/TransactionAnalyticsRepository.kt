@@ -592,7 +592,7 @@ class TransactionAnalyticsRepository @Inject constructor(
     }
 
     private fun dayStartMillis(timestamp: Long): Long {
-        return (timestamp / MILLIS_IN_DAY) * MILLIS_IN_DAY
+        return TransactionDateUtils.dayStartMillis(timestamp)
     }
 
     private fun Calendar.setToStartOfDay() {
@@ -739,5 +739,16 @@ class TransactionAnalyticsRepository @Inject constructor(
         private const val DAYS_IN_WEEK = 7
         private const val MONTHS_IN_YEAR = 12
 
+    }
+}
+
+internal object TransactionDateUtils {
+    fun dayStartMillis(timestamp: Long, zoneId: ZoneId = ZoneId.systemDefault()): Long {
+        val zonedDateTime = Instant.ofEpochMilli(timestamp).atZone(zoneId)
+        return zonedDateTime
+            .toLocalDate()
+            .atStartOfDay(zoneId)
+            .toInstant()
+            .toEpochMilli()
     }
 }

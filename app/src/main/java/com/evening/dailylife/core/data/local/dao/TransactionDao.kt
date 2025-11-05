@@ -42,7 +42,7 @@ interface TransactionDao {
             source AS transaction_source,
             date AS transaction_date,
             isDeleted AS transaction_isDeleted,
-            (date / 86400000) * 86400000 AS day_start_millis
+            CAST(strftime('%s', datetime(date / 1000, 'unixepoch', 'localtime', 'start of day')) AS INTEGER) * 1000 AS day_start_millis
         FROM transactions
         WHERE date BETWEEN :startDate AND :endDate AND isDeleted = 0
         ORDER BY date DESC
@@ -56,7 +56,7 @@ interface TransactionDao {
     @Query(
         """
         SELECT 
-            (date / 86400000) * 86400000 AS day_start_millis,
+            CAST(strftime('%s', datetime(date / 1000, 'unixepoch', 'localtime', 'start of day')) AS INTEGER) * 1000 AS day_start_millis,
             SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) AS total_income,
             SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) AS total_expense,
             CAST(SUM(COALESCE(mood, 0)) AS INTEGER) AS mood_score_sum,

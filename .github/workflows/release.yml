@@ -1,4 +1,3 @@
-# 在 workflow 顶层加上权限（推荐）
 permissions:
   contents: write
   packages: write
@@ -18,9 +17,6 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # 如果不想放在顶层，也可以在这里设置 job 级 permissions:
-    # permissions:
-    #   contents: write
 
     steps:
       - name: Checkout
@@ -66,16 +62,31 @@ jobs:
             fi
           fi
 
-      - name: Assemble release (apk + bundle if needed)
-        # 若你也需要生成 .aab，请确保使用 bundleRelease / include bundle task
-        run: ./gradlew assembleRelease bundleRelease --stacktrace
-        env:
-          BUILD_TAG: ${{ steps.resolve_tag.outputs.build_tag }}
+      # （可选）供工件名展示
+      - name: Get git commit count as versionCode
+        id: vercode
+        run: echo "code=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
 
+      - name: Get app name
+        id: appname
+        run: echo "value=$(./gradlew -q printAppName)" >> "$GITHUB_OUTPUT"
+
+      - name: Get versionName
+        id: vername
+        run: echo "value=$(./gradlew -q printVersionName)" >> "$GITHUB_OUTPUT"
+
+      - name: Assemble release (apk + bundle)
+        run: ./gradlew assembleRelease bundleRelease --stacktrace
+
+      # AAB 重命名为：MyApp-1.3.0(123).aab
+      - name: Rename release bundle to unified name
+        run: ./gradlew renameReleaseBundle
+
+      # 上传工件：文件名已经统一为 MyApp-1.3.0(123).apk / .aab、
       - name: Upload release artifacts (Actions artifacts)
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-${{ steps.resolve_tag.outputs.build_tag }}
+          name: ${{ steps.appname.outputs.value }}-${{ steps.vername.outputs.value }}(${{ steps.vercode.outputs.code }})
           path: |
             app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab
@@ -85,7 +96,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.resolve_tag.outputs.build_tag }}
-          name: ${{ steps.resolve_tag.outputs.build_tag }}     # <- 正确字段（之前是 release_name 导致警告）
+          name: ${{ steps.resolve_tag.outputs.build_tag }}
           body: |
             Release built by GitHub Actions
             - Trigger: ${{ github.event_name }}
@@ -98,11 +109,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Summary
-        env:
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           {
             echo "## Release build"
-            echo "- Trigger: $EVENT_NAME"
+            echo "- Trigger: ${{ github.event_name }}"
             echo "- Build tag: ${{ steps.resolve_tag.outputs.build_tag }}"
+            echo "- Artifact name: ${{ steps.appname.outputs.value }}-${{ steps.vername.outputs.value }}(${{ steps.vercode.outputs.code }})"
           } >> "$GITHUB_STEP_SUMMARY"
