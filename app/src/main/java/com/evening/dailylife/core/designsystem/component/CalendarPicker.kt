@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -50,6 +51,8 @@ import com.evening.dailylife.R
 import java.time.LocalDate
 import java.util.Calendar
 import kotlin.math.abs
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 /**
  * 滚轮日期选择器
@@ -103,12 +106,21 @@ fun <T> WheelPicker(
         }
     }
 
+    LaunchedEffect(listState) {
+        snapshotFlow { calculateCenterIndex(listState) }
+            .distinctUntilChanged()
+            .collect { index ->
+                if (index != -1 && index < items.size) {
+                    onItemSelected(index)
+                }
+            }
+    }
+
     LaunchedEffect(listState.isScrollInProgress) {
         if (!listState.isScrollInProgress) {
             val centerIndex = calculateCenterIndex(listState)
             if (centerIndex != -1 && centerIndex < items.size) {
                 listState.animateScrollToItem(centerIndex)
-                onItemSelected(centerIndex)
             }
         }
     }
