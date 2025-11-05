@@ -1,7 +1,6 @@
 package com.evening.dailylife.core.util
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
@@ -23,15 +22,9 @@ fun Context.launchExternalUrl(
         }
     }
 
-    val hasHandler = intent.resolveActivity(packageManager) != null
-    if (!hasHandler) {
-        Toast.makeText(this, getString(errorMessageRes), Toast.LENGTH_SHORT).show()
-        return
-    }
-
-    try {
+    runCatching {
         startActivity(intent)
-    } catch (exception: ActivityNotFoundException) {
+    }.onFailure {
         Toast.makeText(this, getString(errorMessageRes), Toast.LENGTH_SHORT).show()
     }
 }
