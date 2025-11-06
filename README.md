@@ -7,7 +7,11 @@
     <a target="_blank" href="https://github.com/Evening-01/DailyLife/blob/master/README.zh-CN.md">简体中文</a>&nbsp;&nbsp;|&nbsp;&nbsp;  English&nbsp;&nbsp;
 </p>
 
-DailyLife is a Jetpack Compose personal finance app that helps you record transactions, understand spending patterns, and stay on top of daily habits. It ships with a Material 3 design system, offline-first storage, rich analytics, and productivity tools such as widget shortcuts, biometric protection, and mortgage & currency calculators.
+DailyLife is a Jetpack Compose personal finance app that helps you record transactions, understand spending patterns, and stay on top of daily habits. It ships with a Material 3 design system, offline-first storage, rich analytics, and productivity tools such as widget shortcuts, biometric protection, and mortgage & currency calculators.
+
+This project is also the author's finance-related graduation design, aiming to put three years of Android knowledge into practice by building a complete, modern application. It also serves as a portfolio project for job seeking.
+
+If you like this project, please click the ⭐ Star in the top-right corner on GitHub to support my continued development in my spare time.
 
 ## Table of Contents
 - [Features](#features)
