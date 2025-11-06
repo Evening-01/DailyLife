@@ -39,7 +39,7 @@ If you like this project, please click the ⭐ Star in the top-right corner on G
 - Dynamic themes, custom fonts, large UI scale options, and automatic adaptive icons when dynamic color is enabled.
 
 ## Screenshots
-You can [**click here**](https://github.com/Evening-01/DailyLife/tree/master/images) to navigate to the `images` directory and view all screenshots.
+You can [**click here**](images/) to navigate to the `images` directory and view all screenshots.
 
 ## Architecture
 DailyLife follows a modular, layered structure built around MVVM and unidirectional data flow:

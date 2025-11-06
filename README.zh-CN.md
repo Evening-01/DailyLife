@@ -38,7 +38,7 @@ DailyLife 是一款基于 Jetpack Compose 的个人财务应用，帮助你记�
 - 动态主题、自定义字体、大字号 UI，以及开启动态取色后的自适应图标。
 
 ## 效果图
-您可以[**点击此处**](https://github.com/Evening-01/DailyLife/tree/master/images)跳转到 `images` 目录查看所有截图。
+您可以[**点击此处**](images/)跳转到 `images` 目录查看所有截图。
 
 ## 架构概览
 DailyLife 采用模块化的 MVVM + 单向数据流架构：
