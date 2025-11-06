@@ -15,6 +15,7 @@ If you like this project, please click the ⭐ Star in the top-right corner on G
 
 ## Table of Contents
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Module Overview](#module-overview)
@@ -34,6 +35,9 @@ If you like this project, please click the ⭐ Star in the top-right corner on G
 - Glance-powered home screen widget offering at-a-glance totals, recent activity, and quick-add transaction actions.
 - Room-backed offline database with state flows for live updates and background pruning of archived items.
 - Dynamic themes, custom fonts, large UI scale options, and automatic adaptive icons when dynamic color is enabled.
+
+## Screenshots
+You can [**click here**](https://github.com/Evening-01/DailyLife/tree/master/images) to navigate to the `images` directory and view all screenshots.
 
 ## Architecture
 DailyLife follows a modular, layered structure built around MVVM and unidirectional data flow:
