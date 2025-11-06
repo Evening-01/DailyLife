@@ -1,11 +1,13 @@
 # DailyLife
 
+
 <p align="center">
     <a href="https://github.com/Evening-01/DailyLife">
         <img src="https://socialify.git.ci/Evening-01/DailyLife/image?font=Source+Code+Pro&forks=1&issues=1&language=1&name=1&owner=1&pattern=Circuit+Board&pulls=1&stargazers=1&theme=Light" alt="socialify"/>
     </a>
-    <a target="_blank" href="https://github.com/Evening-01/DailyLife/blob/master/README.zh-CN.md">简体中文</a>&nbsp;&nbsp;|&nbsp;&nbsp;  English&nbsp;&nbsp;
 </p>
+
+> Languages: English | [简体中文](README.zh-CN.md)
 
 DailyLife is a Jetpack Compose personal finance app that helps you record transactions, understand spending patterns, and stay on top of daily habits. It ships with a Material 3 design system, offline-first storage, rich analytics, and productivity tools such as widget shortcuts, biometric protection, and mortgage & currency calculators.
 
