@@ -41,6 +41,7 @@ import androidx.annotation.RequiresApi
 fun HomeScreen(
     onAddTransactionClick: () -> Unit,
     appNavController: NavHostController,
+    onBiometricPromptVisibilityChange: (Boolean) -> Unit = {},
 ) {
     val homeNavController = rememberNavController()
     val navBackStackEntry by homeNavController.currentBackStackEntryAsState()
@@ -88,6 +89,7 @@ fun HomeScreen(
             navController = homeNavController,
             appNavController = appNavController,
             onAddTransactionClick = onAddTransactionClick,
+            onBiometricPromptVisibilityChange = onBiometricPromptVisibilityChange,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -102,6 +104,7 @@ private fun HomeNavHost(
     navController: NavHostController,
     appNavController: NavHostController,
     onAddTransactionClick: () -> Unit,
+    onBiometricPromptVisibilityChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -147,7 +150,8 @@ private fun HomeNavHost(
                 },
                 onMoreInfoClick = {
                     navController.navigateFromMe(appNavController, Route.ABOUT_APP)
-                }
+                },
+                onBiometricPromptVisibilityChange = onBiometricPromptVisibilityChange,
             )
         }
     }

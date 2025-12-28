@@ -10,10 +10,21 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.ExperimentalGraphicsApi
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
@@ -45,7 +56,7 @@ class MainActivity : FragmentActivity() {
         super.attachBaseContext(wrapped)
     }
 
-    @OptIn(UnstableSaltApi::class)
+    @OptIn(UnstableSaltApi::class, ExperimentalGraphicsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         if (shouldUseDynamicSplashIcon()) {
             setTheme(R.style.Theme_App_Starting_Dynamic)
@@ -70,6 +81,8 @@ class MainActivity : FragmentActivity() {
             val uiScale by viewModel.uiScale.collectAsState()
             val fontScale by viewModel.fontScale.collectAsState()
             val customFontEnabled by viewModel.customFontEnabled.collectAsState()
+            val lockRequired by biometricLockManager.lockRequired.collectAsState()
+            var manualPromptVisible by remember { mutableStateOf(false) }
             val navController = rememberNavController()
 
             val darkTheme = when (themeMode) {
@@ -87,6 +100,9 @@ class MainActivity : FragmentActivity() {
                 fontScale = fontScale,
                 useCustomFont = customFontEnabled
             ) {
+                val showBiometricOverlay = lockRequired || manualPromptVisible
+                val blurModifier = if (showBiometricOverlay) Modifier.blur(20.dp) else Modifier
+
                 LaunchedEffect(navController) {
                     viewModel.navigationRequests.collectLatest { command ->
                         if (command.clearBackStack) {
@@ -101,7 +117,20 @@ class MainActivity : FragmentActivity() {
                         }
                     }
                 }
-                DailyLifeApp(navController)
+                Box(modifier = Modifier.fillMaxSize()) {
+                    DailyLifeApp(
+                        navController = navController,
+                        modifier = blurModifier,
+                        onBiometricPromptVisibilityChange = { manualPromptVisible = it },
+                    )
+                    if (showBiometricOverlay) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.3f))
+                        )
+                    }
+                }
             }
         }
     }

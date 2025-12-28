@@ -24,7 +24,8 @@ import com.evening.dailylife.feature.transaction.editor.TransactionEditorScreen
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBiometricPromptVisibilityChange: (Boolean) -> Unit = {},
 ) {
     NavHost(
         navController = navController,
@@ -37,7 +38,8 @@ fun AppNavHost(
                     // 导航到编辑页面，不带参数表示新建
                     navController.navigate(Route.addEditTransactionWithId(-1))
                 },
-                appNavController = navController
+                appNavController = navController,
+                onBiometricPromptVisibilityChange = onBiometricPromptVisibilityChange,
             )
         }
         composable(

@@ -18,15 +18,20 @@ import com.evening.dailylife.R
 import com.evening.dailylife.app.navigation.AppNavHost
 
 @Composable
-fun DailyLifeApp(navController: NavHostController) {
+fun DailyLifeApp(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    onBiometricPromptVisibilityChange: (Boolean) -> Unit = {},
+) {
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             AppNavHost(
                 navController = navController,
                 modifier = Modifier.fillMaxSize(),
+                onBiometricPromptVisibilityChange = onBiometricPromptVisibilityChange,
             )
         } else {
             UnsupportedVersionContent(modifier = Modifier.fillMaxSize())

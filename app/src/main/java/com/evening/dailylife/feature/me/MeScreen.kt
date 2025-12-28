@@ -51,6 +51,7 @@ fun MeScreen(
     onQuickUsageClick: () -> Unit,
     onDataManagementClick: () -> Unit,
     onMoreInfoClick: () -> Unit,
+    onBiometricPromptVisibilityChange: (Boolean) -> Unit = {},
 ) {
     val profileStatsState by viewModel.profileStatsState.collectAsState()
     val fingerprintLockEnabled by viewModel.fingerprintLockEnabled.collectAsState()
@@ -123,6 +124,7 @@ fun MeScreen(
         if (checked) {
             val activity = context.findFragmentActivity()
             if (activity == null) {
+                onBiometricPromptVisibilityChange(false)
                 Toast.makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT).show()
                 return
             }
@@ -142,10 +144,12 @@ fun MeScreen(
                         executor,
                         object : BiometricPrompt.AuthenticationCallback() {
                             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                onBiometricPromptVisibilityChange(false)
                                 viewModel.setFingerprintLockEnabled(true)
                             }
 
                             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                                onBiometricPromptVisibilityChange(false)
                                 if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
                                     errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
                                     errorCode != BiometricPrompt.ERROR_TIMEOUT
@@ -159,20 +163,24 @@ fun MeScreen(
                             }
                         },
                     )
+                    onBiometricPromptVisibilityChange(true)
                     prompt.authenticate(promptInfo)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                    onBiometricPromptVisibilityChange(false)
                     Toast.makeText(context, fingerprintNotEnrolledMessage, Toast.LENGTH_SHORT).show()
                 }
 
                 else -> {
+                    onBiometricPromptVisibilityChange(false)
                     Toast.makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT).show()
                 }
             }
         } else {
             val activity = context.findFragmentActivity()
             if (activity == null) {
+                onBiometricPromptVisibilityChange(false)
                 Toast.makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT).show()
                 viewModel.setFingerprintLockEnabled(true)
                 return
@@ -193,10 +201,12 @@ fun MeScreen(
                         executor,
                         object : BiometricPrompt.AuthenticationCallback() {
                             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                onBiometricPromptVisibilityChange(false)
                                 viewModel.setFingerprintLockEnabled(false)
                             }
 
                             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                                onBiometricPromptVisibilityChange(false)
                                 if (errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
                                     errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
                                     errorCode != BiometricPrompt.ERROR_TIMEOUT
@@ -211,15 +221,18 @@ fun MeScreen(
                             }
                         },
                     )
+                    onBiometricPromptVisibilityChange(true)
                     prompt.authenticate(promptInfo)
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                    onBiometricPromptVisibilityChange(false)
                     Toast.makeText(context, fingerprintNotEnrolledMessage, Toast.LENGTH_SHORT).show()
                     viewModel.setFingerprintLockEnabled(true)
                 }
 
                 else -> {
+                    onBiometricPromptVisibilityChange(false)
                     Toast.makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT).show()
                     viewModel.setFingerprintLockEnabled(true)
                 }
@@ -253,18 +266,18 @@ fun MeScreen(
             }
 
             item {
-            MeSecuritySection(
-                fingerprintLockEnabled = fingerprintLockEnabled,
-                isFingerprintSupported = isFingerprintSupported,
-                onFingerprintToggle = { checked -> handleFingerprintToggle(checked) },
-                onFingerprintUnsupported = {
-                    Toast
-                        .makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT)
-                        .show()
-                },
-                onDataManagementClick = onDataManagementClick,
-            )
-        }
+                MeSecuritySection(
+                    fingerprintLockEnabled = fingerprintLockEnabled,
+                    isFingerprintSupported = isFingerprintSupported,
+                    onFingerprintToggle = { checked -> handleFingerprintToggle(checked) },
+                    onFingerprintUnsupported = {
+                        Toast
+                            .makeText(context, fingerprintUnsupportedMessage, Toast.LENGTH_SHORT)
+                            .show()
+                    },
+                    onDataManagementClick = onDataManagementClick,
+                )
+            }
 
             item {
                 MeOtherSection(
