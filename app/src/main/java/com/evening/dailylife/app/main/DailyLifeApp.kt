@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,13 +19,18 @@ import com.evening.dailylife.app.navigation.AppNavHost
 
 @Composable
 fun DailyLifeApp(navController: NavHostController) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        AppNavHost(
-            navController = navController,
-            modifier = Modifier.fillMaxSize()
-        )
-    } else {
-        UnsupportedVersionContent()
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AppNavHost(
+                navController = navController,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            UnsupportedVersionContent(modifier = Modifier.fillMaxSize())
+        }
     }
 }
 
