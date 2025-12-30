@@ -168,11 +168,12 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -euo pipefail
-          token="$(printf '%s' "${TELEGRAM_BOT_TOKEN}" | tr -d '\r\n')"
+          token="$(printf '%s' "${TELEGRAM_BOT_TOKEN}" | tr -d '\r\n\t ')"
           if [ -z "${token}" ]; then
             echo "Missing TELEGRAM_BOT_TOKEN secret."
             exit 1
           fi
+          echo "Telegram token length: ${#token}"
           chat_id="${TELEGRAM_CHAT_ID:-@EveningDailyLifeCI}"
           me_resp=$(curl -sS "https://api.telegram.org/bot${token}/getMe")
           if ! echo "$me_resp" | grep -q '"ok":true'; then
