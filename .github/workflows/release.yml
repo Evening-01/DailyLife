@@ -168,11 +168,23 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -euo pipefail
-          if [ -z "${TELEGRAM_BOT_TOKEN}" ]; then
+          token="$(printf '%s' "${TELEGRAM_BOT_TOKEN}" | tr -d '\r\n')"
+          if [ -z "${token}" ]; then
             echo "Missing TELEGRAM_BOT_TOKEN secret."
             exit 1
           fi
           chat_id="${TELEGRAM_CHAT_ID:-@EveningDailyLifeCI}"
+          me_resp=$(curl -sS "https://api.telegram.org/bot${token}/getMe")
+          if ! echo "$me_resp" | grep -q '"ok":true'; then
+            echo "Telegram getMe failed: $me_resp"
+            exit 1
+          fi
+          chat_resp=$(curl -sS -X POST "https://api.telegram.org/bot${token}/getChat" \
+            --data-urlencode chat_id="${chat_id}")
+          if ! echo "$chat_resp" | grep -q '"ok":true'; then
+            echo "Telegram getChat failed: $chat_resp"
+            exit 1
+          fi
           apk_path=$(ls -t app/build/outputs/apk/release/*.apk 2>/dev/null | head -n 1)
           aab_path=$(ls -t app/build/outputs/bundle/release/*.aab 2>/dev/null | head -n 1)
           if [ -z "$apk_path" ] || [ -z "$aab_path" ]; then
@@ -192,17 +204,29 @@ jobs:
           ${release_url}
           EOF
           )
-          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          msg_resp=$(curl -sS -X POST "https://api.telegram.org/bot${token}/sendMessage" \
             --data-urlencode chat_id="${chat_id}" \
-            --data-urlencode text="${message}"
-          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            --data-urlencode text="${message}")
+          if ! echo "$msg_resp" | grep -q '"ok":true'; then
+            echo "Telegram sendMessage failed: $msg_resp"
+            exit 1
+          fi
+          apk_resp=$(curl -sS -X POST "https://api.telegram.org/bot${token}/sendDocument" \
             -F chat_id="${chat_id}" \
             -F document=@"${apk_path}" \
-            -F caption="DailyLife ${tag} APK"
-          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            -F caption="DailyLife ${tag} APK")
+          if ! echo "$apk_resp" | grep -q '"ok":true'; then
+            echo "Telegram sendDocument (APK) failed: $apk_resp"
+            exit 1
+          fi
+          aab_resp=$(curl -sS -X POST "https://api.telegram.org/bot${token}/sendDocument" \
             -F chat_id="${chat_id}" \
             -F document=@"${aab_path}" \
-            -F caption="DailyLife ${tag} AAB"
+            -F caption="DailyLife ${tag} AAB")
+          if ! echo "$aab_resp" | grep -q '"ok":true'; then
+            echo "Telegram sendDocument (AAB) failed: $aab_resp"
+            exit 1
+          fi
 
       - name: Cleanup keystore
         if: always()
