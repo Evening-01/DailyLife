@@ -192,18 +192,13 @@ jobs:
             echo "Release artifacts missing (APK/AAB)."
             exit 1
           fi
-          safe_dir=$(mktemp -d)
-          safe_apk="${safe_dir}/release.apk"
-          safe_aab="${safe_dir}/release.aab"
-          cp "$apk_path" "$safe_apk"
-          cp "$aab_path" "$safe_aab"
-          if [ ! -s "$safe_apk" ] || [ ! -s "$safe_aab" ]; then
-            echo "Release artifacts are not readable (APK/AAB)."
-            exit 1
-          fi
+          apk_name=$(basename "$apk_path")
+          aab_name=$(basename "$aab_path")
           tag="${{ steps.resolve_tag.outputs.build_tag }}"
           version_code="${{ steps.versioning.outputs.version_code }}"
           release_url="https://github.com/${{ github.repository }}/releases/tag/${{ steps.resolve_tag.outputs.build_tag }}"
+          apk_url="https://github.com/${{ github.repository }}/releases/download/${tag}/${apk_name}"
+          aab_url="https://github.com/${{ github.repository }}/releases/download/${tag}/${aab_name}"
           message=$(cat <<EOF
           DailyLife Release: ${tag}
           Version Code: ${version_code}
@@ -222,17 +217,17 @@ jobs:
             exit 1
           fi
           apk_resp=$(curl -sS -X POST "https://api.telegram.org/bot${token}/sendDocument" \
-            -F chat_id="${chat_id}" \
-            -F document=@"${safe_apk}" \
-            -F caption="DailyLife ${tag} APK")
+            --data-urlencode chat_id="${chat_id}" \
+            --data-urlencode document="${apk_url}" \
+            --data-urlencode caption="DailyLife ${tag} APK")
           if ! echo "$apk_resp" | grep -q '"ok":true'; then
             echo "Telegram sendDocument (APK) failed: $apk_resp"
             exit 1
           fi
           aab_resp=$(curl -sS -X POST "https://api.telegram.org/bot${token}/sendDocument" \
-            -F chat_id="${chat_id}" \
-            -F document=@"${safe_aab}" \
-            -F caption="DailyLife ${tag} AAB")
+            --data-urlencode chat_id="${chat_id}" \
+            --data-urlencode document="${aab_url}" \
+            --data-urlencode caption="DailyLife ${tag} AAB")
           if ! echo "$aab_resp" | grep -q '"ok":true'; then
             echo "Telegram sendDocument (AAB) failed: $aab_resp"
             exit 1
