@@ -1,7 +1,6 @@
 package com.evening.dailylife.app.widget
 
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
@@ -39,10 +38,9 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.evening.dailylife.R
-import com.evening.dailylife.app.main.MainActivity
-import com.evening.dailylife.app.main.intent.NavigationIntent
 import com.evening.dailylife.feature.transaction.navigation.TransactionRoute
 import com.evening.dailylife.core.data.repository.TransactionRepository
+import com.evening.dailylife.core.ui.navigation.WidgetNavigationProvider
 import com.evening.dailylife.core.ui.model.TransactionCategoryRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -95,6 +93,8 @@ class TransactionSummaryWidget : GlanceAppWidget() {
 @InstallIn(SingletonComponent::class)
 internal interface TransactionWidgetEntryPoint {
     fun transactionRepository(): TransactionRepository
+
+    fun widgetNavigationProvider(): WidgetNavigationProvider
 }
 
 private val WidgetBackground = ColorProvider(
@@ -564,16 +564,24 @@ private fun quickAddAction(
         isExpense = isExpense
     )
     return actionStartActivity(
-        Intent(context, MainActivity::class.java).apply {
-            putExtra(NavigationIntent.EXTRA_NAVIGATE_ROUTE, route)
-            putExtra(NavigationIntent.EXTRA_WIDGET_IS_EXPENSE, isExpense)
-            putExtra(NavigationIntent.EXTRA_WIDGET_CATEGORY_ID, categoryId)
-        }
+        widgetNavigationProvider(context).createQuickAddIntent(
+            context = context,
+            route = route,
+            isExpense = isExpense,
+            categoryId = categoryId,
+        )
     )
 }
 
 private fun openAppAction(context: Context): Action =
-    actionStartActivity(Intent(context, MainActivity::class.java))
+    actionStartActivity(widgetNavigationProvider(context).createOpenAppIntent(context))
+
+private fun widgetNavigationProvider(context: Context): WidgetNavigationProvider {
+    return EntryPointAccessors.fromApplication(
+        context.applicationContext,
+        TransactionWidgetEntryPoint::class.java
+    ).widgetNavigationProvider()
+}
 
 class TransactionSummaryWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = TransactionSummaryWidget()
