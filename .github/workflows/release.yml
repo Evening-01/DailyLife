@@ -183,14 +183,14 @@ jobs:
           version_code="${{ steps.versioning.outputs.version_code }}"
           release_url="https://github.com/${{ github.repository }}/releases/tag/${{ steps.resolve_tag.outputs.build_tag }}"
           message=$(cat <<EOF
-DailyLife Release: ${tag}
-Version Code: ${version_code}
-Release Notes:
-${{ steps.telegram_notes.outputs.notes }}
-
-Download:
-${release_url}
-EOF
+          DailyLife Release: ${tag}
+          Version Code: ${version_code}
+          Release Notes:
+          ${{ steps.telegram_notes.outputs.notes }}
+          
+          Download:
+          ${release_url}
+          EOF
           )
           curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode chat_id="${chat_id}" \
