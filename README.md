@@ -7,6 +7,33 @@
     </a>
 </p>
 
+<p align="center">
+    <a href="https://developer.android.com">
+        <img src="https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white" alt="Platform Android"/>
+    </a>
+    <a href="https://kotlinlang.org">
+        <img src="https://img.shields.io/badge/Kotlin-2.1-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin 2.1"/>
+    </a>
+    <a href="https://developer.android.com/jetpack/compose">
+        <img src="https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white" alt="Jetpack Compose"/>
+    </a>
+    <a href="https://developer.android.com/about/versions/marshmallow">
+        <img src="https://img.shields.io/badge/Min%20SDK-23-34A853?logo=android&logoColor=white" alt="Min SDK 23"/>
+    </a>
+    <a href="LICENSE">
+        <img src="https://img.shields.io/badge/License-CNC--1.0-6B7280" alt="License CNC-1.0"/>
+    </a>
+    <a href="https://t.me/+KG8tO-8xWmJjYWFl">
+        <img src="https://img.shields.io/badge/Telegram-Join%20Chat-26A5E4?logo=telegram&logoColor=white" alt="Telegram"/>
+    </a>
+    <a href="https://t.me/EveningDailyLifeCI">
+        <img src="https://img.shields.io/badge/Telegram-Channel-26A5E4?logo=telegram&logoColor=white" alt="Telegram Channel"/>
+    </a>
+    <a href="https://qm.qq.com/q/kNwBlpbH3y">
+        <img src="https://img.shields.io/badge/QQ%20Group-957757867-12B7F5?logo=tencentqq&logoColor=white" alt="QQ Group"/>
+    </a>
+</p>
+
 > Languages: English | [简体中文](README.zh-CN.md)
 
 DailyLife is a Jetpack Compose personal finance app that helps you record transactions, understand spending patterns, and stay on top of daily habits. It ships with a Material 3 design system, offline-first storage, rich analytics, and productivity tools such as widget shortcuts, biometric protection, and mortgage & currency calculators.
@@ -44,7 +71,7 @@ You can [**click here**](images/) to navigate to the `images` directory and view
 ## Architecture
 DailyLife follows a modular, layered structure built around MVVM and unidirectional data flow:
 - **Compose-first UI**: Screens are pure `@Composable` functions with state hoisted to view models and backed by `StateFlow`.
-- **Feature segregation**: Each domain (transactions, charts, discover, mortgage, currency, profile) lives under `feature/<area>` with its own UI, view models, and internal models.
+- **Feature segregation**: Each domain (home, transactions, details, charts, discover, mortgage, currency, profile) lives under `feature/<area>` with its own UI, view models, and internal models.
 - **Shared foundation**: The `core` package houses design system primitives, dependency injection modules, Room entities/DAOs, FastKV-backed preferences, analytics caching, and utility helpers.
 - **Navigation orchestration**: `app/.../navigation` defines the top-level graph and routes, while feature graphs compose into `HomeScreen`.
 - **Long-lived analytics cache**: `TransactionAnalyticsRepository` aggregates transaction data once and fans out snapshots to charts, discover cards, profile stats, and widgets.
@@ -72,9 +99,13 @@ app/src/main/java/com/evening/dailylife/
 | --- | --- | --- |
 | Application shell | `app/src/main/java/com/evening/dailylife/app` | `MainActivity`, Hilt `DailyLifeApplication`, navigation graph, app widget host |
 | Core foundation | `app/src/main/java/com/evening/dailylife/core` | Room database, repositories, analytics cache, design tokens, biometric manager, DI modules |
+| Home feed | `feature/home` | Monthly overview, daily grouping, quick navigation targets |
 | Transaction flow | `feature/transaction` | Add/edit screens, validation, mood picker, repository wiring |
+| Details | `feature/details` | Monthly breakdown, daily sections, transaction list, date filtering |
 | Analytics | `feature/chart` | Range builders, income/expense charts, mood trend visualization |
-| Productivity hub | `feature/discover` | Type profile, AI teaser, mortgage & currency tools |
+| Discover hub | `feature/discover` | Type profile, AI teaser, tool entry points |
+| Currency tools | `feature/currency` | Manual converter, rate inversion, quick swap |
+| Mortgage tools | `feature/mortgage` | Equal principal/interest calculators, amortization views |
 | Personalization | `feature/me` | Fingerprint lock toggle, theme/typography controls, usage stats, backup/restore |
 
 ## Getting Started

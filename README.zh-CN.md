@@ -6,6 +6,33 @@
     </a>
 </p>
 
+<p align="center">
+    <a href="https://developer.android.com">
+        <img src="https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white" alt="Platform Android"/>
+    </a>
+    <a href="https://kotlinlang.org">
+        <img src="https://img.shields.io/badge/Kotlin-2.1-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin 2.1"/>
+    </a>
+    <a href="https://developer.android.com/jetpack/compose">
+        <img src="https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white" alt="Jetpack Compose"/>
+    </a>
+    <a href="https://developer.android.com/about/versions/marshmallow">
+        <img src="https://img.shields.io/badge/Min%20SDK-23-34A853?logo=android&logoColor=white" alt="Min SDK 23"/>
+    </a>
+    <a href="LICENSE">
+        <img src="https://img.shields.io/badge/License-CNC--1.0-6B7280" alt="License CNC-1.0"/>
+    </a>
+    <a href="https://t.me/+KG8tO-8xWmJjYWFl">
+        <img src="https://img.shields.io/badge/Telegram-Join%20Chat-26A5E4?logo=telegram&logoColor=white" alt="Telegram"/>
+    </a>
+    <a href="https://t.me/EveningDailyLifeCI">
+        <img src="https://img.shields.io/badge/Telegram-Channel-26A5E4?logo=telegram&logoColor=white" alt="Telegram Channel"/>
+    </a>
+    <a href="https://qm.qq.com/q/kNwBlpbH3y">
+        <img src="https://img.shields.io/badge/QQ%20Group-957757867-12B7F5?logo=tencentqq&logoColor=white" alt="QQ Group"/>
+    </a>
+</p>
+
 > 语言： [English](README.md) | 简体中文
 
 DailyLife 是一款基于 Jetpack Compose 的个人财务应用，帮助你记录收支、洞察消费趋势，并保持良好的日常习惯。应用内置 Material 3 设计体系、离线优先的数据存储、丰富的统计分析，以及桌面微件、指纹保护、房贷和汇率计算等效率工具。
@@ -43,7 +70,7 @@ DailyLife 是一款基于 Jetpack Compose 的个人财务应用，帮助你记�
 ## 架构概览
 DailyLife 采用模块化的 MVVM + 单向数据流架构：
 - **Compose 优先的界面层**：界面通过 `@Composable` 实现，状态统一交由 ViewModel（`StateFlow`）管理。
-- **按领域拆分 Feature**：交易、图表、探索、房贷、汇率、个人中心等均位于 `feature/<area>` 目录，拥有独立的 UI 与状态控制。
+- **按领域拆分 Feature**：首页、交易、明细、图表、探索、房贷、汇率、个人中心等均位于 `feature/<area>` 目录，拥有独立的 UI 与状态控制。
 - **共享基础能力**：`core` 包含设计系统、依赖注入模块、Room 实体/DAO、FastKV 偏好设置、统计缓存与通用工具类。
 - **导航编排**：`app/.../navigation` 负责顶层路由图，由各 Feature 嵌套组成主界面 `HomeScreen`。
 - **长生命周期统计缓存**：`TransactionAnalyticsRepository` 统一聚合交易数据，为图表、探索、个人中心及微件提供快照。
@@ -71,9 +98,13 @@ app/src/main/java/com/evening/dailylife/
 | --- | --- |-------------------------------------------------------|
 | 应用外壳 | `app/src/main/java/com/evening/dailylife/app` | `MainActivity`、Hilt `DailyLifeApplication`、导航图、桌面微件宿主 |
 | 基础能力 | `app/src/main/java/com/evening/dailylife/core` | Room 数据库、仓库、统计缓存、设计系统、指纹管理、DI 模块                      |
+| 首页概览 | `feature/home` | 月度概览、日分组、快捷入口                                     |
 | 交易流程 | `feature/transaction` | 交易新增/编辑界面、校验、心情选择、仓库交互                                |
+| 明细页 | `feature/details` | 月度明细、日分组、交易列表、日期筛选                                    |
 | 数据分析 | `feature/chart` | 支出排行、收支图表、心情趋势                                        |
-| 效率工具 | `feature/discover` | 消费画像、AI 预览、房贷与汇率工具                                    |
+| 探索中心 | `feature/discover` | 消费画像、AI 预览、工具入口                                      |
+| 汇率工具 | `feature/currency` | 手动换算、倒算、快速互换                                        |
+| 房贷工具 | `feature/mortgage` | 等额/等本计算、还款明细                                        |
 | 个性化 | `feature/me` | 指纹锁、主题字体、使用统计、备份/恢复                                   |
 
 ## 快速开始
