@@ -199,6 +199,14 @@ jobs:
           release_url="https://github.com/${{ github.repository }}/releases/tag/${{ steps.resolve_tag.outputs.build_tag }}"
           apk_url="https://github.com/${{ github.repository }}/releases/download/${tag}/${apk_name}"
           aab_url="https://github.com/${{ github.repository }}/releases/download/${tag}/${aab_name}"
+          apk_direct=$(curl -sS -L -o /dev/null -w '%{url_effective}' "$apk_url")
+          aab_direct=$(curl -sS -L -o /dev/null -w '%{url_effective}' "$aab_url")
+          if [ -z "$apk_direct" ]; then
+            apk_direct="$apk_url"
+          fi
+          if [ -z "$aab_direct" ]; then
+            aab_direct="$aab_url"
+          fi
           message=$(cat <<EOF
           DailyLife Release: ${tag}
           Version Code: ${version_code}
@@ -218,7 +226,7 @@ jobs:
           fi
           apk_resp=$(curl -sS -X POST "https://api.telegram.org/bot${token}/sendDocument" \
             --data-urlencode chat_id="${chat_id}" \
-            --data-urlencode document="${apk_url}" \
+            --data-urlencode document="${apk_direct}" \
             --data-urlencode caption="DailyLife ${tag} APK")
           if ! echo "$apk_resp" | grep -q '"ok":true'; then
             echo "Telegram sendDocument (APK) failed: $apk_resp"
@@ -226,7 +234,7 @@ jobs:
           fi
           aab_resp=$(curl -sS -X POST "https://api.telegram.org/bot${token}/sendDocument" \
             --data-urlencode chat_id="${chat_id}" \
-            --data-urlencode document="${aab_url}" \
+            --data-urlencode document="${aab_direct}" \
             --data-urlencode caption="DailyLife ${tag} AAB")
           if ! echo "$aab_resp" | grep -q '"ok":true'; then
             echo "Telegram sendDocument (AAB) failed: $aab_resp"
