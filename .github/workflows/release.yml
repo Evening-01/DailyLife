@@ -8,6 +8,9 @@ on:
   push:
     tags:
       - '*'
+  release:
+    types:
+      - published
   workflow_dispatch:
     inputs:
       tag:
@@ -49,6 +52,13 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
         run: |
+          if [ "$EVENT_NAME" = "release" ]; then
+            release_tag=$(jq -r '.release.tag_name // ""' "$GITHUB_EVENT_PATH")
+            if [ -n "$release_tag" ]; then
+              echo "build_tag=$release_tag" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
           if [ "$EVENT_NAME" = "push" ]; then
             echo "build_tag=$REF_NAME" >> "$GITHUB_OUTPUT"
           else
@@ -118,6 +128,81 @@ jobs:
             app/build/outputs/bundle/release/*.aab
           fail_on_unmatched_files: false
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare Telegram release notes
+        id: telegram_notes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          notes=""
+          if [ "$EVENT_NAME" = "release" ]; then
+            release_body=$(jq -r '.release.body // ""' "$GITHUB_EVENT_PATH")
+            if [ -n "$release_body" ]; then
+              notes="$release_body"
+            fi
+          fi
+          if [ -z "$notes" ]; then
+            prev_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)
+            if [ -n "$prev_tag" ]; then
+              notes=$(git log --pretty=format:"- %s" "$prev_tag"..HEAD)
+            else
+              notes=$(git log -n 20 --pretty=format:"- %s")
+            fi
+          fi
+          notes=$(printf "%s\n" "$notes" | head -n 20)
+          notes=$(printf "%s" "$notes" | head -c 3000)
+          if [ -z "$notes" ]; then
+            notes="- No detailed changes available."
+          fi
+          {
+            echo "notes<<EOF"
+            echo "$notes"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish release to Telegram channel
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' || github.event_name == 'release'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TELEGRAM_BOT_TOKEN}" ]; then
+            echo "Missing TELEGRAM_BOT_TOKEN secret."
+            exit 1
+          fi
+          chat_id="${TELEGRAM_CHAT_ID:-@EveningDailyLifeCI}"
+          apk_path=$(ls -t app/build/outputs/apk/release/*.apk 2>/dev/null | head -n 1)
+          aab_path=$(ls -t app/build/outputs/bundle/release/*.aab 2>/dev/null | head -n 1)
+          if [ -z "$apk_path" ] || [ -z "$aab_path" ]; then
+            echo "Release artifacts missing (APK/AAB)."
+            exit 1
+          fi
+          tag="${{ steps.resolve_tag.outputs.build_tag }}"
+          version_code="${{ steps.versioning.outputs.version_code }}"
+          release_url="https://github.com/${{ github.repository }}/releases/tag/${{ steps.resolve_tag.outputs.build_tag }}"
+          message=$(cat <<EOF
+DailyLife Release: ${tag}
+Version Code: ${version_code}
+Release Notes:
+${{ steps.telegram_notes.outputs.notes }}
+
+Download:
+${release_url}
+EOF
+          )
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode chat_id="${chat_id}" \
+            --data-urlencode text="${message}"
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            -F chat_id="${chat_id}" \
+            -F document=@"${apk_path}" \
+            -F caption="DailyLife ${tag} APK"
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+            -F chat_id="${chat_id}" \
+            -F document=@"${aab_path}" \
+            -F caption="DailyLife ${tag} AAB"
 
       - name: Cleanup keystore
         if: always()
