@@ -53,9 +53,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.evening.dailylife.R
-import com.evening.dailylife.core.ui.navigation.Route
 import com.evening.dailylife.core.ui.designsystem.theme.LocalExtendedColorScheme
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
+import com.evening.dailylife.feature.details.navigation.DetailsRoute
+import com.evening.dailylife.feature.home.navigation.HomeDestination
 import com.evening.dailylife.core.ui.designsystem.component.CalendarPickerBottomSheet
 import com.evening.dailylife.core.ui.designsystem.component.CalendarPickerType
 import com.evening.dailylife.feature.details.ui.component.DailyHeader
@@ -86,9 +87,9 @@ fun DetailsScreen(
 
     LaunchedEffect(appNavController) {
         val navController = appNavController ?: return@LaunchedEffect
-        val homeEntry = runCatching { navController.getBackStackEntry(Route.HOME) }.getOrNull()
+        val homeEntry = runCatching { navController.getBackStackEntry(HomeDestination.HOME) }.getOrNull()
         val savedStateHandle = homeEntry?.savedStateHandle ?: return@LaunchedEffect
-        savedStateHandle.getStateFlow<Long?>(Route.DETAILS_TARGET_DATE_KEY, null).collect { targetDate ->
+        savedStateHandle.getStateFlow<Long?>(DetailsRoute.DETAILS_TARGET_DATE_KEY, null).collect { targetDate ->
             if (targetDate != null) {
                 val calendar = Calendar.getInstance().apply {
                     timeInMillis = targetDate
@@ -96,7 +97,7 @@ fun DetailsScreen(
                 }
                 selectedDate = calendar
                 viewModel.filterByMonth(calendar)
-                savedStateHandle.set(Route.DETAILS_TARGET_DATE_KEY, null)
+                savedStateHandle.set(DetailsRoute.DETAILS_TARGET_DATE_KEY, null)
             }
         }
     }

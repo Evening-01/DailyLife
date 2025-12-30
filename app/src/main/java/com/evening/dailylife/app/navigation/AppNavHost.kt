@@ -9,17 +9,22 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.evening.dailylife.core.ui.navigation.Route
+import com.evening.dailylife.app.navigation.topLevelDestinations
+import com.evening.dailylife.feature.currency.navigation.CurrencyRoute
+import com.evening.dailylife.feature.currency.ui.CurrencyConverterScreen
+import com.evening.dailylife.feature.home.navigation.HomeDestination
 import com.evening.dailylife.feature.home.ui.HomeScreen
+import com.evening.dailylife.feature.me.navigation.MeRoute
 import com.evening.dailylife.feature.me.ui.about.AboutAuthorScreen
 import com.evening.dailylife.feature.me.ui.about.AboutAppScreen
-import com.evening.dailylife.feature.me.ui.settings.quickusage.QuickUsageScreen
 import com.evening.dailylife.feature.me.ui.settings.datamanagement.DataManagementScreen
 import com.evening.dailylife.feature.me.ui.settings.general.GeneralSettingsScreen
+import com.evening.dailylife.feature.me.ui.settings.quickusage.QuickUsageScreen
+import com.evening.dailylife.feature.mortgage.navigation.MortgageRoute
 import com.evening.dailylife.feature.mortgage.ui.MortgageCalculatorScreen
-import com.evening.dailylife.feature.currency.ui.CurrencyConverterScreen
 import com.evening.dailylife.feature.transaction.details.ui.TransactionDetailsScreen
 import com.evening.dailylife.feature.transaction.editor.ui.TransactionEditorScreen
+import com.evening.dailylife.feature.transaction.navigation.TransactionRoute
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -29,20 +34,21 @@ fun AppNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Route.HOME,
+        startDestination = HomeDestination.HOME,
         modifier = modifier
     ) {
-        composable(Route.HOME) {
+        composable(HomeDestination.HOME) {
             HomeScreen(
+                topLevelDestinations = topLevelDestinations,
                 onAddTransactionClick = {
                     // 导航到编辑页面，不带参数表示新建
-                    navController.navigate(Route.addEditTransactionWithId(-1))
+                    navController.navigate(TransactionRoute.addEditTransactionWithId(-1))
                 },
                 appNavController = navController,
             )
         }
         composable(
-            route = Route.ADD_EDIT_TRANSACTION,
+            route = TransactionRoute.ADD_EDIT_TRANSACTION,
             arguments = listOf(
                 navArgument("transactionId") {
                     type = NavType.IntType
@@ -62,32 +68,32 @@ fun AppNavHost(
             TransactionEditorScreen(navController = navController)
         }
         composable(
-            route = Route.TRANSACTION_DETAILS,
+            route = TransactionRoute.TRANSACTION_DETAILS,
             arguments = listOf(navArgument("transactionId") { type = NavType.IntType })
         ) {
             TransactionDetailsScreen(navController = navController)
         }
-        composable(Route.ABOUT_AUTHOR) {
+        composable(MeRoute.ABOUT_AUTHOR) {
             AboutAuthorScreen(navController = navController)
         }
-        composable(Route.ABOUT_APP) {
+        composable(MeRoute.ABOUT_APP) {
             AboutAppScreen(navController = navController)
         }
-        composable(Route.GENERAL_SETTINGS) {
+        composable(MeRoute.GENERAL_SETTINGS) {
             GeneralSettingsScreen(navController = navController)
         }
-        composable(Route.QUICK_USAGE) {
+        composable(MeRoute.QUICK_USAGE) {
             QuickUsageScreen(navController = navController)
         }
-        composable(Route.DATA_MANAGEMENT) {
+        composable(MeRoute.DATA_MANAGEMENT) {
             DataManagementScreen(navController = navController)
         }
-        composable(Route.MORTGAGE_CALCULATOR) {
+        composable(MortgageRoute.MORTGAGE_CALCULATOR) {
             MortgageCalculatorScreen(
                 onBackClick = { navController.popBackStack() },
             )
         }
-        composable(Route.CURRENCY_CONVERTER) {
+        composable(CurrencyRoute.CURRENCY_CONVERTER) {
             CurrencyConverterScreen(
                 onBackClick = { navController.popBackStack() },
             )

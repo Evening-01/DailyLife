@@ -1,7 +1,7 @@
 package com.evening.dailylife.app.main.intent
 
 import android.content.Intent
-import com.evening.dailylife.core.ui.navigation.Route
+import com.evening.dailylife.feature.transaction.navigation.TransactionRoute
 
 object NavigationIntent {
     const val EXTRA_NAVIGATE_ROUTE = "extra_navigate_route"
@@ -18,8 +18,8 @@ object NavigationIntent {
         } else {
             null
         }
-        return if (rawRoute.startsWith(Route.ADD_EDIT_TRANSACTION_PREFIX)) {
-            Route.addNewTransactionShortcut(categoryId, isExpense)
+        return if (rawRoute.startsWith(TransactionRoute.ADD_EDIT_TRANSACTION_PREFIX)) {
+            TransactionRoute.addNewTransactionShortcut(categoryId, isExpense)
         } else {
             rawRoute
         }

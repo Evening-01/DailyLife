@@ -41,7 +41,7 @@ import androidx.glance.unit.ColorProvider
 import com.evening.dailylife.R
 import com.evening.dailylife.app.main.MainActivity
 import com.evening.dailylife.app.main.intent.NavigationIntent
-import com.evening.dailylife.core.ui.navigation.Route
+import com.evening.dailylife.feature.transaction.navigation.TransactionRoute
 import com.evening.dailylife.core.data.repository.TransactionRepository
 import com.evening.dailylife.core.ui.model.TransactionCategoryRepository
 import dagger.hilt.EntryPoint
@@ -559,7 +559,7 @@ private fun quickAddAction(
     isExpense: Boolean,
     categoryId: String?
 ): Action {
-    val route = Route.addNewTransactionShortcut(
+    val route = TransactionRoute.addNewTransactionShortcut(
         categoryId = categoryId,
         isExpense = isExpense
     )

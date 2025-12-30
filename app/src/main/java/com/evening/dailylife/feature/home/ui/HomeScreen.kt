@@ -1,5 +1,7 @@
 package com.evening.dailylife.feature.home.ui
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -24,21 +26,25 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.evening.dailylife.core.ui.navigation.Route
-import com.evening.dailylife.core.ui.navigation.items
 import com.evening.dailylife.core.ui.designsystem.component.AnimatedBottomBarIcon
+import com.evening.dailylife.core.ui.navigation.TopLevelDestination
+import com.evening.dailylife.feature.chart.navigation.ChartRoute
 import com.evening.dailylife.feature.chart.ui.ChartScreen
+import com.evening.dailylife.feature.currency.navigation.CurrencyRoute
+import com.evening.dailylife.feature.details.navigation.DetailsRoute
 import com.evening.dailylife.feature.details.ui.DetailsScreen
+import com.evening.dailylife.feature.discover.navigation.DiscoverRoute
 import com.evening.dailylife.feature.discover.ui.DiscoverScreen
+import com.evening.dailylife.feature.me.navigation.MeRoute
 import com.evening.dailylife.feature.me.ui.MeScreen
-import android.os.Build
-import androidx.annotation.RequiresApi
-
+import com.evening.dailylife.feature.mortgage.navigation.MortgageRoute
+import com.evening.dailylife.feature.transaction.navigation.TransactionRoute
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    topLevelDestinations: List<TopLevelDestination>,
     onAddTransactionClick: () -> Unit,
     appNavController: NavHostController,
 ) {
@@ -51,7 +57,7 @@ fun HomeScreen(
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
-                items.forEach { item ->
+                topLevelDestinations.forEach { item ->
                     val isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true
                     NavigationBarItem(
                         selected = isSelected,
@@ -66,7 +72,7 @@ fun HomeScreen(
                         },
                         icon = {
                             AnimatedBottomBarIcon(
-                                screen = item,
+                                imageVector = item.icon,
                                 isSelected = isSelected,
                             )
                         },
@@ -106,47 +112,47 @@ private fun HomeNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Route.DETAILS,
+        startDestination = DetailsRoute.DETAILS,
         modifier = modifier
     ) {
-        composable(Route.DETAILS) {
+        composable(DetailsRoute.DETAILS) {
             DetailsScreen(
                 appNavController = appNavController,
                 onTransactionClick = { transactionId ->
-                    appNavController.navigate(Route.transactionDetails(transactionId))
+                    appNavController.navigate(TransactionRoute.transactionDetails(transactionId))
                 },
                 onAddTransactionClick = onAddTransactionClick,
             )
         }
-        composable(Route.CHART) {
+        composable(ChartRoute.CHART) {
             ChartScreen()
         }
-        composable(Route.DISCOVER) {
+        composable(DiscoverRoute.DISCOVER) {
             DiscoverScreen(
                 onMortgageCalculatorClick = {
-                    appNavController.navigate(Route.MORTGAGE_CALCULATOR)
+                    appNavController.navigate(MortgageRoute.MORTGAGE_CALCULATOR)
                 },
                 onCurrencyConverterClick = {
-                    appNavController.navigate(Route.CURRENCY_CONVERTER)
+                    appNavController.navigate(CurrencyRoute.CURRENCY_CONVERTER)
                 },
             )
         }
-        composable(Route.ME) {
+        composable(MeRoute.ME) {
             MeScreen(
                 onAboutAuthorClick = {
-                    navController.navigateFromMe(appNavController, Route.ABOUT_AUTHOR)
+                    navController.navigateFromMe(appNavController, MeRoute.ABOUT_AUTHOR)
                 },
                 onGeneralSettingsClick = {
-                    navController.navigateFromMe(appNavController, Route.GENERAL_SETTINGS)
+                    navController.navigateFromMe(appNavController, MeRoute.GENERAL_SETTINGS)
                 },
                 onQuickUsageClick = {
-                    navController.navigateFromMe(appNavController, Route.QUICK_USAGE)
+                    navController.navigateFromMe(appNavController, MeRoute.QUICK_USAGE)
                 },
                 onDataManagementClick = {
-                    navController.navigateFromMe(appNavController, Route.DATA_MANAGEMENT)
+                    navController.navigateFromMe(appNavController, MeRoute.DATA_MANAGEMENT)
                 },
                 onMoreInfoClick = {
-                    navController.navigateFromMe(appNavController, Route.ABOUT_APP)
+                    navController.navigateFromMe(appNavController, MeRoute.ABOUT_APP)
                 },
             )
         }
@@ -157,7 +163,7 @@ private fun NavHostController.navigateFromMe(
     appNavController: NavHostController,
     destinationRoute: String,
 ) {
-    val isOnMeTab = currentBackStackEntry?.destination?.route == Route.ME
+    val isOnMeTab = currentBackStackEntry?.destination?.route == MeRoute.ME
     if (!isOnMeTab) {
         return
     }

@@ -6,12 +6,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import com.evening.dailylife.core.ui.navigation.Screen
+import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
 fun AnimatedBottomBarIcon(
-    screen: Screen,
-    isSelected: Boolean
+    imageVector: ImageVector,
+    isSelected: Boolean,
+    contentDescription: String? = null
 ) {
     val targetScale = if (isSelected) 1.08f else 1f
     val targetAlpha = if (isSelected) 1f else 0.72f
@@ -27,8 +28,8 @@ fun AnimatedBottomBarIcon(
     )
 
     Icon(
-        imageVector = screen.icon,
-        contentDescription = null,
+        imageVector = imageVector,
+        contentDescription = contentDescription,
         modifier = Modifier.graphicsLayer {
             scaleX = scale
             scaleY = scale

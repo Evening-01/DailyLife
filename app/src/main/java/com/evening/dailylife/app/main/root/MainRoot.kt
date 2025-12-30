@@ -6,13 +6,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.rememberNavController
-import com.evening.dailylife.core.ui.navigation.Route
 import com.evening.dailylife.core.ui.biometric.BiometricOverlayHost
 import com.evening.dailylife.app.main.edge.EdgeToEdgeEffect
 import com.evening.dailylife.app.main.viewmodel.MainViewModel
 import com.evening.dailylife.core.ui.designsystem.theme.DailyTheme
 import com.evening.dailylife.core.data.preferences.ThemeMode
 import com.evening.dailylife.core.security.biometric.BiometricLockManager
+import com.evening.dailylife.feature.home.navigation.HomeDestination
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -47,7 +47,7 @@ fun MainRoot(
             viewModel.navigationRequests.collectLatest { command ->
                 if (command.clearBackStack) {
                     navController.popBackStack(
-                        route = Route.HOME,
+                        route = HomeDestination.HOME,
                         inclusive = false,
                         saveState = false,
                     )

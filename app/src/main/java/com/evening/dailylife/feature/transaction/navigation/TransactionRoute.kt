@@ -1,19 +1,6 @@
-package com.evening.dailylife.core.ui.navigation
+package com.evening.dailylife.feature.transaction.navigation
 
-object Route {
-    const val HOME = "home"
-    const val DETAILS = "details"
-    const val CHART = "chart"
-    const val DISCOVER = "discover"
-    const val ME = "me"
-    const val ABOUT_AUTHOR = "about_author"
-    const val GENERAL_SETTINGS = "general_settings"
-    const val QUICK_USAGE = "quick_usage"
-    const val ABOUT_APP = "about_app"
-    const val MORTGAGE_CALCULATOR = "mortgage_calculator"
-    const val CURRENCY_CONVERTER = "currency_converter"
-    const val DATA_MANAGEMENT = "data_management"
-
+object TransactionRoute {
     private const val ADD_EDIT_TRANSACTION_ROUTE = "add_edit_transaction"
     const val ADD_EDIT_TRANSACTION_PREFIX = ADD_EDIT_TRANSACTION_ROUTE
     const val ADD_EDIT_TRANSACTION =
@@ -22,7 +9,6 @@ object Route {
     private const val TRANSACTION_DETAILS_BASE = "transaction_details"
     const val TRANSACTION_DETAILS = "$TRANSACTION_DETAILS_BASE/{transactionId}"
     const val TRANSACTION_DETAILS_PREFIX = TRANSACTION_DETAILS_BASE
-    const val DETAILS_TARGET_DATE_KEY = "details_target_date"
 
     fun transactionDetails(transactionId: Int) = "$TRANSACTION_DETAILS_BASE/$transactionId"
 

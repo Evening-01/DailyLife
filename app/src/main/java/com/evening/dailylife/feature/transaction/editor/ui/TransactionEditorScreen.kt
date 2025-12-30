@@ -43,8 +43,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.evening.dailylife.R
-import com.evening.dailylife.core.ui.navigation.Route
 import com.evening.dailylife.core.ui.model.TransactionCategoryRepository
+import com.evening.dailylife.feature.details.navigation.DetailsRoute
+import com.evening.dailylife.feature.home.navigation.HomeDestination
+import com.evening.dailylife.feature.transaction.navigation.TransactionRoute
 import com.evening.dailylife.feature.transaction.editor.ui.component.CalculatorPad
 import com.evening.dailylife.feature.transaction.editor.ui.component.MoodSelector
 import com.evening.dailylife.feature.transaction.editor.ui.component.RemarkAmountCard
@@ -76,27 +78,27 @@ fun TransactionEditorScreen(
                     val savedAt = event.savedAt
                     navController.previousBackStackEntry?.let { backStackEntry ->
                         val route = backStackEntry.destination.route
-                        val shouldPropagate = route == Route.HOME ||
-                            route?.startsWith(Route.TRANSACTION_DETAILS_PREFIX) == true
+                        val shouldPropagate = route == HomeDestination.HOME ||
+                            route?.startsWith(TransactionRoute.TRANSACTION_DETAILS_PREFIX) == true
                         if (shouldPropagate) {
                             backStackEntry.savedStateHandle.set(
-                                Route.DETAILS_TARGET_DATE_KEY,
+                                DetailsRoute.DETAILS_TARGET_DATE_KEY,
                                 savedAt
                             )
                         }
                     }
-                    runCatching { navController.getBackStackEntry(Route.HOME) }
+                    runCatching { navController.getBackStackEntry(HomeDestination.HOME) }
                         .getOrNull()
                         ?.savedStateHandle
-                        ?.set(Route.DETAILS_TARGET_DATE_KEY, savedAt)
+                        ?.set(DetailsRoute.DETAILS_TARGET_DATE_KEY, savedAt)
 
                     val popped = navController.popBackStack()
                     if (popped) {
                         val currentRoute = navController.currentBackStackEntry?.destination?.route
-                        val isTransactionDetailsRoute = currentRoute?.startsWith(Route.TRANSACTION_DETAILS_PREFIX) == true
+                        val isTransactionDetailsRoute = currentRoute?.startsWith(TransactionRoute.TRANSACTION_DETAILS_PREFIX) == true
                         if (isTransactionDetailsRoute) {
                             navController.currentBackStackEntry?.savedStateHandle?.set(
-                                Route.DETAILS_TARGET_DATE_KEY,
+                                DetailsRoute.DETAILS_TARGET_DATE_KEY,
                                 savedAt
                             )
                             navController.popBackStack()

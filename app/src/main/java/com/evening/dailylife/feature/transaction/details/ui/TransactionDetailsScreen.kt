@@ -29,9 +29,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.evening.dailylife.R
-import com.evening.dailylife.core.ui.navigation.Route
 import com.evening.dailylife.core.ui.model.TransactionCategoryRepository
 import com.evening.dailylife.feature.transaction.details.ui.component.TransactionDetailsContent
+import com.evening.dailylife.feature.transaction.navigation.TransactionRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +91,7 @@ fun TransactionDetailsScreen(
                         },
                         onEdit = {
                             navController.navigate(
-                                Route.addEditTransactionWithId(transaction.id),
+                                TransactionRoute.addEditTransactionWithId(transaction.id),
                             )
                         },
                         iconVector = iconVector,
