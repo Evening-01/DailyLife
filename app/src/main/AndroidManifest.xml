@@ -70,11 +70,11 @@
         </receiver>
 
         <receiver
-            android:name=".feature.me.settings.quickusage.scheduler.receiver.QuickUsageReminderReceiver"
+            android:name=".feature.me.ui.settings.quickusage.scheduler.receiver.QuickUsageReminderReceiver"
             android:exported="false" />
 
         <receiver
-            android:name=".feature.me.settings.quickusage.scheduler.receiver.QuickUsageReminderBootReceiver"
+            android:name=".feature.me.ui.settings.quickusage.scheduler.receiver.QuickUsageReminderBootReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

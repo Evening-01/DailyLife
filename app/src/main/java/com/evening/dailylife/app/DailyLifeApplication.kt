@@ -4,8 +4,8 @@ import android.app.Application
 import android.content.Context
 import com.evening.dailylife.core.domain.language.LanguageUseCase
 import com.evening.dailylife.app.widget.TransactionWidgetUpdater
-import com.evening.dailylife.core.util.readPersistedLanguageCode
-import com.evening.dailylife.core.util.wrapContextWithLanguage
+import com.evening.dailylife.core.common.readPersistedLanguageCode
+import com.evening.dailylife.core.common.wrapContextWithLanguage
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 

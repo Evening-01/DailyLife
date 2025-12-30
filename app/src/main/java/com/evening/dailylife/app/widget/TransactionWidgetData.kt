@@ -2,9 +2,9 @@ package com.evening.dailylife.app.widget
 
 import androidx.annotation.VisibleForTesting
 import com.evening.dailylife.core.data.local.entity.TransactionEntity
-import com.evening.dailylife.core.model.CategoryFlow
-import com.evening.dailylife.core.model.TransactionCategoryRepository
-import com.evening.dailylife.core.model.TransactionCategoryType
+import com.evening.dailylife.core.ui.model.CategoryFlow
+import com.evening.dailylife.core.ui.model.TransactionCategoryRepository
+import com.evening.dailylife.core.ui.model.TransactionCategoryType
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId

@@ -9,23 +9,23 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.evening.dailylife.feature.home.HomeScreen
-import com.evening.dailylife.feature.me.about.AboutAuthorScreen
-import com.evening.dailylife.feature.me.about.AboutAppScreen
-import com.evening.dailylife.feature.me.settings.quickusage.QuickUsageScreen
-import com.evening.dailylife.feature.me.settings.datamanagement.DataManagementScreen
-import com.evening.dailylife.feature.me.settings.general.GeneralSettingsScreen
-import com.evening.dailylife.feature.mortgage.MortgageCalculatorScreen
-import com.evening.dailylife.feature.currency.CurrencyConverterScreen
-import com.evening.dailylife.feature.transaction.details.TransactionDetailsScreen
-import com.evening.dailylife.feature.transaction.editor.TransactionEditorScreen
+import com.evening.dailylife.core.ui.navigation.Route
+import com.evening.dailylife.feature.home.ui.HomeScreen
+import com.evening.dailylife.feature.me.ui.about.AboutAuthorScreen
+import com.evening.dailylife.feature.me.ui.about.AboutAppScreen
+import com.evening.dailylife.feature.me.ui.settings.quickusage.QuickUsageScreen
+import com.evening.dailylife.feature.me.ui.settings.datamanagement.DataManagementScreen
+import com.evening.dailylife.feature.me.ui.settings.general.GeneralSettingsScreen
+import com.evening.dailylife.feature.mortgage.ui.MortgageCalculatorScreen
+import com.evening.dailylife.feature.currency.ui.CurrencyConverterScreen
+import com.evening.dailylife.feature.transaction.details.ui.TransactionDetailsScreen
+import com.evening.dailylife.feature.transaction.editor.ui.TransactionEditorScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    onBiometricPromptVisibilityChange: (Boolean) -> Unit = {},
 ) {
     NavHost(
         navController = navController,
@@ -39,7 +39,6 @@ fun AppNavHost(
                     navController.navigate(Route.addEditTransactionWithId(-1))
                 },
                 appNavController = navController,
-                onBiometricPromptVisibilityChange = onBiometricPromptVisibilityChange,
             )
         }
         composable(

@@ -40,9 +40,10 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.evening.dailylife.R
 import com.evening.dailylife.app.main.MainActivity
-import com.evening.dailylife.app.navigation.Route
+import com.evening.dailylife.app.main.intent.NavigationIntent
+import com.evening.dailylife.core.ui.navigation.Route
 import com.evening.dailylife.core.data.repository.TransactionRepository
-import com.evening.dailylife.core.model.TransactionCategoryRepository
+import com.evening.dailylife.core.ui.model.TransactionCategoryRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -564,9 +565,9 @@ private fun quickAddAction(
     )
     return actionStartActivity(
         Intent(context, MainActivity::class.java).apply {
-            putExtra(MainActivity.EXTRA_NAVIGATE_ROUTE, route)
-            putExtra(MainActivity.EXTRA_WIDGET_IS_EXPENSE, isExpense)
-            putExtra(MainActivity.EXTRA_WIDGET_CATEGORY_ID, categoryId)
+            putExtra(NavigationIntent.EXTRA_NAVIGATE_ROUTE, route)
+            putExtra(NavigationIntent.EXTRA_WIDGET_IS_EXPENSE, isExpense)
+            putExtra(NavigationIntent.EXTRA_WIDGET_CATEGORY_ID, categoryId)
         }
     )
 }

@@ -5,7 +5,7 @@ import com.evening.dailylife.core.data.analytics.TransactionAnalyticsRepository
 import com.evening.dailylife.core.data.local.dao.TransactionDao
 import com.evening.dailylife.core.data.local.database.AppDatabase
 import com.evening.dailylife.core.data.repository.TransactionRepository
-import com.evening.dailylife.core.util.StringProvider
+import com.evening.dailylife.core.common.StringProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

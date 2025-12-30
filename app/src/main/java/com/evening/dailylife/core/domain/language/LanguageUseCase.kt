@@ -2,7 +2,7 @@ package com.evening.dailylife.core.domain.language
 
 import android.content.Context
 import com.evening.dailylife.core.data.preferences.LanguagePreferencesRepository
-import com.evening.dailylife.core.util.changePlatformLanguage
+import com.evening.dailylife.core.common.changePlatformLanguage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Locale
 import javax.inject.Inject

@@ -1,5 +1,13 @@
 package com.evening.dailylife.feature.chart.model
 
+import com.evening.dailylife.core.domain.chart.model.ChartCategoryRank
+import com.evening.dailylife.core.domain.chart.model.ChartEntry
+import com.evening.dailylife.core.domain.chart.model.ChartPeriod
+import com.evening.dailylife.core.domain.chart.model.ChartRangeOption
+import com.evening.dailylife.core.domain.chart.model.ChartType
+import com.evening.dailylife.core.domain.chart.model.MoodChartEntry
+import com.evening.dailylife.core.ui.model.ChartContentStatus
+
 data class ChartUiState(
     val selectedType: ChartType = ChartType.Expense,
     val selectedPeriod: ChartPeriod = ChartPeriod.Week,
@@ -12,9 +20,3 @@ data class ChartUiState(
     val moodEntries: List<MoodChartEntry> = emptyList(),
     val contentStatus: ChartContentStatus = ChartContentStatus.Loading,
 )
-
-enum class ChartContentStatus {
-    Loading,
-    Content,
-    Empty,
-}
